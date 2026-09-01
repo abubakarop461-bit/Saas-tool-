@@ -11,7 +11,8 @@ import {
   Building, 
   Calculator, 
   FileText,
-  DollarSign
+  DollarSign,
+  MessageSquare
 } from 'lucide-react';
 import { formatCurrency, formatPriceShort } from '@/lib/formatters';
 
@@ -77,26 +78,27 @@ export function CostSheetModal({
   };
 
   const handleWhatsAppShare = () => {
-    const text = `*OFFICIAL COST SHEET ESTIMATE*
-*Project:* ${unit.project_title}
-*Unit:* ${unit.unit_number} (Tower ${unit.tower}, Floor ${unit.floor})
-*Configuration:* ${unit.configuration} (${unit.carpet_area} sq ft)
-*Client:* ${clientName}
+    const text = `LUXE REALTY PUNE - OFFICIAL COST SHEET ESTIMATE
+
+Project: ${unit.project_title}
+Unit: ${unit.unit_number} (Tower ${unit.tower}, Floor ${unit.floor})
+Configuration: ${unit.configuration} (${unit.carpet_area} sq ft)
+Client: ${clientName}
 
 ────────────────────────
-• *Base Price:* ₹${(basePrice / 100000).toFixed(2)} L
-• *Floor Rise:* ₹${(floorRise / 100000).toFixed(2)} L
-• *Car Parking:* ₹${(parking / 100000).toFixed(2)} L
-• *Amenities & Club:* ₹${(amenities / 100000).toFixed(2)} L
-• *Other Charges:* ₹${(otherCharges / 100000).toFixed(2)} L
+• Base Price: ₹${(basePrice / 100000).toFixed(2)} L
+• Floor Rise: ₹${(floorRise / 100000).toFixed(2)} L
+• Car Parking: ₹${(parking / 100000).toFixed(2)} L
+• Amenities & Club: ₹${(amenities / 100000).toFixed(2)} L
+• Other Charges: ₹${(otherCharges / 100000).toFixed(2)} L
 ────────────────────────
-*Agreement Value:* ₹${(agreementValue / 10000000).toFixed(2)} Cr
-• *GST (${gstPercent}%):* ₹${(gstAmount / 100000).toFixed(2)} L
-• *Stamp Duty (${stampDutyPercent}%):* ₹${(stampDutyAmount / 100000).toFixed(2)} L
-• *Registration:* ₹${registration.toLocaleString('en-IN')}
+Agreement Value: ₹${(agreementValue / 10000000).toFixed(2)} Cr
+• GST (${gstPercent}%): ₹${(gstAmount / 100000).toFixed(2)} L
+• Stamp Duty (${stampDutyPercent}%): ₹${(stampDutyAmount / 100000).toFixed(2)} L
+• Registration: ₹${registration.toLocaleString('en-IN')}
 ────────────────────────
-*TOTAL ALL-INCLUSIVE:* ₹${(totalAllInclusive / 10000000).toFixed(2)} Cr
-*(₹${totalAllInclusive.toLocaleString('en-IN')})*
+TOTAL ALL-INCLUSIVE: ₹${(totalAllInclusive / 10000000).toFixed(2)} Cr
+(₹${totalAllInclusive.toLocaleString('en-IN')})
 
 Generated via Luxe Realty ERP`;
 
@@ -127,216 +129,192 @@ Generated via Luxe Realty ERP`;
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-zinc-200 overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-xs animate-in fade-in duration-150">
+      <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-xl border border-[#e8e7e4] overflow-hidden flex flex-col max-h-[90vh]">
         
-        {/* Header */}
-        <div className="px-6 py-4 bg-zinc-900 text-white flex items-center justify-between border-b border-zinc-800">
+        {/* Editorial Porcelain Header */}
+        <div className="px-6 py-4 bg-[#fafaf8] border-b border-[#ebebeb] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-[#d4ad4d]/20 border border-[#d4ad4d]/40 flex items-center justify-center text-[#d4ad4d]">
-              <Calculator className="h-5 w-5" />
+            <div className="h-9 w-9 rounded-xl bg-[#d4ad4d]/15 border border-[#d4ad4d]/30 flex items-center justify-center text-[#99771f]">
+              <Calculator className="h-4 w-4" />
             </div>
             <div>
-              <h3 className="font-bold text-base text-white flex items-center gap-2">
-                Smart Cost Sheet Generator
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#d4ad4d] text-zinc-950 font-black uppercase">
+              <div className="flex items-center gap-2">
+                <h3 className="font-extrabold text-sm text-zinc-900">
+                  Smart Cost Sheet Generator
+                </h3>
+                <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#d4ad4d] text-white font-extrabold uppercase">
                   Live Quotation
                 </span>
-              </h3>
-              <p className="text-xs text-zinc-400">
-                {unit.project_title} • Unit {unit.unit_number} (Tower {unit.tower}, Floor {unit.floor})
+              </div>
+              <p className="text-[11px] text-zinc-400 font-medium">
+                {unit.project_title} • Unit #{unit.unit_number} (Tower {unit.tower}, Floor {unit.floor})
               </p>
             </div>
           </div>
+
           <button 
-            onClick={onClose} 
-            className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+            type="button"
+            onClick={onClose}
+            className="text-zinc-400 hover:text-zinc-700 p-1 rounded-lg transition-colors"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Scrollable Content */}
-        <div className="p-6 overflow-y-auto space-y-6 text-zinc-900">
+        {/* Modal Body */}
+        <div className="p-6 overflow-y-auto space-y-5 text-xs text-zinc-800">
           
-          {/* Unit Overview Banner */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-zinc-50 rounded-xl border border-zinc-200">
+          {/* Quick Specs Pill */}
+          <div className="grid grid-cols-4 gap-2 p-3 bg-[#fafaf8] border border-[#ebebeb] rounded-xl text-center">
             <div>
-              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Client Name</span>
-              <span className="text-xs font-bold text-zinc-900">{clientName}</span>
+              <span className="text-[9px] font-bold text-zinc-400 uppercase block">Configuration</span>
+              <span className="font-extrabold text-zinc-900">{unit.configuration}</span>
             </div>
             <div>
-              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Configuration</span>
-              <span className="text-xs font-bold text-zinc-900">{unit.configuration}</span>
+              <span className="text-[9px] font-bold text-zinc-400 uppercase block">Carpet Area</span>
+              <span className="font-extrabold text-zinc-900">{unit.carpet_area} sq ft</span>
             </div>
             <div>
-              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Carpet Area</span>
-              <span className="text-xs font-bold text-zinc-900">{unit.carpet_area} sq ft</span>
+              <span className="text-[9px] font-bold text-zinc-400 uppercase block">Base Price</span>
+              <span className="font-extrabold text-[#b8922e]">{formatPriceShort(basePrice)}</span>
             </div>
             <div>
-              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Unit No.</span>
-              <span className="text-xs font-black text-[#b38f2d]">{unit.unit_number}</span>
+              <span className="text-[9px] font-bold text-zinc-400 uppercase block">Client Name</span>
+              <span className="font-bold text-zinc-800 truncate block">{clientName}</span>
             </div>
           </div>
 
-          {/* Section A: Agreement Components */}
+          {/* Breakdown Form */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-500 flex items-center justify-between">
-              <span>1. Agreement Value Breakdown</span>
-              <span className="text-[#b38f2d] font-bold">₹{agreementValue.toLocaleString('en-IN')}</span>
+            <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+              Itemized Cost Breakdown & Surcharges
             </h4>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div className="p-3 bg-zinc-50/70 border border-zinc-200 rounded-xl space-y-1">
-                <label className="text-[10px] font-bold text-zinc-500 uppercase block">Base Price (₹)</label>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between p-2.5 rounded-lg bg-zinc-50 border border-zinc-200">
+                <span className="font-bold text-zinc-700">Base Unit Value</span>
                 <input 
                   type="number" 
                   value={basePrice}
                   onChange={(e) => setBasePrice(Number(e.target.value))}
-                  className="w-full bg-white border border-zinc-300 rounded-lg px-2.5 py-1.5 font-bold text-zinc-900 focus:ring-1 focus:ring-[#d4ad4d]"
+                  className="w-36 h-7 text-right font-bold bg-white border border-[#e8e7e4] rounded px-2 text-xs text-zinc-900"
                 />
               </div>
 
-              <div className="p-3 bg-zinc-50/70 border border-zinc-200 rounded-xl space-y-1">
-                <label className="text-[10px] font-bold text-zinc-500 uppercase block">Floor Rise (₹)</label>
+              <div className="flex items-center justify-between p-2.5 rounded-lg bg-zinc-50 border border-zinc-200">
+                <span className="font-bold text-zinc-700">Floor Rise Charges</span>
                 <input 
                   type="number" 
                   value={floorRise}
                   onChange={(e) => setFloorRise(Number(e.target.value))}
-                  className="w-full bg-white border border-zinc-300 rounded-lg px-2.5 py-1.5 font-bold text-zinc-900 focus:ring-1 focus:ring-[#d4ad4d]"
+                  className="w-36 h-7 text-right font-bold bg-white border border-[#e8e7e4] rounded px-2 text-xs text-zinc-900"
                 />
               </div>
 
-              <div className="p-3 bg-zinc-50/70 border border-zinc-200 rounded-xl space-y-1">
-                <label className="text-[10px] font-bold text-zinc-500 uppercase block">Covered Car Parking (₹)</label>
+              <div className="flex items-center justify-between p-2.5 rounded-lg bg-zinc-50 border border-zinc-200">
+                <span className="font-bold text-zinc-700">Covered Car Parking (1 Bay)</span>
                 <input 
                   type="number" 
                   value={parking}
                   onChange={(e) => setParking(Number(e.target.value))}
-                  className="w-full bg-white border border-zinc-300 rounded-lg px-2.5 py-1.5 font-bold text-zinc-900 focus:ring-1 focus:ring-[#d4ad4d]"
+                  className="w-36 h-7 text-right font-bold bg-white border border-[#e8e7e4] rounded px-2 text-xs text-zinc-900"
                 />
               </div>
 
-              <div className="p-3 bg-zinc-50/70 border border-zinc-200 rounded-xl space-y-1">
-                <label className="text-[10px] font-bold text-zinc-500 uppercase block">Amenities & Club (₹)</label>
+              <div className="flex items-center justify-between p-2.5 rounded-lg bg-zinc-50 border border-zinc-200">
+                <span className="font-bold text-zinc-700">Clubhouse & Amenities Development</span>
                 <input 
                   type="number" 
                   value={amenities}
                   onChange={(e) => setAmenities(Number(e.target.value))}
-                  className="w-full bg-white border border-zinc-300 rounded-lg px-2.5 py-1.5 font-bold text-zinc-900 focus:ring-1 focus:ring-[#d4ad4d]"
+                  className="w-36 h-7 text-right font-bold bg-white border border-[#e8e7e4] rounded px-2 text-xs text-zinc-900"
                 />
               </div>
 
-              <div className="p-3 bg-zinc-50/70 border border-zinc-200 rounded-xl space-y-1 sm:col-span-2">
-                <label className="text-[10px] font-bold text-zinc-500 uppercase block">Infra & Other Charges (₹)</label>
+              <div className="flex items-center justify-between p-2.5 rounded-lg bg-zinc-50 border border-zinc-200">
+                <span className="font-bold text-zinc-700">Legal, Infrastructure & Other Charges</span>
                 <input 
                   type="number" 
                   value={otherCharges}
                   onChange={(e) => setOtherCharges(Number(e.target.value))}
-                  className="w-full bg-white border border-zinc-300 rounded-lg px-2.5 py-1.5 font-bold text-zinc-900 focus:ring-1 focus:ring-[#d4ad4d]"
+                  className="w-36 h-7 text-right font-bold bg-white border border-[#e8e7e4] rounded px-2 text-xs text-zinc-900"
                 />
               </div>
             </div>
-          </div>
 
-          {/* Section B: Statutory Taxes & Government Duties */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-500 flex items-center justify-between">
-              <span>2. Government Taxes & Duties</span>
-              <span className="text-zinc-700 font-bold">₹{(gstAmount + stampDutyAmount + registration).toLocaleString('en-IN')}</span>
+            {/* Subtotal Agreement Value */}
+            <div className="flex items-center justify-between p-3 rounded-xl bg-[#fafaf8] border border-[#ebebeb] font-extrabold text-xs">
+              <span className="text-zinc-900">Total Agreement Value (A)</span>
+              <span className="text-base text-zinc-900">{formatCurrency(agreementValue)}</span>
+            </div>
+
+            {/* Statutory Taxes & Duties */}
+            <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider pt-2">
+              Government Statutory Taxes & Registration
             </h4>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-              <div className="p-3 bg-zinc-50/70 border border-zinc-200 rounded-xl space-y-1">
-                <div className="flex items-center justify-between">
-                  <label className="text-[10px] font-bold text-zinc-500 uppercase">GST ({gstPercent}%)</label>
-                  <span className="text-[10px] font-bold text-zinc-700">₹{gstAmount.toLocaleString('en-IN')}</span>
-                </div>
-                <input 
-                  type="number" 
-                  step="0.1"
-                  value={gstPercent}
-                  onChange={(e) => setGstPercent(Number(e.target.value))}
-                  className="w-full bg-white border border-zinc-300 rounded-lg px-2 py-1 font-semibold text-zinc-900"
-                />
+            <div className="space-y-2">
+              <div className="flex items-center justify-between p-2.5 rounded-lg bg-zinc-50 border border-zinc-200">
+                <span className="font-medium text-zinc-700">GST ({gstPercent}%)</span>
+                <span className="font-bold text-zinc-900">{formatCurrency(gstAmount)}</span>
               </div>
 
-              <div className="p-3 bg-zinc-50/70 border border-zinc-200 rounded-xl space-y-1">
-                <div className="flex items-center justify-between">
-                  <label className="text-[10px] font-bold text-zinc-500 uppercase">Stamp Duty ({stampDutyPercent}%)</label>
-                  <span className="text-[10px] font-bold text-zinc-700">₹{stampDutyAmount.toLocaleString('en-IN')}</span>
-                </div>
-                <input 
-                  type="number" 
-                  step="0.1"
-                  value={stampDutyPercent}
-                  onChange={(e) => setStampDutyPercent(Number(e.target.value))}
-                  className="w-full bg-white border border-zinc-300 rounded-lg px-2 py-1 font-semibold text-zinc-900"
-                />
+              <div className="flex items-center justify-between p-2.5 rounded-lg bg-zinc-50 border border-zinc-200">
+                <span className="font-medium text-zinc-700">Stamp Duty ({stampDutyPercent}%)</span>
+                <span className="font-bold text-zinc-900">{formatCurrency(stampDutyAmount)}</span>
               </div>
 
-              <div className="p-3 bg-zinc-50/70 border border-zinc-200 rounded-xl space-y-1">
-                <div className="flex items-center justify-between">
-                  <label className="text-[10px] font-bold text-zinc-500 uppercase">Registration</label>
-                  <span className="text-[10px] font-bold text-zinc-700">₹{registration.toLocaleString('en-IN')}</span>
-                </div>
-                <input 
-                  type="number" 
-                  value={registration}
-                  onChange={(e) => setRegistration(Number(e.target.value))}
-                  className="w-full bg-white border border-zinc-300 rounded-lg px-2 py-1 font-semibold text-zinc-900"
-                />
+              <div className="flex items-center justify-between p-2.5 rounded-lg bg-zinc-50 border border-zinc-200">
+                <span className="font-medium text-zinc-700">Government Registration Charges</span>
+                <span className="font-bold text-zinc-900">{formatCurrency(registration)}</span>
               </div>
+            </div>
+
+            {/* Total Grand All-Inclusive Package */}
+            <div className="p-4 rounded-xl bg-zinc-900 text-white flex items-center justify-between shadow-sm">
+              <div>
+                <span className="text-[10px] font-bold text-[#d4ad4d] uppercase tracking-wider block">
+                  Grand Total All-Inclusive (A + Taxes)
+                </span>
+                <span className="text-lg font-black text-white">
+                  {formatPriceShort(totalAllInclusive)}
+                </span>
+              </div>
+              <span className="text-xs font-medium text-zinc-300">
+                {formatCurrency(totalAllInclusive)}
+              </span>
             </div>
           </div>
-
-          {/* Section C: Grand Total Card */}
-          <div className="p-5 bg-gradient-to-r from-zinc-900 to-zinc-950 text-white rounded-2xl border border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <span className="text-[10px] font-bold text-[#d4ad4d] uppercase tracking-widest block">Total All-Inclusive Package</span>
-              <p className="text-2xl sm:text-3xl font-black text-white">
-                ₹{totalAllInclusive.toLocaleString('en-IN')}
-              </p>
-              <p className="text-xs text-zinc-400 mt-0.5">
-                ≈ ₹{(totalAllInclusive / 10000000).toFixed(2)} Crores (All taxes & registration included)
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button 
-                onClick={handlePrint}
-                className="px-3.5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-bold text-white flex items-center gap-1.5 transition-colors"
-              >
-                <Printer className="h-4 w-4" /> Print PDF
-              </button>
-            </div>
-          </div>
-
         </div>
 
-        {/* Modal Footer Actions */}
-        <div className="px-6 py-4 bg-zinc-50 border-t border-zinc-200 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleWhatsAppShare}
-              className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-2 transition-colors shadow-sm"
-            >
-              <Share2 className="h-4 w-4" /> Send to WhatsApp
-            </button>
-          </div>
+        {/* Modal Footer with Direction C Actions */}
+        <div className="px-6 py-3.5 bg-[#fafaf8] border-t border-[#ebebeb] flex items-center justify-between">
+          <button
+            type="button"
+            onClick={handlePrint}
+            className="dc-btn font-semibold flex items-center gap-1.5"
+          >
+            <Printer className="h-3.5 w-3.5 text-zinc-500" />
+            Print PDF
+          </button>
 
           <div className="flex items-center gap-2">
             <button
-              onClick={onClose}
-              className="px-4 py-2.5 rounded-xl border border-zinc-200 text-zinc-600 hover:bg-zinc-100 text-xs font-bold transition-colors"
+              type="button"
+              onClick={handleWhatsAppShare}
+              className="dc-btn font-semibold flex items-center gap-1.5 text-emerald-800 border-emerald-200 bg-emerald-50 hover:bg-emerald-100"
             >
-              Close
+              <MessageSquare className="h-3.5 w-3.5 text-emerald-600" />
+              WhatsApp Pitch
             </button>
+
             <button
+              type="button"
               onClick={handleSave}
-              className="px-4 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-[#d4ad4d] text-xs font-bold flex items-center gap-2 transition-colors shadow-md"
+              className="dc-btn gold font-bold flex items-center gap-1.5"
             >
-              {copied ? <CheckCircle2 className="h-4 w-4 text-emerald-400" /> : <FileText className="h-4 w-4" />}
+              <CheckCircle2 className="h-3.5 w-3.5" />
               {copied ? 'Saved to Deal!' : 'Save to Deal'}
             </button>
           </div>

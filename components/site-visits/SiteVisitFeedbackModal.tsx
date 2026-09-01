@@ -14,6 +14,7 @@ import {
   Sparkles,
   Building
 } from 'lucide-react';
+import { formatCurrency, formatPriceShort } from '@/lib/formatters';
 
 interface SiteVisitFeedbackModalProps {
   isOpen: boolean;
@@ -72,8 +73,7 @@ export function SiteVisitFeedbackModal({
         verifiedBudget: Number(verifiedBudget),
         purchaseTimeline,
         nextAction,
-        detailedNotes,
-        completedAt: new Date().toISOString()
+        detailedNotes
       });
     }
     setSavedSuccess(true);
@@ -83,216 +83,205 @@ export function SiteVisitFeedbackModal({
     }, 1200);
   };
 
+  const ALL_FEATURES = ['Location', 'Layout', 'Amenities', 'Floor Rise View', 'Pricing', 'Vastu', 'Brand Name'];
+  const ALL_CONCERNS = ['Price per sqft', 'Possession Timeline', 'High Maintenance', 'Road Noise', 'Floor Plan Layout'];
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-zinc-200 overflow-hidden text-zinc-900 flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-xs animate-in fade-in duration-150">
+      <div className="relative w-full max-w-xl bg-white rounded-2xl shadow-xl border border-[#e8e7e4] overflow-hidden text-zinc-900 flex flex-col max-h-[90vh]">
         
-        {/* Header */}
-        <div className="px-6 py-4 bg-zinc-900 text-white flex items-center justify-between border-b border-zinc-800">
+        {/* Editorial Porcelain Header */}
+        <div className="px-6 py-4 bg-[#fafaf8] border-b border-[#ebebeb] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-[#d4ad4d]/20 border border-[#d4ad4d]/40 flex items-center justify-center text-[#d4ad4d]">
-              <Calendar className="h-5 w-5" />
+            <div className="h-9 w-9 rounded-xl bg-[#d4ad4d]/15 border border-[#d4ad4d]/30 flex items-center justify-center text-[#99771f]">
+              <Sparkles className="h-4 w-4" />
             </div>
             <div>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#d4ad4d] text-zinc-950 font-black uppercase">
-                Post-Visit Intelligence
-              </span>
-              <h3 className="font-bold text-sm text-white mt-0.5">
-                Site Visit Completed — Capture Client Feedback
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 className="font-extrabold text-sm text-zinc-900">
+                  Site Visit Feedback Intelligence
+                </h3>
+                <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#d4ad4d] text-white font-extrabold uppercase">
+                  Intent Capture
+                </span>
+              </div>
+              <p className="text-[11px] text-zinc-400 font-medium">
+                Client: {visitData.client_name} • {visitData.property_title}
+              </p>
             </div>
           </div>
-          <button onClick={onClose} className="text-zinc-400 hover:text-white">
-            <X className="h-5 w-5" />
+
+          <button 
+            type="button"
+            onClick={onClose}
+            className="text-zinc-400 hover:text-zinc-700 p-1 rounded-lg transition-colors"
+          >
+            <X className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Scrollable Content */}
+        {/* Modal Content */}
         <div className="p-6 overflow-y-auto space-y-5 text-xs">
           
-          {/* Visit Context Header */}
-          <div className="p-3.5 bg-zinc-50 rounded-xl border border-zinc-200 flex items-center justify-between">
+          {/* Buyer Intent Rating */}
+          <div className="p-4 bg-[#fafaf8] border border-[#e8e7e4] rounded-xl flex items-center justify-between">
             <div>
-              <span className="text-[10px] font-bold text-zinc-400 uppercase">Customer</span>
-              <p className="font-bold text-zinc-900 text-sm">{visitData.client_name}</p>
+              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
+                Buyer Intent Level
+              </span>
+              <p className="text-xs font-bold text-zinc-800 mt-0.5">
+                {rating === 5 ? '🔥 High Intent (Ready to Close / Negotiate)' : rating >= 3 ? '🟡 Moderate Fit (Needs Follow-up)' : '❄️ Low Interest'}
+              </p>
             </div>
-            <div className="text-right">
-              <span className="text-[10px] font-bold text-zinc-400 uppercase">Property Viewed</span>
-              <p className="font-bold text-zinc-800">{visitData.property_title}</p>
-              <p className="text-[10px] text-zinc-500">{visitData.location}</p>
-            </div>
-          </div>
 
-          {/* Star Rating / Purchase Interest */}
-          <div className="space-y-1.5 text-center p-3 bg-zinc-50/70 border border-zinc-200 rounded-xl">
-            <label className="font-bold text-zinc-700 uppercase text-[10px] tracking-wider block">
-              Buyer Purchase Intent Rating
-            </label>
-            <div className="flex items-center justify-center gap-2">
+            <div className="flex items-center gap-1.5">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
                   key={star}
                   type="button"
                   onClick={() => setRating(star)}
-                  className="p-1 text-2xl transition-transform hover:scale-110"
+                  className={`p-1.5 rounded-lg transition-all ${
+                    star <= rating 
+                      ? 'text-[#d4ad4d] bg-[#d4ad4d]/10' 
+                      : 'text-zinc-300 hover:text-zinc-400'
+                  }`}
                 >
-                  <Star 
-                    className={`h-7 w-7 ${
-                      star <= rating ? 'fill-[#d4ad4d] text-[#d4ad4d]' : 'text-zinc-300'
-                    }`} 
-                  />
+                  <Star className={`h-5 w-5 ${star <= rating ? 'fill-[#d4ad4d]' : ''}`} />
                 </button>
               ))}
             </div>
-            <span className="text-[11px] font-bold text-[#b38f2d] block mt-1">
-              {rating === 5 ? '🔥 High Intent (Ready to Close)' : rating >= 3 ? 'Warm Interest' : 'Low Alignment'}
-            </span>
           </div>
 
-          {/* Liked Features Multi-Tags */}
+          {/* Liked Features Checklist */}
           <div className="space-y-1.5">
-            <label className="font-bold text-zinc-700 uppercase text-[10px] tracking-wider block">
-              What did the client like?
-            </label>
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
+              What the Client Liked (Key USPs)
+            </span>
             <div className="flex flex-wrap gap-1.5">
-              {['Location', 'Layout & Floor Plan', 'Clubhouse & Amenities', 'Carpet Area', 'Deck / Views', 'Builder Reputation'].map((feat) => {
-                const isSelected = likedFeatures.includes(feat);
+              {ALL_FEATURES.map(f => {
+                const isSelected = likedFeatures.includes(f);
                 return (
                   <button
-                    key={feat}
+                    key={f}
                     type="button"
-                    onClick={() => toggleLikedFeature(feat)}
-                    className={`px-3 py-1.5 rounded-lg font-bold text-xs border transition-all ${
+                    onClick={() => toggleLikedFeature(f)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all border ${
                       isSelected 
-                        ? 'bg-emerald-50 text-emerald-800 border-emerald-300 ring-1 ring-emerald-300' 
-                        : 'bg-zinc-50 text-zinc-600 border-zinc-200 hover:border-zinc-300'
+                        ? 'bg-emerald-50 border-emerald-300 text-emerald-800' 
+                        : 'bg-white border-[#e8e7e4] text-zinc-600 hover:border-zinc-400'
                     }`}
                   >
-                    {isSelected ? '✓ ' : '+ '}{feat}
+                    {isSelected ? '✓ ' : ''}{f}
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* Client Concerns / Objections */}
+          {/* Client Concerns */}
           <div className="space-y-1.5">
-            <label className="font-bold text-zinc-700 uppercase text-[10px] tracking-wider block">
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
               Client Concerns / Objections
-            </label>
+            </span>
             <div className="flex flex-wrap gap-1.5">
-              {['Price per sqft', 'Floor Rise Charges', 'Possession Timeline', 'Vastu Non-Compliance', 'Road Noise', 'Financing'].map((c) => {
+              {ALL_CONCERNS.map(c => {
                 const isSelected = concerns.includes(c);
                 return (
                   <button
                     key={c}
                     type="button"
                     onClick={() => toggleConcern(c)}
-                    className={`px-3 py-1.5 rounded-lg font-bold text-xs border transition-all ${
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all border ${
                       isSelected 
-                        ? 'bg-rose-50 text-rose-800 border-rose-300 ring-1 ring-rose-300' 
-                        : 'bg-zinc-50 text-zinc-600 border-zinc-200 hover:border-zinc-300'
+                        ? 'bg-rose-50 border-rose-300 text-rose-800' 
+                        : 'bg-white border-[#e8e7e4] text-zinc-600 hover:border-zinc-400'
                     }`}
                   >
-                    {isSelected ? '✕ ' : '+ '}{c}
+                    {isSelected ? '✕ ' : ''}{c}
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* Competitor Mentioned & Verified Budget */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="font-bold text-zinc-700 uppercase text-[10px] tracking-wider block mb-1">
-                Competitors Mentioned
-              </label>
+          {/* Financial & Timeline Form Grid */}
+          <div className="grid grid-cols-2 gap-3 pt-2 border-t border-[#ebebeb]">
+            <div className="space-y-1">
+              <span className="text-[9px] font-bold text-zinc-400 uppercase block">Verified Buyer Budget (₹)</span>
               <input 
-                type="text" 
-                value={competitorMentioned}
-                onChange={(e) => setCompetitorMentioned(e.target.value)}
-                placeholder="e.g. Kolte Patil, Panchshil"
-                className="w-full p-2.5 rounded-xl border border-zinc-300 font-medium"
-              />
-            </div>
-
-            <div>
-              <label className="font-bold text-zinc-700 uppercase text-[10px] tracking-wider block mb-1">
-                Verified Budget (₹)
-              </label>
-              <input 
-                type="number" 
+                type="number"
                 value={verifiedBudget}
                 onChange={(e) => setVerifiedBudget(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-zinc-300 font-bold text-zinc-900"
+                className="w-full h-8 bg-white border border-[#e8e7e4] rounded-lg px-2.5 text-xs font-bold text-zinc-900"
               />
             </div>
-          </div>
-
-          {/* Timeline & Next Stage Transition */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="font-bold text-zinc-700 uppercase text-[10px] tracking-wider block mb-1">
-                Purchase Timeline
-              </label>
+            <div className="space-y-1">
+              <span className="text-[9px] font-bold text-zinc-400 uppercase block">Purchase Timeline</span>
               <select
                 value={purchaseTimeline}
                 onChange={(e) => setPurchaseTimeline(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-zinc-300 font-bold bg-white"
+                className="w-full h-8 bg-white border border-[#e8e7e4] rounded-lg px-2 text-xs font-bold text-zinc-900"
               >
-                <option value="0–3 Months">🔥 0–3 Months (Immediate)</option>
+                <option value="0–30 Days">Immediate (0–30 Days)</option>
+                <option value="0–3 Months">0–3 Months</option>
                 <option value="3–6 Months">3–6 Months</option>
-                <option value="6–12 Months">6–12 Months</option>
-                <option value="1+ Year">Long term / Exploring</option>
+                <option value="6+ Months">6+ Months (Long term)</option>
               </select>
             </div>
-
-            <div>
-              <label className="font-bold text-zinc-700 uppercase text-[10px] tracking-wider block mb-1">
-                Next Stage Transition
-              </label>
+            <div className="space-y-1">
+              <span className="text-[9px] font-bold text-zinc-400 uppercase block">Competitor Benchmarked</span>
+              <input 
+                type="text"
+                value={competitorMentioned}
+                onChange={(e) => setCompetitorMentioned(e.target.value)}
+                placeholder="e.g. Godrej, Panchshil"
+                className="w-full h-8 bg-white border border-[#e8e7e4] rounded-lg px-2.5 text-xs text-zinc-800"
+              />
+            </div>
+            <div className="space-y-1">
+              <span className="text-[9px] font-bold text-zinc-400 uppercase block">Next Pipeline Action</span>
               <select
                 value={nextAction}
                 onChange={(e) => setNextAction(e.target.value as any)}
-                className="w-full p-2.5 rounded-xl border border-zinc-300 font-bold bg-white text-[#b38f2d]"
+                className="w-full h-8 bg-white border border-[#e8e7e4] rounded-lg px-2 text-xs font-extrabold text-[#99771f]"
               >
                 <option value="Negotiation">Advance to Negotiation</option>
                 <option value="Send Cost Sheet">Generate & Send Cost Sheet</option>
-                <option value="Second Visit">Schedule 2nd Site Visit</option>
-                <option value="Follow up">Follow up next week</option>
+                <option value="Second Visit">Schedule 2nd Family Visit</option>
+                <option value="Follow up">Routine Follow up</option>
               </select>
             </div>
           </div>
 
-          {/* Notes */}
-          <div>
-            <label className="font-bold text-zinc-700 uppercase text-[10px] tracking-wider block mb-1">
-              Detailed Agent Feedback Notes
-            </label>
+          {/* Detailed Observations */}
+          <div className="space-y-1">
+            <span className="text-[9px] font-bold text-zinc-400 uppercase block">Detailed Agent Observations</span>
             <textarea
               rows={2}
               value={detailedNotes}
               onChange={(e) => setDetailedNotes(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-zinc-300 font-medium"
+              className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-2.5 text-xs text-zinc-800 focus:bg-white focus:border-[#d4ad4d]"
             />
           </div>
-
         </div>
 
-        {/* Footer */}
-        <div className="px-6 py-4 bg-zinc-50 border-t border-zinc-200 flex items-center justify-between">
+        {/* Modal Footer */}
+        <div className="px-6 py-3.5 bg-[#fafaf8] border-t border-[#ebebeb] flex items-center justify-between">
           <button
+            type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl border border-zinc-300 font-bold text-zinc-600 hover:bg-zinc-100"
+            className="dc-btn font-semibold"
           >
             Cancel
           </button>
+
           <button
+            type="button"
             onClick={handleSave}
-            className="px-5 py-2 rounded-xl bg-zinc-900 text-[#d4ad4d] font-bold hover:bg-zinc-800 shadow-md flex items-center gap-2"
+            className="dc-btn gold font-bold flex items-center gap-1.5"
           >
-            {savedSuccess ? <CheckCircle2 className="h-4 w-4 text-emerald-400" /> : <Check className="h-4 w-4" />}
-            {savedSuccess ? 'Feedback Saved & Lead Advanced!' : 'Save Feedback & Advance Lead'}
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            {savedSuccess ? 'Feedback Captured!' : 'Save Visit Feedback'}
           </button>
         </div>
 

@@ -16,16 +16,19 @@ import {
   FileText, 
   ArrowUpRight, 
   ChevronRight, 
-  MoreVertical,
-  X,
-  CreditCard,
-  Share2,
-  Calculator,
-  ShieldCheck,
-  Check
+  X, 
+  CreditCard, 
+  Share2, 
+  Calculator, 
+  ShieldCheck, 
+  Check,
+  Download,
+  MessageSquare
 } from 'lucide-react';
 import { formatCurrency, formatPriceShort } from '@/lib/formatters';
 import { CostSheetModal, CostSheetUnit } from '@/components/cost-sheet/CostSheetModal';
+import { InlineStatsBar } from '@/components/ui/InlineStatsBar';
+import { AvatarCell } from '@/components/ui/AvatarCell';
 
 export type TransactionStage = 
   | 'Lead'
@@ -124,7 +127,7 @@ export default function TransactionsPage() {
       token_amount: 1000000, // ₹10 L
       booking_status: 'Confirmed',
       current_stage: 'Agreement',
-      sales_agent: 'Aarav Mehta',
+      sales_agent: 'Vikram Seth',
       channel_partner: 'ANAROCK Property Consultants',
       booking_date: '2026-08-20',
       expected_closure_date: '2026-09-05',
@@ -150,39 +153,40 @@ export default function TransactionsPage() {
       booking_status: 'Draft',
       current_stage: 'Token / EOI',
       sales_agent: 'Rishi Mahboobani',
-      channel_partner: 'Square Yards',
-      booking_date: '2026-08-28',
+      channel_partner: 'Direct In-House',
+      booking_date: '2026-09-01',
       expected_closure_date: '2026-09-20',
       payment_schedule: [
-        { id: 'm-1', name: 'Token Booking', amount: 500000, dueDate: '2026-08-28', status: 'Paid', paidDate: '2026-08-28' },
-        { id: 'm-2', name: 'Allotment Letter', amount: 1500000, dueDate: '2026-09-20', status: 'Pending' },
-        { id: 'm-3', name: 'Slab Milestones', amount: 6000000, dueDate: '2026-12-15', status: 'Pending' },
-        { id: 'm-4', name: 'Registry & Handover', amount: 6800000, dueDate: '2027-02-28', status: 'Pending' }
-      ]
+        { id: 'm-1', name: 'Token Amount', amount: 500000, dueDate: '2026-09-01', status: 'Paid', paidDate: '2026-09-01' },
+        { id: 'm-2', name: 'Agreement (20%)', amount: 2460000, dueDate: '2026-09-20', status: 'Pending' },
+        { id: 'm-3', name: 'Possession Balance', amount: 11840000, dueDate: '2027-01-31', status: 'Pending' }
+      ],
+      notes: 'Token cheque deposited in escrow.'
     },
     {
       id: 'tx-4',
       client_name: 'Rajesh Gupta',
-      client_phone: '+91 94400 88776',
-      client_email: 'rajesh.gupta@outlook.com',
+      client_phone: '+91 98330 99881',
+      client_email: 'rgupta@heritageinfra.com',
       property_title: 'Vivencia Heritage Villa',
-      tower: 'Villa Cluster',
+      tower: 'Villa Row',
       unit_number: 'V-09',
-      configuration: '5 BHK',
+      configuration: '5 BHK Villa',
       deal_value: 48000000, // ₹4.80 Cr
       token_amount: 2500000,
       booking_status: 'Completed',
       current_stage: 'Possession',
-      sales_agent: 'Neha Roy',
-      channel_partner: 'Direct In-House',
+      sales_agent: 'Vikram Seth',
+      channel_partner: 'XYZ Luxury Advisory',
       booking_date: '2026-05-10',
       expected_closure_date: '2026-08-30',
       payment_schedule: [
-        { id: 'm-1', name: 'Token', amount: 2500000, dueDate: '2026-05-10', status: 'Paid', paidDate: '2026-05-10' },
-        { id: 'm-2', name: 'Agreement (20%)', amount: 7100000, dueDate: '2026-05-30', status: 'Paid', paidDate: '2026-05-28' },
-        { id: 'm-3', name: 'Finishing Works', amount: 18400000, dueDate: '2026-07-15', status: 'Paid', paidDate: '2026-07-14' },
-        { id: 'm-4', name: 'Final Possession & Keys', amount: 20000000, dueDate: '2026-08-30', status: 'Paid', paidDate: '2026-08-30' }
-      ]
+        { id: 'm-1', name: 'Token Amount', amount: 2500000, dueDate: '2026-05-10', status: 'Paid', paidDate: '2026-05-10' },
+        { id: 'm-2', name: 'Agreement (15%)', amount: 7200000, dueDate: '2026-05-30', status: 'Paid', paidDate: '2026-05-28' },
+        { id: 'm-3', name: 'Stage Payments', amount: 28300000, dueDate: '2026-07-30', status: 'Paid', paidDate: '2026-07-25' },
+        { id: 'm-4', name: 'Final Handover', amount: 10000000, dueDate: '2026-08-30', status: 'Paid', paidDate: '2026-08-30' }
+      ],
+      notes: 'Possession certificate and keys handed over.'
     }
   ]);
 
@@ -192,11 +196,11 @@ export default function TransactionsPage() {
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
   const [costSheetUnit, setCostSheetUnit] = useState<CostSheetUnit | null>(null);
 
-  // New Deal Form State
+  // New Transaction Form State
   const [newClientName, setNewClientName] = useState('');
   const [newClientPhone, setNewClientPhone] = useState('');
   const [newPropertyTitle, setNewPropertyTitle] = useState('Vivencia Luxury Residences');
-  const [newUnitNumber, setNewUnitNumber] = useState('A-1402');
+  const [newUnitNumber, setNewUnitNumber] = useState('B-1402');
   const [newConfig, setNewConfig] = useState('3 BHK');
   const [newDealValue, setNewDealValue] = useState('14500000');
   const [newTokenAmount, setNewTokenAmount] = useState('500000');
@@ -219,9 +223,16 @@ export default function TransactionsPage() {
   }, [transactions, searchQuery, stageFilter]);
 
   // Aggregate Metrics
-  const totalPipelineValue = transactions.reduce((acc, t) => acc + t.deal_value, 0);
-  const totalTokensCollected = transactions.reduce((acc, t) => acc + t.token_amount, 0);
-  const activeBookingsCount = transactions.filter(t => t.booking_status === 'Confirmed').length;
+  const totalPipelineValue = useMemo(() => transactions.reduce((acc, t) => acc + t.deal_value, 0), [transactions]);
+  const totalTokensCollected = useMemo(() => transactions.reduce((acc, t) => acc + t.token_amount, 0), [transactions]);
+  const activeBookingsCount = useMemo(() => transactions.filter(t => t.booking_status === 'Confirmed').length, [transactions]);
+
+  const inlineStats = useMemo(() => [
+    { label: 'Active Deals', count: transactions.length, colorClass: 'bg-zinc-400' },
+    { label: 'Total Deal Value', count: formatPriceShort(totalPipelineValue), colorClass: 'bg-emerald-500' },
+    { label: 'Tokens Collected', count: formatPriceShort(totalTokensCollected), colorClass: 'bg-blue-500' },
+    { label: 'Confirmed Bookings', count: activeBookingsCount, colorClass: 'bg-[#d4ad4d]' }
+  ], [transactions, totalPipelineValue, totalTokensCollected, activeBookingsCount]);
 
   const handleStageChange = (newStageValue: TransactionStage) => {
     if (!selectedTx) return;
@@ -296,434 +307,447 @@ export default function TransactionsPage() {
     });
   };
 
+  const getStageIndex = (stg: TransactionStage) => ALL_TRANSACTION_STAGES.indexOf(stg);
+
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-16 text-zinc-900">
+    <div className="w-full pb-20 text-zinc-900 text-left">
       
-      {/* Top Header & Metrics */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-[#d4ad4d]/20 text-[#99771f]">
-              Post-Closure Financial Module
-            </span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-900 mt-1">
-            Transactions & Bookings
-          </h1>
-          <p className="text-xs text-zinc-500 font-medium">
-            Manage the full commercial lifecycle from Token & Agreement to Registration & Final Possession.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setIsNewModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zinc-900 text-[#d4ad4d] text-xs font-bold hover:bg-zinc-800 transition-all shadow-md"
-          >
-            <Plus className="h-4 w-4" />
-            Create New Deal
-          </button>
-        </div>
-      </div>
-
-      {/* KPI Highlights Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Total Deal Value</p>
-            <p className="text-xl font-black text-zinc-900 mt-0.5">₹{(totalPipelineValue / 10000000).toFixed(2)} Cr</p>
-          </div>
-          <div className="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-            <DollarSign className="h-5 w-5" />
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Tokens / EOI Collected</p>
-            <p className="text-xl font-black text-[#b38f2d] mt-0.5">₹{(totalTokensCollected / 100000).toFixed(1)} Lakhs</p>
-          </div>
-          <div className="h-10 w-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
-            <CreditCard className="h-5 w-5" />
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Confirmed Bookings</p>
-            <p className="text-xl font-black text-zinc-900 mt-0.5">{activeBookingsCount} Units</p>
-          </div>
-          <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-            <ShieldCheck className="h-5 w-5" />
-          </div>
-        </div>
-      </div>
-
-      {/* Main Split Interface */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      {/* ── UNIFIED DIRECTION C PORCELAIN CARD FRAME ── */}
+      <div className="overflow-hidden bg-white border border-[#e8e7e4] rounded-2xl shadow-sm">
         
-        {/* Left Column: Transactions List (5 Cols) */}
-        <div className="lg:col-span-5 space-y-4">
-          <div className="bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm space-y-3">
-            
-            {/* Search and Stage Selector */}
-            <div className="space-y-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-zinc-400" />
-                <input 
-                  type="text"
-                  placeholder="Search deals, clients, units..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl pl-9 pr-3 py-2 text-xs font-medium focus:ring-1 focus:ring-[#d4ad4d] outline-none"
-                />
-              </div>
-
-              <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-hide">
-                {['All', 'Token / EOI', 'Booking', 'Agreement', 'Payment', 'Possession'].map(stg => (
-                  <button
-                    key={stg}
-                    onClick={() => setStageFilter(stg)}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap transition-colors ${
-                      stageFilter === stg 
-                        ? 'bg-zinc-900 text-[#d4ad4d]' 
-                        : 'bg-zinc-100 text-zinc-500 hover:text-zinc-900'
-                    }`}
-                  >
-                    {stg}
-                  </button>
-                ))}
-              </div>
+        {/* Editorial Header */}
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 px-6 py-5 border-b border-[#ebebeb]">
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-[20px] font-extrabold tracking-tight text-zinc-900" style={{ letterSpacing: '-0.4px' }}>
+                Deals & Transactions Lifecycle
+              </h1>
+              <span className="bg-zinc-900 text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-full">
+                {transactions.length} Active Deals
+              </span>
             </div>
+            <p className="text-[11px] text-zinc-400 font-medium mt-0.5">
+              11-Stage Pipeline Tracking: Token ➔ Booking ➔ Agreement ➔ Payment Milestones ➔ Possession
+            </p>
+          </div>
 
-            {/* List items */}
-            <div className="space-y-2.5 max-h-[650px] overflow-y-auto pr-1">
-              {filteredTransactions.map((tx) => {
-                const isSelected = selectedTx?.id === tx.id;
-                return (
-                  <div
-                    key={tx.id}
-                    onClick={() => setSelectedTx(tx)}
-                    className={`p-4 rounded-xl border cursor-pointer transition-all ${
-                      isSelected 
-                        ? 'border-zinc-900 bg-zinc-50/90 shadow-sm ring-1 ring-zinc-900' 
-                        : 'border-zinc-200 hover:border-zinc-300 bg-white'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600">
-                          {tx.current_stage}
-                        </span>
-                        <h4 className="font-bold text-sm text-zinc-900 mt-1.5">{tx.client_name}</h4>
-                        <p className="text-[11px] text-zinc-500">
-                          {tx.configuration} • {tx.unit_number} ({tx.property_title})
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-xs font-black text-zinc-900 block">
-                          {formatPriceShort(tx.deal_value)}
-                        </span>
-                        <span className="text-[10px] text-emerald-600 font-bold block mt-0.5">
-                          Token: {formatPriceShort(tx.token_amount)}
-                        </span>
-                      </div>
-                    </div>
+          {/* Actions */}
+          <div className="flex items-center gap-2 shrink-0">
+            {selectedTx && (
+              <button
+                type="button"
+                onClick={() => openCostSheetForDeal(selectedTx)}
+                className="dc-btn font-semibold flex items-center gap-1.5"
+              >
+                <Calculator className="h-3.5 w-3.5 text-[#d4ad4d]" />
+                Cost Sheet
+              </button>
+            )}
 
-                    <div className="flex items-center justify-between border-t border-zinc-100 mt-3 pt-2.5 text-[10px] text-zinc-400 font-medium">
-                      <span>Agent: {tx.sales_agent}</span>
-                      <span>CP: {tx.channel_partner}</span>
-                    </div>
-                  </div>
-                );
-              })}
-
-              {filteredTransactions.length === 0 && (
-                <div className="text-center py-10 text-zinc-400 text-xs font-medium">
-                  No deals match the selected criteria.
-                </div>
-              )}
-            </div>
-
+            <button
+              type="button"
+              onClick={() => setIsNewModalOpen(true)}
+              className="dc-btn gold font-bold flex items-center gap-1.5"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              New Transaction
+            </button>
           </div>
         </div>
 
-        {/* Right Column: Selected Deal Overview & Payment Schedule (7 Cols) */}
-        <div className="lg:col-span-7">
-          {selectedTx ? (
-            <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden space-y-6 p-6">
-              
-              {/* Deal Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-zinc-200 gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-2xl bg-zinc-900 text-[#d4ad4d] flex items-center justify-center font-black text-lg shadow-md">
-                    {selectedTx.client_name.charAt(0)}
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-zinc-900">{selectedTx.client_name}</h3>
-                    <p className="text-xs text-zinc-500 font-medium">{selectedTx.client_phone} • {selectedTx.client_email}</p>
-                  </div>
-                </div>
+        {/* Inline Stats Bar */}
+        <InlineStatsBar stats={inlineStats} />
 
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => openCostSheetForDeal(selectedTx)}
-                    className="px-3.5 py-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-xs font-bold text-zinc-700 flex items-center gap-1.5 transition-colors"
-                  >
-                    <Calculator className="h-3.5 w-3.5 text-[#b38f2d]" />
-                    Cost Sheet
-                  </button>
-                </div>
-              </div>
+        {/* Porcelain Unified Toolbar */}
+        <div className="dc-toolbar">
+          <div className="dc-search-container">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-400" />
+            <input 
+              type="text" 
+              placeholder="Search deal by client, unit, property, partner..." 
+              className="dc-search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
 
-              {/* 11-Stage Interactive Pipeline Stepper */}
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
-                  Transaction Lifecycle Stage
-                </label>
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-1.5">
-                  {ALL_TRANSACTION_STAGES.map((stg) => {
-                    const isActive = selectedTx.current_stage === stg;
-                    const stageIndex = ALL_TRANSACTION_STAGES.indexOf(stg);
-                    const currentIndex = ALL_TRANSACTION_STAGES.indexOf(selectedTx.current_stage);
-                    const isPassed = stageIndex <= currentIndex;
+          <select
+            aria-label="Filter by Stage"
+            value={stageFilter}
+            onChange={(e) => setStageFilter(e.target.value)}
+            className="dc-btn font-semibold cursor-pointer"
+          >
+            <option value="All">All 11 Stages</option>
+            {ALL_TRANSACTION_STAGES.map(s => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        </div>
 
+        {/* ── SPLIT LAYOUT: TRANSACTIONS LIST & ACTIVE DEAL INSPECTOR ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-[#ebebeb] bg-white">
+          
+          {/* Table Column (7 Cols) */}
+          <div className="lg:col-span-7 dc-table-container">
+            <table className="dc-table">
+              <thead>
+                <tr>
+                  <th>Client & Property</th>
+                  <th>Unit</th>
+                  <th className="text-right">Deal Value</th>
+                  <th>Stage</th>
+                  <th>Agent</th>
+                  <th style={{ width: '60px' }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredTransactions.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-12 text-center text-xs font-semibold text-zinc-400">
+                      No deals found matching your filter
+                    </td>
+                  </tr>
+                ) : (
+                  filteredTransactions.map((tx) => {
+                    const isSelected = selectedTx?.id === tx.id;
+                    const stageIdx = getStageIndex(tx.current_stage);
                     return (
-                      <button
-                        key={stg}
-                        onClick={() => handleStageChange(stg)}
-                        className={`p-2 rounded-xl text-[10px] font-bold text-center transition-all border ${
-                          isActive
-                            ? 'bg-zinc-900 text-[#d4ad4d] border-zinc-900 shadow-sm ring-1 ring-[#d4ad4d]'
-                            : isPassed
-                            ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                            : 'bg-zinc-50 text-zinc-400 border-zinc-200 hover:border-zinc-300'
+                      <tr 
+                        key={tx.id} 
+                        className={`cursor-pointer group ${isSelected ? 'bg-[#fafaf7]' : ''}`}
+                        onClick={() => setSelectedTx(tx)}
+                      >
+                        <td>
+                          <div className="flex flex-col">
+                            <span className="font-bold text-zinc-900 text-xs group-hover:text-[#b8922e] transition-colors">
+                              {tx.client_name}
+                            </span>
+                            <span className="text-[10px] text-zinc-400 font-medium">
+                              {tx.property_title} • {tx.configuration}
+                            </span>
+                          </div>
+                        </td>
+                        <td>
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-zinc-100 text-[10px] font-bold text-zinc-700 uppercase">
+                            {tx.unit_number}
+                          </span>
+                        </td>
+                        <td className="text-right font-bold text-zinc-900 text-xs">
+                          {formatPriceShort(tx.deal_value)}
+                        </td>
+                        <td>
+                          <div className="flex flex-col gap-1">
+                            <span className="dc-badge dc-hot">
+                              {tx.current_stage}
+                            </span>
+                            <div className="w-16 h-1 bg-zinc-100 rounded-full overflow-hidden">
+                              <div 
+                                className="h-full bg-[#d4ad4d]" 
+                                style={{ width: `${((stageIdx + 1) / 11) * 100}%` }}
+                              />
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <span className="text-[11px] text-zinc-600 font-semibold truncate max-w-[100px] block">
+                            {tx.sales_agent}
+                          </span>
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedTx(tx);
+                            }}
+                            className="text-[10.5px] font-bold text-[#d4ad4d] hover:text-[#b8922e] transition-colors whitespace-nowrap"
+                          >
+                            Inspect →
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Inspector & Payment Milestone Ledger Column (5 Cols) */}
+          <div className="lg:col-span-5 p-6 bg-[#fafaf8] space-y-6">
+            {selectedTx ? (
+              <>
+                {/* Active Deal Overview Card */}
+                <div className="bg-white p-5 rounded-2xl border border-[#e8e7e4] shadow-xs space-y-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <span className="text-[9.5px] font-extrabold uppercase tracking-wider text-[#d4ad4d]">
+                        Selected Deal Inspection
+                      </span>
+                      <h3 className="text-base font-extrabold text-zinc-900 mt-0.5">
+                        {selectedTx.client_name}
+                      </h3>
+                      <p className="text-[11px] text-zinc-500 font-medium">
+                        {selectedTx.client_phone} • {selectedTx.client_email || 'No email'}
+                      </p>
+                    </div>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-extrabold">
+                      {selectedTx.booking_status}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 p-3 bg-[#fafaf8] border border-[#ebebeb] rounded-xl text-xs">
+                    <div>
+                      <span className="text-[9px] font-bold text-zinc-400 uppercase block">Property & Unit</span>
+                      <span className="font-extrabold text-zinc-900">{selectedTx.property_title} (Unit {selectedTx.unit_number})</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] font-bold text-zinc-400 uppercase block">Total Deal Value</span>
+                      <span className="font-extrabold text-[#b8922e]">{formatPriceShort(selectedTx.deal_value)}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] font-bold text-zinc-400 uppercase block">Token / EOI</span>
+                      <span className="font-bold text-zinc-800">{formatPriceShort(selectedTx.token_amount)} (Collected)</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] font-bold text-zinc-400 uppercase block">Channel Partner</span>
+                      <span className="font-bold text-zinc-800">{selectedTx.channel_partner}</span>
+                    </div>
+                  </div>
+
+                  {/* 11-Stage Interactive Pipeline Step Selector */}
+                  <div className="space-y-2 pt-2 border-t border-[#ebebeb]">
+                    <div className="flex items-center justify-between text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                      <span>Transaction Progress</span>
+                      <span className="text-zinc-900 font-extrabold">
+                        Stage {getStageIndex(selectedTx.current_stage) + 1} of 11 ({selectedTx.current_stage})
+                      </span>
+                    </div>
+
+                    <div className="flex flex-wrap gap-1">
+                      {ALL_TRANSACTION_STAGES.map((stg, i) => {
+                        const isCurrent = selectedTx.current_stage === stg;
+                        const isPassed = getStageIndex(selectedTx.current_stage) >= i;
+                        return (
+                          <button
+                            key={stg}
+                            type="button"
+                            onClick={() => handleStageChange(stg)}
+                            className={`px-2 py-1 rounded text-[9.5px] font-extrabold transition-all cursor-pointer ${
+                              isCurrent
+                                ? 'bg-[#d4ad4d] text-white shadow-xs'
+                                : isPassed
+                                ? 'bg-zinc-200 text-zinc-800 hover:bg-zinc-300'
+                                : 'bg-white border border-[#e8e7e4] text-zinc-400 hover:text-zinc-700'
+                            }`}
+                          >
+                            {i + 1}. {stg}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Milestone Payment Ledger */}
+                <div className="bg-white p-5 rounded-2xl border border-[#e8e7e4] shadow-xs space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="h-4 w-4 text-[#d4ad4d]" />
+                      <h4 className="text-xs font-extrabold text-zinc-900 tracking-tight">
+                        Milestone Payment Schedule & Ledger
+                      </h4>
+                    </div>
+                    <span className="text-[10px] font-bold text-zinc-400 uppercase">
+                      Click to toggle status
+                    </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    {selectedTx.payment_schedule.map((milestone) => (
+                      <div 
+                        key={milestone.id}
+                        onClick={() => handleToggleMilestone(milestone.id)}
+                        className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
+                          milestone.status === 'Paid'
+                            ? 'bg-emerald-50/50 border-emerald-200 hover:bg-emerald-50'
+                            : 'bg-white border-[#e8e7e4] hover:border-zinc-400'
                         }`}
                       >
-                        {stg}
-                      </button>
-                    );
-                  })}
+                        <div className="flex items-center gap-3">
+                          <div className={`h-5 w-5 rounded-full flex items-center justify-center text-xs font-bold ${
+                            milestone.status === 'Paid' 
+                              ? 'bg-emerald-500 text-white' 
+                              : 'bg-zinc-100 text-zinc-400 border border-zinc-300'
+                          }`}>
+                            {milestone.status === 'Paid' ? '✓' : '•'}
+                          </div>
+                          <div>
+                            <p className="font-bold text-xs text-zinc-900">{milestone.name}</p>
+                            <p className="text-[10px] text-zinc-400 font-medium">Due: {milestone.dueDate} {milestone.paidDate ? `• Paid: ${milestone.paidDate}` : ''}</p>
+                          </div>
+                        </div>
+
+                        <div className="text-right">
+                          <p className="font-extrabold text-xs text-zinc-900">{formatPriceShort(milestone.amount)}</p>
+                          <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded ${
+                            milestone.status === 'Paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                          }`}>
+                            {milestone.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Actions Bar inside Inspector */}
+                  <div className="pt-3 border-t border-[#ebebeb] flex items-center justify-between">
+                    <button
+                      type="button"
+                      onClick={() => openCostSheetForDeal(selectedTx)}
+                      className="dc-btn font-semibold flex items-center gap-1.5 text-xs text-zinc-800"
+                    >
+                      <Calculator className="h-3.5 w-3.5 text-[#d4ad4d]" />
+                      Recalculate Cost Sheet
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const msg = `Hi ${selectedTx.client_name}, your booking for ${selectedTx.property_title} (Unit ${selectedTx.unit_number}) is in stage: ${selectedTx.current_stage}.`;
+                        window.open(`https://wa.me/${selectedTx.client_phone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+                      }}
+                      className="dc-btn gold font-bold flex items-center gap-1.5 text-xs"
+                    >
+                      <MessageSquare className="h-3.5 w-3.5" />
+                      WhatsApp Client
+                    </button>
+                  </div>
                 </div>
+              </>
+            ) : (
+              <div className="p-12 text-center text-zinc-400 text-xs">
+                Select a transaction from the left table to inspect details and milestone payments.
               </div>
-
-              {/* Deal Overview Grid */}
-              <div className="p-5 rounded-2xl bg-zinc-50/80 border border-zinc-200 space-y-4">
-                <h4 className="text-xs font-black text-zinc-900 uppercase tracking-wider flex items-center justify-between">
-                  <span>Deal Overview</span>
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                    {selectedTx.booking_status}
-                  </span>
-                </h4>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
-                  <div>
-                    <span className="text-[10px] font-bold text-zinc-400 uppercase block">Property & Unit</span>
-                    <span className="font-bold text-zinc-900">{selectedTx.configuration} - {selectedTx.property_title}</span>
-                    <p className="text-[11px] text-[#b38f2d] font-bold">Unit: {selectedTx.unit_number}</p>
-                  </div>
-
-                  <div>
-                    <span className="text-[10px] font-bold text-zinc-400 uppercase block">Deal Value</span>
-                    <span className="text-sm font-black text-zinc-900">{formatCurrency(selectedTx.deal_value)}</span>
-                  </div>
-
-                  <div>
-                    <span className="text-[10px] font-bold text-zinc-400 uppercase block">Token Amount</span>
-                    <span className="text-sm font-black text-emerald-600">{formatCurrency(selectedTx.token_amount)}</span>
-                  </div>
-
-                  <div>
-                    <span className="text-[10px] font-bold text-zinc-400 uppercase block">Sales Agent</span>
-                    <span className="font-bold text-zinc-800">{selectedTx.sales_agent}</span>
-                  </div>
-
-                  <div>
-                    <span className="text-[10px] font-bold text-zinc-400 uppercase block">Channel Partner</span>
-                    <span className="font-bold text-zinc-800">{selectedTx.channel_partner}</span>
-                  </div>
-
-                  <div>
-                    <span className="text-[10px] font-bold text-zinc-400 uppercase block">Booking Date</span>
-                    <span className="font-bold text-zinc-800">{selectedTx.booking_date}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Payment Schedule & Milestone Ledger */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-black text-zinc-900 uppercase tracking-wider flex items-center gap-2">
-                    <CreditCard className="h-4 w-4 text-[#b38f2d]" />
-                    Payment Schedule & Milestones
-                  </h4>
-                  <span className="text-[11px] text-zinc-400 font-medium">Click row to toggle Paid status</span>
-                </div>
-
-                <div className="border border-zinc-200 rounded-xl overflow-hidden shadow-sm">
-                  <table className="w-full text-xs text-left">
-                    <thead className="bg-zinc-100 text-zinc-500 uppercase font-bold text-[10px]">
-                      <tr>
-                        <th className="p-3">Milestone</th>
-                        <th className="p-3">Amount</th>
-                        <th className="p-3">Due Date</th>
-                        <th className="p-3">Status</th>
-                        <th className="p-3 text-right">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-zinc-200 font-medium">
-                      {selectedTx.payment_schedule.map((milestone) => (
-                        <tr 
-                          key={milestone.id}
-                          className="hover:bg-zinc-50/80 transition-colors"
-                        >
-                          <td className="p-3 font-bold text-zinc-900">{milestone.name}</td>
-                          <td className="p-3 font-bold text-zinc-900">{formatCurrency(milestone.amount)}</td>
-                          <td className="p-3 text-zinc-600">{milestone.dueDate}</td>
-                          <td className="p-3">
-                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                              milestone.status === 'Paid'
-                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                : 'bg-amber-50 text-amber-700 border border-amber-200'
-                            }`}>
-                              {milestone.status === 'Paid' && <Check className="h-3 w-3" />}
-                              {milestone.status}
-                            </span>
-                          </td>
-                          <td className="p-3 text-right">
-                            <button
-                              onClick={() => handleToggleMilestone(milestone.id)}
-                              className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-colors ${
-                                milestone.status === 'Paid'
-                                  ? 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
-                                  : 'bg-emerald-600 text-white hover:bg-emerald-700'
-                              }`}
-                            >
-                              {milestone.status === 'Paid' ? 'Mark Pending' : 'Mark Paid'}
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-            </div>
-          ) : (
-            <div className="bg-white p-12 rounded-2xl border border-zinc-200 text-center text-zinc-400 font-medium text-xs">
-              Select a deal to view complete commercial details.
-            </div>
-          )}
+            )}
+          </div>
         </div>
-
       </div>
 
-      {/* New Transaction Modal */}
+      {/* ── MODAL: CREATE NEW TRANSACTION ── */}
       {isNewModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-zinc-200 overflow-hidden">
-            <div className="p-5 bg-zinc-900 text-white flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl border border-[#e8e7e4] overflow-hidden">
+            <div className="px-6 py-4 bg-[#fafaf8] border-b border-[#ebebeb] flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-[#d4ad4d]" />
-                <h3 className="font-bold text-sm">Create New Transaction / Deal</h3>
+                <DollarSign className="h-4 w-4 text-[#d4ad4d]" />
+                <h3 className="font-extrabold text-sm text-zinc-900">Register New Deal Transaction</h3>
               </div>
-              <button onClick={() => setIsNewModalOpen(false)} className="text-zinc-400 hover:text-white">
-                <X className="h-5 w-5" />
+              <button onClick={() => setIsNewModalOpen(false)} className="text-zinc-400 hover:text-zinc-700">
+                <X className="h-4 w-4" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateTransaction} className="p-6 space-y-4 text-xs text-zinc-900">
-              <div>
-                <label className="font-bold text-zinc-700 block mb-1">Client Full Name</label>
-                <input 
-                  type="text" 
-                  required
-                  placeholder="e.g. Sandesh Kulkarni"
-                  value={newClientName}
-                  onChange={(e) => setNewClientName(e.target.value)}
-                  className="w-full border border-zinc-300 rounded-xl p-2.5 font-medium"
-                />
-              </div>
-
+            <form onSubmit={handleCreateTransaction} className="p-6 space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="font-bold text-zinc-700 block mb-1">Phone Number</label>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Client Full Name *</label>
                   <input 
                     type="text" 
-                    placeholder="+91 98200 00000"
+                    required
+                    placeholder="e.g. Rahul Sharma"
+                    value={newClientName}
+                    onChange={(e) => setNewClientName(e.target.value)}
+                    className="w-full h-8 bg-white border border-[#e8e7e4] rounded-lg px-3 text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Phone Number *</label>
+                  <input 
+                    type="text" 
+                    required
+                    placeholder="+91 98200..."
                     value={newClientPhone}
                     onChange={(e) => setNewClientPhone(e.target.value)}
-                    className="w-full border border-zinc-300 rounded-xl p-2.5 font-medium"
+                    className="w-full h-8 bg-white border border-[#e8e7e4] rounded-lg px-3 text-xs"
                   />
                 </div>
-                <div>
-                  <label className="font-bold text-zinc-700 block mb-1">Unit Number</label>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Property Project</label>
                   <input 
                     type="text" 
-                    placeholder="e.g. A-1204"
-                    value={newUnitNumber}
-                    onChange={(e) => setNewUnitNumber(e.target.value)}
-                    className="w-full border border-zinc-300 rounded-xl p-2.5 font-medium"
+                    value={newPropertyTitle}
+                    onChange={(e) => setNewPropertyTitle(e.target.value)}
+                    className="w-full h-8 bg-white border border-[#e8e7e4] rounded-lg px-3 text-xs"
                   />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="font-bold text-zinc-700 block mb-1">Deal Value (₹)</label>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Unit Number & Config</label>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <input 
+                      type="text" 
+                      value={newUnitNumber}
+                      onChange={(e) => setNewUnitNumber(e.target.value)}
+                      className="h-8 bg-white border border-[#e8e7e4] rounded-lg px-2 text-xs"
+                    />
+                    <input 
+                      type="text" 
+                      value={newConfig}
+                      onChange={(e) => setNewConfig(e.target.value)}
+                      className="h-8 bg-white border border-[#e8e7e4] rounded-lg px-2 text-xs"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Agreed Deal Value (₹)</label>
                   <input 
                     type="number" 
                     value={newDealValue}
                     onChange={(e) => setNewDealValue(e.target.value)}
-                    className="w-full border border-zinc-300 rounded-xl p-2.5 font-bold"
+                    className="w-full h-8 bg-white border border-[#e8e7e4] rounded-lg px-3 text-xs font-bold"
                   />
                 </div>
-                <div>
-                  <label className="font-bold text-zinc-700 block mb-1">Token Amount (₹)</label>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Token Amount (₹)</label>
                   <input 
                     type="number" 
                     value={newTokenAmount}
                     onChange={(e) => setNewTokenAmount(e.target.value)}
-                    className="w-full border border-zinc-300 rounded-xl p-2.5 font-bold"
+                    className="w-full h-8 bg-white border border-[#e8e7e4] rounded-lg px-3 text-xs font-bold"
                   />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="font-bold text-zinc-700 block mb-1">Sales Agent</label>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Sales Agent</label>
                   <input 
                     type="text" 
                     value={newAgent}
                     onChange={(e) => setNewAgent(e.target.value)}
-                    className="w-full border border-zinc-300 rounded-xl p-2.5 font-medium"
+                    className="w-full h-8 bg-white border border-[#e8e7e4] rounded-lg px-3 text-xs"
                   />
                 </div>
-                <div>
-                  <label className="font-bold text-zinc-700 block mb-1">Channel Partner</label>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Channel Partner / Source</label>
                   <input 
                     type="text" 
                     value={newPartner}
                     onChange={(e) => setNewPartner(e.target.value)}
-                    className="w-full border border-zinc-300 rounded-xl p-2.5 font-medium"
+                    className="w-full h-8 bg-white border border-[#e8e7e4] rounded-lg px-3 text-xs"
                   />
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-zinc-200 flex items-center justify-end gap-2">
-                <button
-                  type="button"
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#ebebeb]">
+                <button 
+                  type="button" 
                   onClick={() => setIsNewModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-zinc-300 font-bold"
+                  className="dc-btn font-semibold"
                 >
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-xl bg-zinc-900 text-[#d4ad4d] font-bold shadow-md"
+                <button 
+                  type="submit" 
+                  className="dc-btn gold font-bold"
                 >
-                  Confirm & Create Deal
+                  Save Deal & Generate Milestones
                 </button>
               </div>
             </form>
@@ -731,14 +755,14 @@ export default function TransactionsPage() {
         </div>
       )}
 
-      {/* Cost Sheet Modal Connector */}
+      {/* Cost Sheet Modal integration */}
       {costSheetUnit && (
         <CostSheetModal 
-          isOpen={!!costSheetUnit}
-          onClose={() => setCostSheetUnit(null)}
           unit={costSheetUnit}
           clientName={selectedTx?.client_name}
           clientPhone={selectedTx?.client_phone}
+          isOpen={Boolean(costSheetUnit)}
+          onClose={() => setCostSheetUnit(null)}
         />
       )}
 

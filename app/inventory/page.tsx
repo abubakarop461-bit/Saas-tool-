@@ -17,10 +17,13 @@ import {
   Sparkles, 
   Maximize2,
   X,
-  Plus
+  Plus,
+  ArrowRight,
+  Home
 } from 'lucide-react';
 import { formatCurrency, formatPriceShort } from '@/lib/formatters';
 import { CostSheetModal, CostSheetUnit } from '@/components/cost-sheet/CostSheetModal';
+import { InlineStatsBar } from '@/components/ui/InlineStatsBar';
 
 export type UnitStatus = 'Available' | 'Hold' | 'Token' | 'Negotiation' | 'Booked' | 'Sold';
 
@@ -56,46 +59,46 @@ export const STATUS_COLORS: Record<UnitStatus, {
   dot: string;
 }> = {
   Available: {
-    badge: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    bg: 'bg-emerald-50/60 hover:bg-emerald-100/80',
+    badge: 'border-emerald-200 bg-emerald-50 text-emerald-800',
+    bg: 'bg-emerald-50/50 hover:bg-emerald-100/70',
     border: 'border-emerald-200',
     text: 'text-emerald-900',
     dot: 'bg-emerald-500'
   },
   Hold: {
-    badge: 'bg-amber-50 text-amber-700 border-amber-200',
-    bg: 'bg-amber-50/60 hover:bg-amber-100/80',
+    badge: 'border-amber-200 bg-amber-50 text-amber-800',
+    bg: 'bg-amber-50/50 hover:bg-amber-100/70',
     border: 'border-amber-200',
     text: 'text-amber-900',
     dot: 'bg-amber-500'
   },
   Token: {
-    badge: 'bg-blue-50 text-blue-700 border-blue-200',
-    bg: 'bg-blue-50/60 hover:bg-blue-100/80',
+    badge: 'border-blue-200 bg-blue-50 text-blue-800',
+    bg: 'bg-blue-50/50 hover:bg-blue-100/70',
     border: 'border-blue-200',
     text: 'text-blue-900',
     dot: 'bg-blue-500'
   },
   Negotiation: {
-    badge: 'bg-orange-50 text-orange-700 border-orange-200',
-    bg: 'bg-orange-50/60 hover:bg-orange-100/80',
+    badge: 'border-orange-200 bg-orange-50 text-orange-800',
+    bg: 'bg-orange-50/50 hover:bg-orange-100/70',
     border: 'border-orange-200',
     text: 'text-orange-900',
     dot: 'bg-orange-500'
   },
   Booked: {
-    badge: 'bg-rose-50 text-rose-700 border-rose-200',
-    bg: 'bg-rose-50/60 hover:bg-rose-100/80',
+    badge: 'border-rose-200 bg-rose-50 text-rose-800',
+    bg: 'bg-rose-50/50 hover:bg-rose-100/70',
     border: 'border-rose-200',
     text: 'text-rose-900',
     dot: 'bg-rose-500'
   },
   Sold: {
-    badge: 'bg-zinc-800 text-zinc-100 border-zinc-900',
+    badge: 'border-zinc-300 bg-zinc-100 text-zinc-700',
     bg: 'bg-zinc-100/80 hover:bg-zinc-200/80',
     border: 'border-zinc-300',
     text: 'text-zinc-800',
-    dot: 'bg-zinc-900'
+    dot: 'bg-zinc-800'
   }
 };
 
@@ -104,6 +107,7 @@ export default function UnitInventoryPage() {
   const [selectedTower, setSelectedTower] = useState('Tower A');
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [configFilter, setConfigFilter] = useState<string>('All');
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedUnit, setSelectedUnit] = useState<DeveloperUnit | null>(null);
   const [costSheetTargetUnit, setCostSheetTargetUnit] = useState<CostSheetUnit | null>(null);
 
@@ -150,9 +154,9 @@ export default function UnitInventoryPage() {
       stamp_duty_rate: 6.0,
       registration_rate: 30000,
       possession_date: 'December 2026',
-      status: 'Hold',
-      buyer_name: 'Dr. Amit Deshmukh',
-      agent_name: 'Rishi Mahboobani'
+      status: 'Token',
+      buyer_name: 'Anil Deshmukh',
+      agent_name: 'Rishi M.'
     },
     {
       id: 'u-1403',
@@ -160,21 +164,22 @@ export default function UnitInventoryPage() {
       tower: 'Tower A',
       floor: 14,
       unit_number: '1403',
-      configuration: '4 BHK',
-      carpet_area: 2250,
-      built_up_area: 2900,
-      facing: 'North-East Vastu',
-      base_price: 19800000,
-      floor_rise_rate: 50,
-      parking_charges: 600000,
+      configuration: '4.5 BHK',
+      carpet_area: 2450,
+      built_up_area: 3200,
+      facing: 'North-East (Vastu Compliant)',
+      base_price: 24500000,
+      floor_rise_rate: 60,
+      parking_charges: 1000000,
       amenities_charges: 400000,
       other_charges: 200000,
       gst_rate: 5.0,
       stamp_duty_rate: 6.0,
       registration_rate: 30000,
       possession_date: 'December 2026',
-      status: 'Sold',
-      buyer_name: 'Ketan Patel'
+      status: 'Hold',
+      buyer_name: 'Sunita Rao',
+      agent_name: 'Vikram Seth'
     },
     {
       id: 'u-1404',
@@ -182,20 +187,22 @@ export default function UnitInventoryPage() {
       tower: 'Tower A',
       floor: 14,
       unit_number: '1404',
-      configuration: '3 BHK',
-      carpet_area: 1650,
-      built_up_area: 2150,
-      facing: 'Clubhouse View',
-      base_price: 15100000,
-      floor_rise_rate: 50,
-      parking_charges: 500000,
-      amenities_charges: 300000,
-      other_charges: 150000,
+      configuration: '4.5 BHK',
+      carpet_area: 2480,
+      built_up_area: 3250,
+      facing: 'Pool & Clubhouse View',
+      base_price: 25200000,
+      floor_rise_rate: 60,
+      parking_charges: 1000000,
+      amenities_charges: 400000,
+      other_charges: 200000,
       gst_rate: 5.0,
       stamp_duty_rate: 6.0,
       registration_rate: 30000,
       possession_date: 'December 2026',
-      status: 'Available'
+      status: 'Sold',
+      buyer_name: 'Rajiv Bajaj',
+      agent_name: 'Vikram Seth'
     },
 
     // Floor 12
@@ -208,8 +215,8 @@ export default function UnitInventoryPage() {
       configuration: '3 BHK',
       carpet_area: 1650,
       built_up_area: 2150,
-      facing: 'East Facing',
-      base_price: 14500000,
+      facing: 'East (Sunrise View)',
+      base_price: 14600000,
       floor_rise_rate: 50,
       parking_charges: 500000,
       amenities_charges: 300000,
@@ -227,10 +234,10 @@ export default function UnitInventoryPage() {
       floor: 12,
       unit_number: '1202',
       configuration: '3 BHK',
-      carpet_area: 1650,
-      built_up_area: 2150,
+      carpet_area: 1680,
+      built_up_area: 2200,
       facing: 'Garden Facing',
-      base_price: 14800000,
+      base_price: 14900000,
       floor_rise_rate: 50,
       parking_charges: 500000,
       amenities_charges: 300000,
@@ -239,8 +246,9 @@ export default function UnitInventoryPage() {
       stamp_duty_rate: 6.0,
       registration_rate: 30000,
       possession_date: 'December 2026',
-      status: 'Hold',
-      buyer_name: 'Sameer Verma'
+      status: 'Negotiation',
+      buyer_name: 'Dr. Deshmukh',
+      agent_name: 'Rishi M.'
     },
     {
       id: 'u-1203',
@@ -248,13 +256,13 @@ export default function UnitInventoryPage() {
       tower: 'Tower A',
       floor: 12,
       unit_number: '1203',
-      configuration: '4 BHK',
-      carpet_area: 2200,
-      built_up_area: 2850,
-      facing: 'North Facing',
-      base_price: 19200000,
-      floor_rise_rate: 50,
-      parking_charges: 600000,
+      configuration: '4.5 BHK',
+      carpet_area: 2450,
+      built_up_area: 3200,
+      facing: 'North-East (Vastu Compliant)',
+      base_price: 24100000,
+      floor_rise_rate: 60,
+      parking_charges: 1000000,
       amenities_charges: 400000,
       other_charges: 200000,
       gst_rate: 5.0,
@@ -262,8 +270,8 @@ export default function UnitInventoryPage() {
       registration_rate: 30000,
       possession_date: 'December 2026',
       status: 'Booked',
-      buyer_name: 'Sandesh Kulkarni',
-      agent_name: 'Rishi Mahboobani'
+      buyer_name: 'Vikramaditya S.',
+      agent_name: 'Vikram Seth'
     },
     {
       id: 'u-1204',
@@ -271,15 +279,15 @@ export default function UnitInventoryPage() {
       tower: 'Tower A',
       floor: 12,
       unit_number: '1204',
-      configuration: '3 BHK',
-      carpet_area: 1680,
-      built_up_area: 2180,
-      facing: 'East Facing',
-      base_price: 15100000,
-      floor_rise_rate: 50,
-      parking_charges: 500000,
-      amenities_charges: 300000,
-      other_charges: 150000,
+      configuration: '4.5 BHK',
+      carpet_area: 2480,
+      built_up_area: 3250,
+      facing: 'Pool & Clubhouse View',
+      base_price: 24800000,
+      floor_rise_rate: 60,
+      parking_charges: 1000000,
+      amenities_charges: 400000,
+      other_charges: 200000,
       gst_rate: 5.0,
       stamp_duty_rate: 6.0,
       registration_rate: 30000,
@@ -297,29 +305,7 @@ export default function UnitInventoryPage() {
       configuration: '3 BHK',
       carpet_area: 1650,
       built_up_area: 2150,
-      facing: 'East Facing',
-      base_price: 14200000,
-      floor_rise_rate: 50,
-      parking_charges: 500000,
-      amenities_charges: 300000,
-      other_charges: 150000,
-      gst_rate: 5.0,
-      stamp_duty_rate: 6.0,
-      registration_rate: 30000,
-      possession_date: 'December 2026',
-      status: 'Token',
-      buyer_name: 'Pooja Hegde'
-    },
-    {
-      id: 'u-1002',
-      project_title: 'Panchshil Silverwoods',
-      tower: 'Tower A',
-      floor: 10,
-      unit_number: '1002',
-      configuration: '3 BHK',
-      carpet_area: 1650,
-      built_up_area: 2150,
-      facing: 'Garden Facing',
+      facing: 'East (Sunrise View)',
       base_price: 14400000,
       floor_rise_rate: 50,
       parking_charges: 500000,
@@ -329,41 +315,18 @@ export default function UnitInventoryPage() {
       stamp_duty_rate: 6.0,
       registration_rate: 30000,
       possession_date: 'December 2026',
-      status: 'Negotiation',
-      buyer_name: 'Rajiv Mathur'
+      status: 'Available'
     },
     {
-      id: 'u-1003',
+      id: 'u-1002',
       project_title: 'Panchshil Silverwoods',
       tower: 'Tower A',
       floor: 10,
-      unit_number: '1003',
-      configuration: '4 BHK',
-      carpet_area: 2200,
-      built_up_area: 2850,
-      facing: 'North Facing',
-      base_price: 18800000,
-      floor_rise_rate: 50,
-      parking_charges: 600000,
-      amenities_charges: 400000,
-      other_charges: 200000,
-      gst_rate: 5.0,
-      stamp_duty_rate: 6.0,
-      registration_rate: 30000,
-      possession_date: 'December 2026',
-      status: 'Sold',
-      buyer_name: 'Ananya Sharma'
-    },
-    {
-      id: 'u-1004',
-      project_title: 'Panchshil Silverwoods',
-      tower: 'Tower A',
-      floor: 10,
-      unit_number: '1004',
+      unit_number: '1002',
       configuration: '3 BHK',
       carpet_area: 1680,
-      built_up_area: 2180,
-      facing: 'East Facing',
+      built_up_area: 2200,
+      facing: 'Garden Facing',
       base_price: 14700000,
       floor_rise_rate: 50,
       parking_charges: 500000,
@@ -374,31 +337,105 @@ export default function UnitInventoryPage() {
       registration_rate: 30000,
       possession_date: 'December 2026',
       status: 'Available'
+    },
+    {
+      id: 'u-1003',
+      project_title: 'Panchshil Silverwoods',
+      tower: 'Tower A',
+      floor: 10,
+      unit_number: '1003',
+      configuration: '4.5 BHK',
+      carpet_area: 2450,
+      built_up_area: 3200,
+      facing: 'North-East (Vastu Compliant)',
+      base_price: 23800000,
+      floor_rise_rate: 60,
+      parking_charges: 1000000,
+      amenities_charges: 400000,
+      other_charges: 200000,
+      gst_rate: 5.0,
+      stamp_duty_rate: 6.0,
+      registration_rate: 30000,
+      possession_date: 'December 2026',
+      status: 'Hold',
+      buyer_name: 'Priya Sharma',
+      agent_name: 'Rishi M.'
+    },
+    {
+      id: 'u-1004',
+      project_title: 'Panchshil Silverwoods',
+      tower: 'Tower A',
+      floor: 10,
+      unit_number: '1004',
+      configuration: '4.5 BHK',
+      carpet_area: 2480,
+      built_up_area: 3250,
+      facing: 'Pool & Clubhouse View',
+      base_price: 24400000,
+      floor_rise_rate: 60,
+      parking_charges: 1000000,
+      amenities_charges: 400000,
+      other_charges: 200000,
+      gst_rate: 5.0,
+      stamp_duty_rate: 6.0,
+      registration_rate: 30000,
+      possession_date: 'December 2026',
+      status: 'Sold',
+      buyer_name: 'Amitav Ghosh',
+      agent_name: 'Vikram Seth'
     }
   ]);
 
-  // Unique floors sorted descending
+  // Distinct floors sorted descending
   const floors = useMemo(() => {
-    const floorSet = Array.from(new Set(units.map(u => u.floor)));
-    return floorSet.sort((a, b) => b - a);
+    const set = new Set(units.map(u => u.floor));
+    return Array.from(set).sort((a, b) => b - a);
   }, [units]);
 
-  // Inventory summary counts
-  const availableCount = units.filter(u => u.status === 'Available').length;
-  const holdCount = units.filter(u => u.status === 'Hold').length;
-  const tokenCount = units.filter(u => u.status === 'Token').length;
-  const negotiationCount = units.filter(u => u.status === 'Negotiation').length;
-  const bookedCount = units.filter(u => u.status === 'Booked').length;
-  const soldCount = units.filter(u => u.status === 'Sold').length;
+  // Aggregate stats
+  const stats = useMemo(() => {
+    const total = units.length;
+    const available = units.filter(u => u.status === 'Available').length;
+    const hold = units.filter(u => u.status === 'Hold').length;
+    const token = units.filter(u => u.status === 'Token').length;
+    const neg = units.filter(u => u.status === 'Negotiation').length;
+    const booked = units.filter(u => u.status === 'Booked').length;
+    const sold = units.filter(u => u.status === 'Sold').length;
+    return { total, available, hold, token, neg, booked, sold };
+  }, [units]);
+
+  const inlineStats = useMemo(() => [
+    { label: 'Total Units', count: stats.total, colorClass: 'bg-zinc-400' },
+    { label: 'Available Units', count: stats.available, colorClass: 'bg-emerald-500' },
+    { label: 'On Hold', count: stats.hold, colorClass: 'bg-amber-500' },
+    { label: 'Token / EOI', count: stats.token, colorClass: 'bg-blue-500' },
+    { label: 'Negotiations', count: stats.neg, colorClass: 'bg-orange-500' },
+    { label: 'Sold / Booked', count: stats.sold + stats.booked, colorClass: 'bg-zinc-800' }
+  ], [stats]);
+
+  // Filtered unit matrix
+  const filteredUnits = useMemo(() => {
+    return units.filter(u => {
+      const matchesTower = u.tower === selectedTower;
+      const matchesStatus = statusFilter === 'All' || u.status === statusFilter;
+      const matchesConfig = configFilter === 'All' || u.configuration === configFilter;
+      const matchesSearch = !searchQuery || 
+        u.unit_number.includes(searchQuery) ||
+        u.configuration.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        u.facing.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (u.buyer_name || '').toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesTower && matchesStatus && matchesConfig && matchesSearch;
+    });
+  }, [units, selectedTower, statusFilter, configFilter, searchQuery]);
 
   const handleUpdateUnitStatus = (unitId: string, newStatus: UnitStatus) => {
     setUnits(prev => prev.map(u => u.id === unitId ? { ...u, status: newStatus } : u));
-    if (selectedUnit?.id === unitId) {
+    if (selectedUnit && selectedUnit.id === unitId) {
       setSelectedUnit(prev => prev ? { ...prev, status: newStatus } : null);
     }
   };
 
-  const handleGenerateCostSheet = (unit: DeveloperUnit) => {
+  const openCostSheet = (unit: DeveloperUnit) => {
     setCostSheetTargetUnit({
       project_title: unit.project_title,
       tower: unit.tower,
@@ -406,8 +443,8 @@ export default function UnitInventoryPage() {
       unit_number: unit.unit_number,
       configuration: unit.configuration,
       carpet_area: unit.carpet_area,
+      built_up_area: unit.built_up_area,
       base_price: unit.base_price,
-      floor_rise_per_sqft: unit.floor_rise_rate,
       parking_charges: unit.parking_charges,
       amenities_charges: unit.amenities_charges,
       other_charges: unit.other_charges,
@@ -418,324 +455,273 @@ export default function UnitInventoryPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-16 text-zinc-900">
+    <div className="w-full pb-20 text-zinc-900 text-left">
       
-      {/* Top Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-[#d4ad4d]/20 text-[#99771f]">
-              Developer Building Matrix
-            </span>
+      {/* ── UNIFIED DIRECTION C PORCELAIN CARD FRAME ── */}
+      <div className="overflow-hidden bg-white border border-[#e8e7e4] rounded-2xl shadow-sm">
+        
+        {/* Editorial Header */}
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 px-6 py-5 border-b border-[#ebebeb]">
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-[20px] font-extrabold tracking-tight text-zinc-900" style={{ letterSpacing: '-0.4px' }}>
+                Unit-Level Building Matrix
+              </h1>
+              <span className="bg-zinc-900 text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-full">
+                {units.length} Units Matrix
+              </span>
+            </div>
+            <p className="text-[11px] text-zinc-400 font-medium mt-0.5">
+              Multi-Unit Developer ERP · Hierarchy: Project ➔ Tower ➔ Floor ➔ Color-Coded Unit Status
+            </p>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-900 mt-1">
-            Unit-Level Inventory Management
-          </h1>
-          <p className="text-xs text-zinc-500 font-medium">
-            Real-time tower and floor availability grid with live booking statuses, pricing, and cost sheet generation.
-          </p>
+
+          {/* Header Controls: Project & Tower Selector */}
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Tower Segment Control */}
+            <div className="dc-seg">
+              {['Tower A', 'Tower B', 'Sky Villas'].map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setSelectedTower(t)}
+                  className={`dc-seg-btn ${selectedTower === t ? 'on' : ''}`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+
+            {selectedUnit && (
+              <button
+                type="button"
+                onClick={() => openCostSheet(selectedUnit)}
+                className="dc-btn gold font-bold flex items-center gap-1.5"
+              >
+                <Calculator className="h-3.5 w-3.5" />
+                Generate Cost Sheet
+              </button>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Project Selector */}
-          <select 
-            value={selectedProject}
-            onChange={(e) => setSelectedProject(e.target.value)}
-            className="bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-xs font-bold text-zinc-800"
+        {/* Inline Stats Bar */}
+        <InlineStatsBar stats={inlineStats} />
+
+        {/* Porcelain Unified Toolbar */}
+        <div className="dc-toolbar">
+          <div className="dc-search-container">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-400" />
+            <input 
+              type="text" 
+              placeholder="Search unit #, facing, buyer name..." 
+              className="dc-search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          <select
+            aria-label="Filter by Status"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="dc-btn font-semibold cursor-pointer"
           >
-            <option value="Panchshil Silverwoods">Panchshil Silverwoods</option>
-            <option value="Vivencia Residences">Vivencia Residences</option>
-            <option value="Power Heights">Power Heights</option>
+            <option value="All">All Statuses</option>
+            <option value="Available">Available (🟢)</option>
+            <option value="Hold">Hold (🟡)</option>
+            <option value="Token">Token / EOI (🔵)</option>
+            <option value="Negotiation">Negotiation (🟠)</option>
+            <option value="Booked">Booked (🔴)</option>
+            <option value="Sold">Sold (⚫)</option>
           </select>
 
-          {/* Tower Selector */}
-          <select 
-            value={selectedTower}
-            onChange={(e) => setSelectedTower(e.target.value)}
-            className="bg-zinc-900 text-[#d4ad4d] border border-zinc-800 rounded-xl px-3 py-2 text-xs font-bold"
+          <select
+            aria-label="Filter by BHK Configuration"
+            value={configFilter}
+            onChange={(e) => setConfigFilter(e.target.value)}
+            className="dc-btn font-semibold cursor-pointer"
           >
-            <option value="Tower A">Tower A</option>
-            <option value="Tower B">Tower B</option>
-            <option value="Tower C">Tower C</option>
+            <option value="All">All BHK Layouts</option>
+            <option value="3 BHK">3 BHK</option>
+            <option value="4.5 BHK">4.5 BHK</option>
           </select>
         </div>
-      </div>
 
-      {/* Legend & Quick Filter Ribbon */}
-      <div className="bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mr-1">Status Legend:</span>
+        {/* ── MATRIX VIEW & UNIT INSPECTOR SPLIT ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-[#ebebeb] bg-white">
           
-          <button 
-            onClick={() => setStatusFilter(statusFilter === 'Available' ? 'All' : 'Available')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
-              statusFilter === 'Available' ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
-            }`}
-          >
-            <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
-            Available ({availableCount})
-          </button>
+          {/* Unit Grid Matrix Column (8 cols) */}
+          <div className="lg:col-span-8 p-6 space-y-6">
+            
+            {/* Status Legend */}
+            <div className="flex flex-wrap items-center gap-2 text-xs pb-3 border-b border-[#ebebeb]">
+              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mr-1">Legend:</span>
+              {(['Available', 'Hold', 'Token', 'Negotiation', 'Booked', 'Sold'] as UnitStatus[]).map(st => (
+                <button
+                  key={st}
+                  type="button"
+                  onClick={() => setStatusFilter(statusFilter === st ? 'All' : st)}
+                  className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10.5px] font-bold transition-all border ${
+                    statusFilter === st ? 'ring-2 ring-zinc-900' : ''
+                  } ${STATUS_COLORS[st].badge}`}
+                >
+                  <span className={`h-2 w-2 rounded-full ${STATUS_COLORS[st].dot}`} />
+                  {st}
+                </button>
+              ))}
+            </div>
 
-          <button 
-            onClick={() => setStatusFilter(statusFilter === 'Hold' ? 'All' : 'Hold')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
-              statusFilter === 'Hold' ? 'bg-amber-600 text-white' : 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100'
-            }`}
-          >
-            <span className="h-2 w-2 rounded-full bg-amber-500"></span>
-            Hold ({holdCount})
-          </button>
+            {/* Building Floor Stack */}
+            <div className="space-y-4">
+              {floors.map((floorNum) => {
+                const floorUnits = filteredUnits.filter(u => u.floor === floorNum);
+                if (floorUnits.length === 0) return null;
 
-          <button 
-            onClick={() => setStatusFilter(statusFilter === 'Token' ? 'All' : 'Token')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
-              statusFilter === 'Token' ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-800 border-blue-200 hover:bg-blue-100'
-            }`}
-          >
-            <span className="h-2 w-2 rounded-full bg-blue-500"></span>
-            Token ({tokenCount})
-          </button>
+                return (
+                  <div key={floorNum} className="flex items-center gap-4">
+                    {/* Floor Label */}
+                    <div className="w-16 shrink-0 text-left">
+                      <span className="text-xs font-extrabold text-zinc-900 block">Floor {floorNum}</span>
+                      <span className="text-[9.5px] text-zinc-400 font-bold uppercase tracking-wider">{floorUnits.length} Units</span>
+                    </div>
 
-          <button 
-            onClick={() => setStatusFilter(statusFilter === 'Negotiation' ? 'All' : 'Negotiation')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
-              statusFilter === 'Negotiation' ? 'bg-orange-600 text-white' : 'bg-orange-50 text-orange-800 border-orange-200 hover:bg-orange-100'
-            }`}
-          >
-            <span className="h-2 w-2 rounded-full bg-orange-500"></span>
-            Negotiation ({negotiationCount})
-          </button>
+                    {/* Unit Cards in Floor */}
+                    <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      {floorUnits.map((u) => {
+                        const style = STATUS_COLORS[u.status];
+                        const isSelected = selectedUnit?.id === u.id;
+                        return (
+                          <div
+                            key={u.id}
+                            onClick={() => setSelectedUnit(u)}
+                            className={`p-3.5 rounded-xl border transition-all cursor-pointer relative ${style.bg} ${style.border} ${
+                              isSelected ? 'ring-2 ring-zinc-900 shadow-md scale-[1.02]' : 'hover:shadow-xs'
+                            }`}
+                          >
+                            <div className="flex items-start justify-between">
+                              <span className="text-xs font-black text-zinc-900 tracking-tight">
+                                #{u.unit_number}
+                              </span>
+                              <span className={`h-2 w-2 rounded-full ${style.dot}`} />
+                            </div>
+                            <p className="text-[11px] font-bold text-zinc-700 mt-1">{u.configuration}</p>
+                            <p className="text-[10px] text-zinc-500 font-medium">{u.carpet_area} sq ft</p>
+                            <div className="mt-2 pt-1.5 border-t border-black/5 flex items-center justify-between">
+                              <span className="font-black text-xs text-zinc-900">{formatPriceShort(u.base_price)}</span>
+                              <span className={`text-[8.5px] font-extrabold uppercase px-1 py-0.5 rounded ${style.badge}`}>
+                                {u.status}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
 
-          <button 
-            onClick={() => setStatusFilter(statusFilter === 'Booked' ? 'All' : 'Booked')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
-              statusFilter === 'Booked' ? 'bg-rose-600 text-white' : 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100'
-            }`}
-          >
-            <span className="h-2 w-2 rounded-full bg-rose-500"></span>
-            Booked ({bookedCount})
-          </button>
-
-          <button 
-            onClick={() => setStatusFilter(statusFilter === 'Sold' ? 'All' : 'Sold')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
-              statusFilter === 'Sold' ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-700 border-zinc-300 hover:bg-zinc-200'
-            }`}
-          >
-            <span className="h-2 w-2 rounded-full bg-zinc-900"></span>
-            Sold ({soldCount})
-          </button>
-        </div>
-
-        {statusFilter !== 'All' && (
-          <button 
-            onClick={() => setStatusFilter('All')} 
-            className="text-xs font-bold text-zinc-500 hover:text-zinc-900 underline"
-          >
-            Reset Filter
-          </button>
-        )}
-      </div>
-
-      {/* Main Floor-by-Floor Matrix Grid */}
-      <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-6 space-y-6">
-        <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
-          <h3 className="font-bold text-sm text-zinc-900 uppercase tracking-wider flex items-center gap-2">
-            <Building2 className="h-4 w-4 text-[#b38f2d]" />
-            {selectedProject} — {selectedTower}
-          </h3>
-          <span className="text-xs text-zinc-400 font-medium">
-            Total {units.length} Units on Floor Matrix
-          </span>
-        </div>
-
-        {/* Floor Rows */}
-        <div className="space-y-6">
-          {floors.map((floorNum) => {
-            const floorUnits = units.filter(u => u.floor === floorNum);
-
-            return (
-              <div key={floorNum} className="space-y-2.5">
-                {/* Floor Header Badge */}
-                <div className="flex items-center gap-3">
-                  <span className="px-3 py-1 rounded-lg bg-zinc-900 text-[#d4ad4d] text-xs font-black tracking-wider">
-                    FLOOR {floorNum}
+          {/* Granular Unit Inspector Column (4 cols) */}
+          <div className="lg:col-span-4 p-6 bg-[#fafaf8] space-y-5">
+            {selectedUnit ? (
+              <div className="space-y-4">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <span className="text-[9.5px] font-extrabold uppercase tracking-wider text-[#d4ad4d]">
+                      Unit Specifications
+                    </span>
+                    <h3 className="text-base font-extrabold text-zinc-900 mt-0.5">
+                      Unit #{selectedUnit.unit_number}
+                    </h3>
+                    <p className="text-[11px] text-zinc-500 font-medium">
+                      {selectedUnit.project_title} • {selectedUnit.tower}, Floor {selectedUnit.floor}
+                    </p>
+                  </div>
+                  <span className={`dc-badge ${STATUS_COLORS[selectedUnit.status].badge}`}>
+                    {selectedUnit.status}
                   </span>
-                  <div className="h-px flex-1 bg-zinc-100"></div>
                 </div>
 
-                {/* Floor Units Matrix Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                  {floorUnits.map((unit) => {
-                    const styling = STATUS_COLORS[unit.status];
-                    const matchesFilter = statusFilter === 'All' || unit.status === statusFilter;
-                    const isSelected = selectedUnit?.id === unit.id;
+                {/* Specs Grid */}
+                <div className="bg-white p-4 rounded-xl border border-[#e8e7e4] space-y-2.5 text-xs">
+                  <div className="flex justify-between py-1 border-b border-[#f5f5f3]">
+                    <span className="text-zinc-400 font-bold uppercase text-[9px]">Configuration</span>
+                    <span className="font-extrabold text-zinc-900">{selectedUnit.configuration}</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-[#f5f5f3]">
+                    <span className="text-zinc-400 font-bold uppercase text-[9px]">Carpet Area</span>
+                    <span className="font-extrabold text-zinc-900">{selectedUnit.carpet_area} sq ft</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-[#f5f5f3]">
+                    <span className="text-zinc-400 font-bold uppercase text-[9px]">Built-up Area</span>
+                    <span className="font-extrabold text-zinc-900">{selectedUnit.built_up_area} sq ft</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-[#f5f5f3]">
+                    <span className="text-zinc-400 font-bold uppercase text-[9px]">Facing / View</span>
+                    <span className="font-bold text-zinc-800">{selectedUnit.facing}</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-[#f5f5f3]">
+                    <span className="text-zinc-400 font-bold uppercase text-[9px]">Base Valuation</span>
+                    <span className="font-extrabold text-[#b8922e]">{formatPriceShort(selectedUnit.base_price)}</span>
+                  </div>
+                  <div className="flex justify-between py-1">
+                    <span className="text-zinc-400 font-bold uppercase text-[9px]">Possession</span>
+                    <span className="font-bold text-zinc-800">{selectedUnit.possession_date}</span>
+                  </div>
+                </div>
 
-                    return (
-                      <div
-                        key={unit.id}
-                        onClick={() => setSelectedUnit(unit)}
-                        className={`p-4 rounded-xl border transition-all cursor-pointer relative ${
-                          styling.bg
-                        } ${
-                          styling.border
-                        } ${
-                          !matchesFilter ? 'opacity-30' : 'opacity-100'
-                        } ${
-                          isSelected ? 'ring-2 ring-zinc-900 shadow-md scale-[1.02]' : 'hover:shadow-sm'
+                {/* Status Switcher Controls */}
+                <div className="bg-white p-4 rounded-xl border border-[#e8e7e4] space-y-2">
+                  <span className="text-[9.5px] font-bold text-zinc-400 uppercase tracking-wider block">
+                    Update Unit Status
+                  </span>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {(['Available', 'Hold', 'Token', 'Negotiation', 'Booked', 'Sold'] as UnitStatus[]).map(st => (
+                      <button
+                        key={st}
+                        type="button"
+                        onClick={() => handleUpdateUnitStatus(selectedUnit.id, st)}
+                        className={`py-1.5 px-2 rounded-lg text-[10px] font-bold border transition-all cursor-pointer ${
+                          selectedUnit.status === st
+                            ? 'bg-zinc-900 text-white border-zinc-900 shadow-xs'
+                            : 'bg-white border-[#e8e7e4] text-zinc-600 hover:border-zinc-400'
                         }`}
                       >
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <span className="text-sm font-black text-zinc-900">{unit.unit_number}</span>
-                            <span className="text-xs font-bold text-zinc-600 block">{unit.configuration}</span>
-                          </div>
-                          <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${styling.badge}`}>
-                            {unit.status}
-                          </span>
-                        </div>
-
-                        <div className="mt-3 pt-2.5 border-t border-zinc-200/50 flex items-center justify-between">
-                          <span className="text-xs font-black text-zinc-900">
-                            {formatPriceShort(unit.base_price)}
-                          </span>
-                          <span className="text-[10px] text-zinc-500 font-bold">
-                            {unit.carpet_area} sq ft
-                          </span>
-                        </div>
-
-                        {unit.buyer_name && (
-                          <p className="text-[10px] text-zinc-600 font-semibold mt-1 truncate">
-                            Client: {unit.buyer_name}
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })}
+                        {st}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
 
-      </div>
-
-      {/* Selected Unit Details Slide-over / Modal */}
-      {selectedUnit && (
-        <div className="fixed inset-0 z-50 flex items-center justify-end bg-zinc-950/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-white h-full shadow-2xl p-6 overflow-y-auto space-y-6 text-zinc-900 animate-in slide-in-from-right duration-300">
-            
-            <div className="flex items-center justify-between pb-4 border-b border-zinc-100">
-              <div>
-                <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block">Unit Details</span>
-                <h3 className="text-xl font-bold text-zinc-900">
-                  Unit {selectedUnit.unit_number} (Floor {selectedUnit.floor})
-                </h3>
-              </div>
-              <button 
-                onClick={() => setSelectedUnit(null)} 
-                className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            {/* Status Quick Switcher */}
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Update Unit Status</label>
-              <div className="grid grid-cols-3 gap-1.5">
-                {(['Available', 'Hold', 'Token', 'Negotiation', 'Booked', 'Sold'] as UnitStatus[]).map((st) => (
+                {/* Direct Action Trigger */}
+                <div className="pt-2">
                   <button
-                    key={st}
-                    onClick={() => handleUpdateUnitStatus(selectedUnit.id, st)}
-                    className={`py-1.5 px-2 rounded-lg text-[11px] font-bold border transition-all ${
-                      selectedUnit.status === st 
-                        ? 'bg-zinc-900 text-[#d4ad4d] border-zinc-900 shadow-sm' 
-                        : 'bg-zinc-50 text-zinc-600 border-zinc-200 hover:border-zinc-300'
-                    }`}
+                    type="button"
+                    onClick={() => openCostSheet(selectedUnit)}
+                    className="w-full dc-btn gold font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-sm text-xs"
                   >
-                    {st}
+                    <Calculator className="h-4 w-4" />
+                    Generate 1-Click Cost Sheet
                   </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Specifications Grid */}
-            <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-200 space-y-3 text-xs">
-              <h4 className="font-bold text-zinc-900 uppercase text-[10px] tracking-wider">Unit Specifications</h4>
-              
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase block">Configuration</span>
-                  <span className="font-bold text-zinc-900">{selectedUnit.configuration}</span>
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase block">Facing / Orientation</span>
-                  <span className="font-bold text-zinc-900">{selectedUnit.facing}</span>
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase block">Carpet Area</span>
-                  <span className="font-bold text-zinc-900">{selectedUnit.carpet_area} sq ft</span>
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase block">Built-up Area</span>
-                  <span className="font-bold text-zinc-900">{selectedUnit.built_up_area} sq ft</span>
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase block">Possession</span>
-                  <span className="font-bold text-zinc-900">{selectedUnit.possession_date}</span>
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase block">Base Price</span>
-                  <span className="font-black text-[#b38f2d] text-sm">{formatCurrency(selectedUnit.base_price)}</span>
                 </div>
               </div>
-            </div>
-
-            {/* Cost Breakdown Summary */}
-            <div className="space-y-2 text-xs">
-              <h4 className="font-bold text-zinc-900 uppercase text-[10px] tracking-wider">Estimated Pricing Breakdown</h4>
-              <div className="space-y-1.5 text-zinc-600 bg-zinc-50/50 p-3 rounded-xl border border-zinc-200">
-                <div className="flex justify-between">
-                  <span>Base Price</span>
-                  <span className="font-bold text-zinc-900">{formatCurrency(selectedUnit.base_price)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Car Parking Charges</span>
-                  <span className="font-bold text-zinc-900">{formatCurrency(selectedUnit.parking_charges)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Amenities & Club</span>
-                  <span className="font-bold text-zinc-900">{formatCurrency(selectedUnit.amenities_charges)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Estimated Taxes (GST + Stamp Duty)</span>
-                  <span className="font-bold text-zinc-900">≈ 11%</span>
-                </div>
+            ) : (
+              <div className="p-12 text-center text-zinc-400 text-xs">
+                Select a unit card in the building matrix to inspect detailed specifications and cost sheets.
               </div>
-            </div>
-
-            {/* Actions */}
-            <div className="space-y-2 pt-4 border-t border-zinc-100">
-              <button
-                onClick={() => handleGenerateCostSheet(selectedUnit)}
-                className="w-full py-3 rounded-xl bg-zinc-900 text-[#d4ad4d] text-xs font-bold hover:bg-zinc-800 flex items-center justify-center gap-2 transition-all shadow-md"
-              >
-                <Calculator className="h-4 w-4" />
-                Generate Smart Cost Sheet
-              </button>
-            </div>
-
+            )}
           </div>
         </div>
-      )}
+      </div>
 
-      {/* Cost Sheet Modal Connector */}
+      {/* Cost Sheet Modal */}
       {costSheetTargetUnit && (
         <CostSheetModal 
-          isOpen={!!costSheetTargetUnit}
-          onClose={() => setCostSheetTargetUnit(null)}
           unit={costSheetTargetUnit}
+          isOpen={Boolean(costSheetTargetUnit)}
+          onClose={() => setCostSheetTargetUnit(null)}
         />
       )}
 

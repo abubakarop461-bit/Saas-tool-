@@ -13,7 +13,8 @@ import {
   AlertCircle, 
   Calendar,
   FileText,
-  Send
+  Send,
+  MessageSquare
 } from 'lucide-react';
 
 interface CallIntelligenceModalProps {
@@ -79,184 +80,177 @@ export function CallIntelligenceModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-zinc-200 overflow-hidden text-zinc-900 flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-xs animate-in fade-in duration-150">
+      <div className="relative w-full max-w-xl bg-white rounded-2xl shadow-xl border border-[#e8e7e4] overflow-hidden text-zinc-900 flex flex-col max-h-[90vh]">
         
-        {/* Header */}
-        <div className="px-6 py-4 bg-zinc-900 text-white flex items-center justify-between border-b border-zinc-800">
+        {/* Editorial Porcelain Header */}
+        <div className="px-6 py-4 bg-[#fafaf8] border-b border-[#ebebeb] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-[#d4ad4d]/20 border border-[#d4ad4d]/40 flex items-center justify-center text-[#d4ad4d]">
-              <PhoneCall className="h-5 w-5" />
+            <div className="h-9 w-9 rounded-xl bg-[#d4ad4d]/15 border border-[#d4ad4d]/30 flex items-center justify-center text-[#99771f]">
+              <PhoneCall className="h-4 w-4" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#d4ad4d] text-zinc-950 font-black uppercase">
+                <h3 className="font-extrabold text-sm text-zinc-900">
                   AI Call Intelligence
+                </h3>
+                <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#d4ad4d] text-white font-extrabold uppercase">
+                  CRM Entity Extraction
                 </span>
               </div>
-              <h3 className="font-bold text-sm text-white mt-0.5">
-                Call Completed — Auto CRM Extraction
-              </h3>
+              <p className="text-[11px] text-zinc-400 font-medium">
+                Client: {leadName} • {leadPhone}
+              </p>
             </div>
           </div>
-          <button onClick={onClose} className="text-zinc-400 hover:text-white">
-            <X className="h-5 w-5" />
+
+          <button 
+            type="button"
+            onClick={onClose}
+            className="text-zinc-400 hover:text-zinc-700 p-1 rounded-lg transition-colors"
+          >
+            <X className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Scrollable Content */}
-        <div className="p-6 overflow-y-auto space-y-5 text-xs">
-          
-          {/* Client Header Info */}
-          <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200 flex items-center justify-between">
-            <div>
-              <span className="text-[10px] font-bold text-zinc-400 uppercase">Customer</span>
-              <p className="font-bold text-zinc-900 text-sm">{leadName}</p>
-            </div>
-            <div className="text-right">
-              <span className="text-[10px] font-bold text-zinc-400 uppercase">Contact</span>
-              <p className="font-medium text-zinc-600">{leadPhone}</p>
-            </div>
-          </div>
-
-          {/* Unstructured Call Transcript / Agent Notes */}
+        {/* Modal Content */}
+        <div className="p-6 overflow-y-auto space-y-4 text-xs">
+          {/* Audio / Raw Notes Input */}
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <label className="font-bold text-zinc-700 uppercase text-[10px] tracking-wider">
-                Call Notes / Transcript Input
-              </label>
-              <button 
-                onClick={handleRunAIAnalysis}
-                className="text-[11px] font-bold text-[#b38f2d] hover:underline flex items-center gap-1"
-              >
-                <Sparkles className="h-3 w-3" /> Re-parse with AI
-              </button>
-            </div>
-            <textarea
-              rows={3}
+            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
+              Call Transcript / Audio Voice Notes
+            </label>
+            <textarea 
               value={callNotes}
               onChange={(e) => setCallNotes(e.target.value)}
-              className="w-full p-3 rounded-xl border border-zinc-300 font-medium text-zinc-800 bg-zinc-50/50 focus:ring-1 focus:ring-[#d4ad4d]"
-              placeholder="Paste call notes or audio transcript..."
+              rows={3}
+              placeholder="Paste raw call notes or audio transcript..."
+              className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 text-xs text-zinc-900 focus:bg-white focus:border-[#d4ad4d] focus:ring-2 focus:ring-[#d4ad4d]/15"
             />
           </div>
 
-          {/* AI Structured Extraction Panel */}
-          {hasExtracted && (
-            <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-200 space-y-4">
-              <div className="flex items-center justify-between border-b border-zinc-200 pb-2">
-                <span className="font-black text-[11px] text-zinc-900 uppercase tracking-wider flex items-center gap-1.5">
-                  <Sparkles className="h-3.5 w-3.5 text-[#b38f2d]" />
-                  AI Structured Insights
-                </span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                  Ready to Sync
-                </span>
-              </div>
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={handleRunAIAnalysis}
+              disabled={isAnalyzing}
+              className="dc-btn font-bold flex items-center gap-1.5 text-xs text-zinc-800"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-[#d4ad4d]" />
+              {isAnalyzing ? 'Extracting CRM Entities...' : 'Re-Run AI Extraction'}
+            </button>
+          </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[10px] font-bold text-zinc-400 uppercase block mb-1">Budget Target</label>
+          {/* Structured CRM Entities Form */}
+          {hasExtracted && (
+            <div className="p-4 bg-[#fafaf8] border border-[#e8e7e4] rounded-xl space-y-3">
+              <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                Extracted CRM Fields (Auto-Sync to Lead Record)
+              </h4>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <span className="text-[9px] font-bold text-zinc-400 uppercase block">Verified Budget</span>
                   <input 
                     type="text" 
                     value={extractedBudget}
                     onChange={(e) => setExtractedBudget(e.target.value)}
-                    className="w-full bg-white border border-zinc-300 rounded-lg p-2 font-bold text-zinc-900"
+                    className="w-full h-8 bg-white border border-[#e8e7e4] rounded-lg px-2.5 text-xs font-bold text-zinc-900"
                   />
                 </div>
-
-                <div>
-                  <label className="text-[10px] font-bold text-zinc-400 uppercase block mb-1">Requirement</label>
+                <div className="space-y-1">
+                  <span className="text-[9px] font-bold text-zinc-400 uppercase block">Configuration Requirement</span>
                   <input 
                     type="text" 
                     value={extractedReq}
                     onChange={(e) => setExtractedReq(e.target.value)}
-                    className="w-full bg-white border border-zinc-300 rounded-lg p-2 font-bold text-zinc-900"
+                    className="w-full h-8 bg-white border border-[#e8e7e4] rounded-lg px-2.5 text-xs font-bold text-zinc-900"
                   />
                 </div>
-
-                <div>
-                  <label className="text-[10px] font-bold text-zinc-400 uppercase block mb-1">Preferred Location</label>
+                <div className="space-y-1">
+                  <span className="text-[9px] font-bold text-zinc-400 uppercase block">Preferred Location</span>
                   <input 
                     type="text" 
                     value={extractedLocation}
                     onChange={(e) => setExtractedLocation(e.target.value)}
-                    className="w-full bg-white border border-zinc-300 rounded-lg p-2 font-bold text-zinc-900"
+                    className="w-full h-8 bg-white border border-[#e8e7e4] rounded-lg px-2.5 text-xs font-semibold text-zinc-900"
                   />
                 </div>
-
-                <div>
-                  <label className="text-[10px] font-bold text-zinc-400 uppercase block mb-1">Interest Level</label>
+                <div className="space-y-1">
+                  <span className="text-[9px] font-bold text-zinc-400 uppercase block">Purchase Urgency / Interest</span>
                   <select 
                     value={extractedInterest}
                     onChange={(e) => setExtractedInterest(e.target.value as any)}
-                    className="w-full bg-white border border-zinc-300 rounded-lg p-2 font-bold text-emerald-700"
+                    className="w-full h-8 bg-white border border-[#e8e7e4] rounded-lg px-2 text-xs font-bold text-zinc-900"
                   >
-                    <option value="High">🔥 High Intent</option>
-                    <option value="Medium">Warm</option>
-                    <option value="Low">Cold</option>
+                    <option value="High">🔥 High (Hot Lead)</option>
+                    <option value="Medium">🟡 Medium (Warm)</option>
+                    <option value="Low">❄️ Low (Cold)</option>
                   </select>
                 </div>
-
-                <div>
-                  <label className="text-[10px] font-bold text-zinc-400 uppercase block mb-1">Key Objection</label>
-                  <input 
-                    type="text" 
-                    value={extractedObjection}
-                    onChange={(e) => setExtractedObjection(e.target.value)}
-                    className="w-full bg-white border border-zinc-300 rounded-lg p-2 font-medium text-rose-700"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-bold text-zinc-400 uppercase block mb-1">Competitor Mentioned</label>
-                  <input 
-                    type="text" 
-                    value={extractedCompetitor}
-                    onChange={(e) => setExtractedCompetitor(e.target.value)}
-                    className="w-full bg-white border border-zinc-300 rounded-lg p-2 font-medium text-zinc-800"
-                  />
-                </div>
               </div>
 
-              <div>
-                <label className="text-[10px] font-bold text-zinc-400 uppercase block mb-1">Next Action</label>
+              <div className="space-y-1">
+                <span className="text-[9px] font-bold text-zinc-400 uppercase block">Client Objections / Concerns</span>
                 <input 
                   type="text" 
-                  value={extractedNextAction}
-                  onChange={(e) => setExtractedNextAction(e.target.value)}
-                  className="w-full bg-white border border-zinc-300 rounded-lg p-2 font-bold text-zinc-900"
+                  value={extractedObjection}
+                  onChange={(e) => setExtractedObjection(e.target.value)}
+                  className="w-full h-8 bg-white border border-[#e8e7e4] rounded-lg px-2.5 text-xs text-zinc-800"
                 />
               </div>
 
-              <div>
-                <label className="text-[10px] font-bold text-zinc-400 uppercase block mb-1">Scheduled Follow-up Date</label>
+              <div className="space-y-1">
+                <span className="text-[9px] font-bold text-zinc-400 uppercase block">Competitor Mentions</span>
                 <input 
-                  type="date" 
-                  value={extractedFollowup}
-                  onChange={(e) => setExtractedFollowup(e.target.value)}
-                  className="w-full bg-white border border-zinc-300 rounded-lg p-2 font-bold text-zinc-900"
+                  type="text" 
+                  value={extractedCompetitor}
+                  onChange={(e) => setExtractedCompetitor(e.target.value)}
+                  className="w-full h-8 bg-white border border-[#e8e7e4] rounded-lg px-2.5 text-xs text-zinc-800"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <span className="text-[9px] font-bold text-zinc-400 uppercase block">Recommended Next Action</span>
+                  <input 
+                    type="text" 
+                    value={extractedNextAction}
+                    onChange={(e) => setExtractedNextAction(e.target.value)}
+                    className="w-full h-8 bg-white border border-[#e8e7e4] rounded-lg px-2.5 text-xs font-semibold text-zinc-900"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <span className="text-[9px] font-bold text-zinc-400 uppercase block">Next Follow-Up Date</span>
+                  <input 
+                    type="date" 
+                    value={extractedFollowup}
+                    onChange={(e) => setExtractedFollowup(e.target.value)}
+                    className="w-full h-8 bg-white border border-[#e8e7e4] rounded-lg px-2.5 text-xs text-zinc-900"
+                  />
+                </div>
               </div>
             </div>
           )}
-
         </div>
 
-        {/* Footer */}
-        <div className="px-6 py-4 bg-zinc-50 border-t border-zinc-200 flex items-center justify-between">
+        {/* Modal Footer */}
+        <div className="px-6 py-3.5 bg-[#fafaf8] border-t border-[#ebebeb] flex items-center justify-between">
           <button
+            type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl border border-zinc-300 font-bold text-zinc-600 hover:bg-zinc-100"
+            className="dc-btn font-semibold"
           >
             Cancel
           </button>
+
           <button
+            type="button"
             onClick={handleSave}
-            className="px-5 py-2 rounded-xl bg-zinc-900 text-[#d4ad4d] font-bold hover:bg-zinc-800 shadow-md flex items-center gap-2"
+            className="dc-btn gold font-bold flex items-center gap-1.5"
           >
-            {savedSuccess ? <CheckCircle2 className="h-4 w-4 text-emerald-400" /> : <Sparkles className="h-4 w-4" />}
-            {savedSuccess ? 'Auto-Updated Lead Record!' : 'Sync to Lead CRM'}
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            {savedSuccess ? 'CRM Record Updated!' : 'Auto-Update CRM Lead'}
           </button>
         </div>
 

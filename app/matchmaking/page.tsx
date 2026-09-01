@@ -769,8 +769,53 @@ Let us know if you would like to schedule a site visit!`);
   }
 
   return (
-    <div className="w-full pb-20 text-zinc-900 text-left">
+    <div className="w-full pb-20 text-zinc-900 text-left space-y-6">
       
+      {/* Editorial Header Card */}
+      <div className="bg-white border border-[#e8e7e4] rounded-2xl shadow-sm px-6 py-5 flex flex-col md:flex-row md:items-start justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-[20px] font-extrabold tracking-tight text-zinc-900" style={{ letterSpacing: '-0.4px' }}>
+              Multi-Dimensional Matchmaker Studio
+            </h1>
+            <span className="bg-zinc-900 text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-full">
+              {leads.length} Leads • {properties.length} Listings
+            </span>
+          </div>
+          <p className="text-[11px] text-zinc-400 font-medium mt-0.5">
+            Elastic Budget (+10%) · Micro-Market Proximity Clustering · BHK Layout Hierarchy · Reverse Match
+          </p>
+        </div>
+
+        {/* Mode switcher segment */}
+        <div className="flex items-center gap-2">
+          <div className="dc-seg">
+            <button
+              type="button"
+              onClick={() => {
+                setMatchMode('leads');
+                setSearchQuery('');
+                setFitFilter('all');
+              }}
+              className={`dc-seg-btn ${matchMode === 'leads' ? 'on' : ''}`}
+            >
+              Buyer ➔ Inventory Match
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMatchMode('properties');
+                setSearchQuery('');
+                setFitFilter('all');
+              }}
+              className={`dc-seg-btn ${matchMode === 'properties' ? 'on' : ''}`}
+            >
+              🔥 Reverse: Unit ➔ Buyer Pool
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* ── MAIN WORKSPACE ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
