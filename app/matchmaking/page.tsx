@@ -24,7 +24,8 @@ import {
   Layout,
   Maximize2,
   Filter,
-  Copy
+  Copy,
+  Calculator
 } from 'lucide-react';
 import { 
   Radar, 
@@ -37,6 +38,7 @@ import {
 import { useProfile } from '@/lib/auth';
 import { supabase } from '@/lib/supabaseClient';
 import { fetchLeads, fetchProperties, Lead, Property } from '@/lib/queries';
+import { CostSheetModal, CostSheetUnit } from '@/components/cost-sheet/CostSheetModal';
 
 // Helper to abbreviate currency values into Indian units
 function formatBudgetAbbreviated(value: number | undefined | null) {
@@ -138,6 +140,7 @@ export default function MatchmakingPage() {
   const [bookingTime, setBookingTime] = useState('11:00 AM');
   const [bookingNotes, setBookingNotes] = useState('');
   const [isAnalysisOpen, setIsAnalysisOpen] = useState(false);
+  const [costSheetTargetUnit, setCostSheetTargetUnit] = useState<CostSheetUnit | null>(null);
   // Dedicated, single-purpose state for which card's analysis is shown in the drawer.
   // Deliberately separate from selectedLeadId/selectedPropertyId, which are also used
   // for the left sidebar focus, booking, and sharing -- so nothing else can ever affect it.
@@ -1103,6 +1106,26 @@ Let us know if you would like to schedule a site visit!`);
                           >
                             Book Tour
                           </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCostSheetTargetUnit({
+                                project_title: match.title,
+                                tower: 'A',
+                                floor: 12,
+                                unit_number: match.property_code || 'A-1204',
+                                configuration: match.configuration || '3 BHK',
+                                carpet_area: match.carpet_area || 1500,
+                                base_price: match.price || 12000000,
+                                parking_charges: 500000,
+                                amenities_charges: 300000,
+                                other_charges: 150000
+                              });
+                            }}
+                            className="px-2 py-1 text-[9px] font-bold bg-[#faf7ee] text-[#b38f2d] hover:bg-[#f4ebd0] rounded transition-all flex items-center gap-0.5 cursor-pointer border border-[#e8d5a3]"
+                          >
+                            <Calculator className="h-3 w-3" /> Cost Sheet
+                          </button>
                           <a
                             href={`https://wa.me/?text=${sharePropertyToLeadText(currentLead, match)}`}
                             target="_blank"
@@ -1472,6 +1495,17 @@ Let us know if you would like to schedule a site visit!`);
             </form>
           </div>
         </div>
+      )}
+
+      {/* Cost Sheet Modal Connector */}
+      {costSheetTargetUnit && (
+        <CostSheetModal 
+          isOpen={!!costSheetTargetUnit}
+          onClose={() => setCostSheetTargetUnit(null)}
+          unit={costSheetTargetUnit}
+          clientName={currentLead?.client_name}
+          clientPhone={currentLead?.phone}
+        />
       )}
 
     </div>
