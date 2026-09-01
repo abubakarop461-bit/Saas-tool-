@@ -24,6 +24,10 @@ import {
   Filter,
   CheckCircle2,
   AlertCircle,
+  AlertTriangle,
+  PhoneCall,
+  MessageSquare,
+  Sparkles,
   XCircle,
   ExternalLink,
   ShieldCheck,
@@ -223,6 +227,32 @@ export default function DashboardPage() {
       .map(([name, count]) => ({ name, count, pct: total > 0 ? Math.round((count / total) * 100) : 0 }))
       .sort((a, b) => b.count - a.count);
   }, [filteredLeads]);
+
+  // Lead Leakage & Sales Risks Calculations
+  const [selectedRiskLead, setSelectedRiskLead] = useState<any | null>(null);
+
+  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const overdueLeads = useMemo(() => {
+    return leads.filter(l => l.next_followup_date && l.next_followup_date < todayStr && l.status !== 'Closed');
+  }, [leads, todayStr]);
+
+  const hotLeadsWithoutFollowup = useMemo(() => {
+    return leads.filter(l => l.status === 'Hot' && !l.next_followup_date);
+  }, [leads]);
+
+  const visitsWithoutFeedback = useMemo(() => {
+    return siteVisits.filter(v => (v.status === 'Completed' || v.status === 'Done') && !v.client_feedback && !v.outcome);
+  }, [siteVisits]);
+
+  const unassignedLeads = useMemo(() => {
+    return leads.filter(l => !l.assigned_to && l.status !== 'Closed');
+  }, [leads]);
+
+  const inactiveNegotiations = useMemo(() => {
+    return leads.filter(l => (l.stage_id === 'Negotiation' || l.stage_id === 'Follow up') && l.status !== 'Closed');
+  }, [leads]);
+
+  const totalLeakageRisksCount = overdueLeads.length + hotLeadsWithoutFollowup.length + visitsWithoutFeedback.length + unassignedLeads.length;
 
   const handleExportReport = () => {
     const timestamp = new Date().toLocaleString('en-IN', {
@@ -489,6 +519,67 @@ export default function DashboardPage() {
           {/* Main Workspace Left Column (8 cols) */}
           <div className="lg:col-span-8 p-6 md:p-8 border-r-0 lg:border-r border-b lg:border-b-0 border-[#ebebeb] space-y-6">
             
+            {/* 🚨 SALES RISKS & LEAD LEAKAGE DETECTION */}
+            <div className="p-4 bg-gradient-to-r from-rose-50/80 via-amber-50/60 to-rose-50/80 border border-rose-200/80 rounded-2xl space-y-3 shadow-xs">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-8 w-8 rounded-xl bg-rose-600 text-white flex items-center justify-center font-black shadow-sm">
+                    <AlertTriangle className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-black text-rose-950 uppercase tracking-wider flex items-center gap-2">
+                      Sales Risks & Lead Leakage Command
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-600 text-white font-bold">
+                        {totalLeakageRisksCount} Action Required
+                      </span>
+                    </h3>
+                    <p className="text-[10px] text-rose-700 font-medium">
+                      Proactively prevent lost revenue from unattended leads, overdue follow-ups, and uncaptured visit feedback.
+                    </p>
+                  </div>
+                </div>
+
+                <span className="text-[10px] font-bold text-rose-800 uppercase tracking-widest hidden sm:inline">
+                  Live Audit
+                </span>
+              </div>
+
+              {/* Risk Badges Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                <div 
+                  onClick={() => setDetailModal({ type: 'leads', title: `🚨 Overdue Leads (${overdueLeads.length})`, items: overdueLeads })}
+                  className="p-2.5 bg-white/90 border border-rose-200 rounded-xl cursor-pointer hover:bg-rose-100/60 transition-colors shadow-2xs"
+                >
+                  <span className="text-[9.5px] font-bold text-rose-700 uppercase block">Follow-up Overdue</span>
+                  <span className="text-sm font-black text-rose-950">{overdueLeads.length} Leads</span>
+                </div>
+
+                <div 
+                  onClick={() => setDetailModal({ type: 'leads', title: `🔥 Hot Leads Without Scheduled Followup (${hotLeadsWithoutFollowup.length})`, items: hotLeadsWithoutFollowup })}
+                  className="p-2.5 bg-white/90 border border-amber-200 rounded-xl cursor-pointer hover:bg-amber-100/60 transition-colors shadow-2xs"
+                >
+                  <span className="text-[9.5px] font-bold text-amber-700 uppercase block">Hot Leads Unscheduled</span>
+                  <span className="text-sm font-black text-amber-950">{hotLeadsWithoutFollowup.length} Leads</span>
+                </div>
+
+                <div 
+                  onClick={() => setDetailModal({ type: 'visits', title: `Site Visits Missing Feedback (${visitsWithoutFeedback.length})`, items: visitsWithoutFeedback })}
+                  className="p-2.5 bg-white/90 border border-rose-200 rounded-xl cursor-pointer hover:bg-rose-100/60 transition-colors shadow-2xs"
+                >
+                  <span className="text-[9.5px] font-bold text-rose-700 uppercase block">Visits No Feedback</span>
+                  <span className="text-sm font-black text-rose-950">{visitsWithoutFeedback.length} Visits</span>
+                </div>
+
+                <div 
+                  onClick={() => setDetailModal({ type: 'leads', title: `Unassigned Inbound Inquiries (${unassignedLeads.length})`, items: unassignedLeads })}
+                  className="p-2.5 bg-white/90 border border-rose-200 rounded-xl cursor-pointer hover:bg-rose-100/60 transition-colors shadow-2xs"
+                >
+                  <span className="text-[9.5px] font-bold text-rose-700 uppercase block">Unassigned Leads</span>
+                  <span className="text-sm font-black text-rose-950">{unassignedLeads.length} Inquiries</span>
+                </div>
+              </div>
+            </div>
+
             {/* 1. SALES PIPELINE FUNNEL CONVERSION */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
