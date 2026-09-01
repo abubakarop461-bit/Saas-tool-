@@ -1,5 +1,16 @@
 // src/lib/db.ts - Cloudflare D1 Database Client & Fallback Layer
-import type { D1Database } from '@cloudflare/workers-types';
+
+export interface D1Database {
+  prepare: (query: string) => {
+    bind: (...values: any[]) => {
+      all: <T = any>() => Promise<{ results: T[]; success: boolean }>;
+      run: () => Promise<{ success: boolean; meta: any }>;
+      first: <T = any>(colName?: string) => Promise<T | null>;
+    };
+  };
+  batch: (statements: any[]) => Promise<any[]>;
+  exec: (query: string) => Promise<{ count: number; duration: number }>;
+}
 
 export interface CloudflareEnv {
   DB?: D1Database;

@@ -23,7 +23,10 @@ import {
   ExternalLink,
   ChevronRight,
   TrendingUp,
-  AlertTriangle
+  AlertTriangle,
+  LayoutGrid,
+  Rows3,
+  Columns2
 } from 'lucide-react';
 import { formatCurrency, formatPriceShort } from '@/lib/formatters';
 import { InlineStatsBar } from '@/components/ui/InlineStatsBar';
@@ -65,7 +68,8 @@ export interface CommissionEntry {
 }
 
 export default function ChannelPartnersAndCommissionsPage() {
-  // Search & Filters
+  // Layout arrangement: 'stacked' (one below the other 100% width) | 'side-by-side' (50/50 split) | 'partners' | 'commissions'
+  const [layoutMode, setLayoutMode] = useState<'stacked' | 'side-by-side' | 'partners' | 'commissions'>('stacked');
   const [searchQuery, setSearchQuery] = useState('');
   const [partnerTierFilter, setPartnerTierFilter] = useState('All');
   const [commissionStatusFilter, setCommissionStatusFilter] = useState('All');
@@ -248,8 +252,8 @@ export default function ChannelPartnersAndCommissionsPage() {
     { label: 'CP Delivered Revenue', count: formatPriceShort(totalCPRevenue), colorClass: 'bg-emerald-500' },
     { label: 'CP Bookings', count: totalCPBookings, colorClass: 'bg-blue-500' },
     { label: 'Total Commission', count: formatPriceShort(totalAccruedCommission), colorClass: 'bg-[#d4ad4d]' },
-    { label: 'Paid Settlements', count: formatPriceShort(totalPaidCommission), colorClass: 'bg-emerald-600' },
-    { label: 'Pending Payouts', count: formatPriceShort(totalPendingCommission), colorClass: 'bg-amber-500' }
+    { label: 'Settled Payouts', count: formatPriceShort(totalPaidCommission), colorClass: 'bg-emerald-600' },
+    { label: 'Pending Approval', count: formatPriceShort(totalPendingCommission), colorClass: 'bg-amber-500' }
   ], [partners, totalCPRevenue, totalCPBookings, totalAccruedCommission, totalPaidCommission, totalPendingCommission]);
 
   // Filtered lists
@@ -360,9 +364,9 @@ export default function ChannelPartnersAndCommissionsPage() {
   };
 
   return (
-    <div className="w-full pb-20 text-zinc-900 text-left">
+    <div className="w-full pb-20 text-zinc-900 text-left space-y-6">
       
-      {/* ── UNIFIED DIRECTION C PORCELAIN CARD FRAME ── */}
+      {/* ── TOP EDITORIAL CARD & CONTROLS ── */}
       <div className="overflow-hidden bg-white border border-[#e8e7e4] rounded-2xl shadow-sm">
         
         {/* Editorial Header */}
@@ -377,27 +381,46 @@ export default function ChannelPartnersAndCommissionsPage() {
               </span>
             </div>
             <p className="text-[11px] text-zinc-400 font-medium mt-0.5">
-              Unified 50/50 Command Center: External Broker Relations & Financial Payout Ledger
+              Comprehensive Broker Management & Deal-Level Payout Financial Ledger
             </p>
           </div>
 
           {/* Header Actions */}
-          <div className="flex items-center gap-2 shrink-0">
-            {/* View Mode Segment */}
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            
+            {/* Layout Arranger (Stacked below vs 50/50 side-by-side) */}
             <div className="dc-seg">
               <button
                 type="button"
-                onClick={() => setViewMode('developer-crm')}
-                className={`dc-seg-btn ${viewMode === 'developer-crm' ? 'on' : ''}`}
+                onClick={() => setLayoutMode('stacked')}
+                className={`dc-seg-btn flex items-center gap-1 ${layoutMode === 'stacked' ? 'on' : ''}`}
+                title="Stack tables vertically (100% full width)"
               >
-                Developer CRM
+                <Rows3 className="h-3.5 w-3.5" />
+                <span>Stacked</span>
               </button>
               <button
                 type="button"
-                onClick={() => setViewMode('broker-portal')}
-                className={`dc-seg-btn ${viewMode === 'broker-portal' ? 'on' : ''}`}
+                onClick={() => setLayoutMode('side-by-side')}
+                className={`dc-seg-btn flex items-center gap-1 ${layoutMode === 'side-by-side' ? 'on' : ''}`}
+                title="50% / 50% split view"
               >
-                Broker Portal Mode
+                <Columns2 className="h-3.5 w-3.5" />
+                <span>50 / 50</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setLayoutMode('partners')}
+                className={`dc-seg-btn ${layoutMode === 'partners' ? 'on' : ''}`}
+              >
+                Partners Only
+              </button>
+              <button
+                type="button"
+                onClick={() => setLayoutMode('commissions')}
+                className={`dc-seg-btn ${layoutMode === 'commissions' ? 'on' : ''}`}
+              >
+                Commissions Only
               </button>
             </div>
 
@@ -464,89 +487,128 @@ export default function ChannelPartnersAndCommissionsPage() {
             <option value="Pending Approval">Pending Approval</option>
           </select>
         </div>
+      </div>
 
-        {/* ── 50% / 50% SIDE-BY-SIDE SECTION ── */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 divide-y xl:divide-y-0 xl:divide-x divide-[#ebebeb] bg-white">
-          
-          {/* ══════════════════════════════════════════════════════════════════
-              LEFT SECTION (50% WIDTH): CHANNEL PARTNER DIRECTORY
-             ══════════════════════════════════════════════════════════════════ */}
-          <div className="flex flex-col">
-            <div className="px-5 py-3.5 bg-[#fafaf8] border-b border-[#ebebeb] flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Users2 className="h-4 w-4 text-[#d4ad4d]" />
-                <h2 className="text-[12px] font-extrabold text-zinc-900 tracking-tight">
-                  Channel Partner Directory ({filteredPartners.length})
-                </h2>
+      {/* ══════════════════════════════════════════════════════════════════════
+          LAYOUT CONTAINER (STACKED VERTICALLY OR 50/50 SIDE-BY-SIDE)
+         ══════════════════════════════════════════════════════════════════════ */}
+      <div className={
+        layoutMode === 'side-by-side' 
+          ? 'grid grid-cols-1 xl:grid-cols-2 gap-6' 
+          : 'space-y-6'
+      }>
+
+        {/* ── SECTION 1: CHANNEL PARTNER DIRECTORY TABLE ── */}
+        {(layoutMode === 'stacked' || layoutMode === 'side-by-side' || layoutMode === 'partners') && (
+          <div className="overflow-hidden bg-white border border-[#e8e7e4] rounded-2xl shadow-sm flex flex-col">
+            
+            {/* Section Header */}
+            <div className="px-6 py-4 bg-[#fafaf8] border-b border-[#ebebeb] flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5">
+                <div className="h-7 w-7 rounded-lg bg-[#d4ad4d]/15 border border-[#d4ad4d]/30 flex items-center justify-center text-[#99771f]">
+                  <Users2 className="h-4 w-4" />
+                </div>
+                <div>
+                  <h2 className="text-[13px] font-extrabold text-zinc-900 tracking-tight">
+                    Channel Partner Directory ({filteredPartners.length})
+                  </h2>
+                  <p className="text-[10px] text-zinc-400 font-medium">External broker network, tier rankings, and sales metrics</p>
+                </div>
               </div>
-              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
-                External Brokerage Network
-              </span>
+
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-md bg-[#fafaf8] border border-[#e8e7e4] text-zinc-700">
+                  Total Delivered: <strong className="text-emerald-700">{formatPriceShort(totalCPRevenue)}</strong>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsAddPartnerModalOpen(true)}
+                  className="dc-btn font-bold text-[11px] py-1 text-zinc-700 hover:text-zinc-950"
+                >
+                  <Plus className="h-3 w-3" /> Add Partner
+                </button>
+              </div>
             </div>
 
+            {/* Table Container */}
             <div className="dc-table-container">
               <table className="dc-table">
                 <thead>
                   <tr>
-                    <th>Partner & RERA</th>
-                    <th>Tier</th>
-                    <th className="text-right">Delivered Rev</th>
-                    <th className="text-center">Deals</th>
-                    <th className="text-right">Accrued</th>
-                    <th style={{ width: '60px' }}>Action</th>
+                    <th>Partner Firm & Contact</th>
+                    <th>RERA Number</th>
+                    <th>Tier & Rate</th>
+                    <th className="text-center">Active Leads</th>
+                    <th className="text-center">Site Visits</th>
+                    <th className="text-center">Closed Deals</th>
+                    <th className="text-right">Delivered Revenue</th>
+                    <th className="text-right">Accrued Commission</th>
+                    <th className="text-right">Paid Commission</th>
+                    <th style={{ width: '80px' }} className="text-center">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredPartners.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-4 py-12 text-center text-xs font-semibold text-zinc-400">
-                        No channel partners match the filter
+                      <td colSpan={10} className="px-4 py-12 text-center text-xs font-semibold text-zinc-400">
+                        No channel partners match the current filters
                       </td>
                     </tr>
                   ) : (
                     filteredPartners.map((partner) => (
                       <tr 
                         key={partner.id} 
-                        className={`cursor-pointer group ${selectedPartner?.id === partner.id ? 'bg-[#fafaf7]' : ''}`}
-                        onClick={() => setSelectedPartner(partner)}
+                        className={`cursor-pointer group hover:bg-[#fafaf7] ${selectedPartner?.id === partner.id ? 'bg-[#fffdf5]' : ''}`}
+                        onClick={() => setSelectedPartner(selectedPartner?.id === partner.id ? null : partner)}
                       >
                         <td>
                           <div className="flex flex-col">
-                            <span className="font-bold text-zinc-900 text-xs group-hover:text-[#b8922e] transition-colors">
+                            <span className="font-extrabold text-zinc-900 text-xs group-hover:text-[#b8922e] transition-colors">
                               {partner.firm_name}
                             </span>
-                            <span className="text-[10px] text-zinc-400 font-medium flex items-center gap-1">
-                              <ShieldCheck className="h-2.5 w-2.5 text-emerald-500" />
-                              {partner.rera_number} • {partner.contact_person}
+                            <span className="text-[10.5px] text-zinc-500 font-medium">
+                              {partner.contact_person} • {partner.phone}
                             </span>
                           </div>
+                        </td>
+                        <td>
+                          <span className="inline-flex items-center gap-1 font-semibold text-zinc-700 text-xs">
+                            <ShieldCheck className="h-3 w-3 text-emerald-500 shrink-0" />
+                            {partner.rera_number}
+                          </span>
                         </td>
                         <td>
                           <span className={`dc-badge ${getTierBadgeClass(partner.tier)}`}>
                             {partner.tier} ({partner.commission_rate}%)
                           </span>
                         </td>
-                        <td className="text-right font-bold text-zinc-900 text-xs">
-                          {formatPriceShort(partner.delivered_revenue)}
+                        <td className="text-center font-bold text-zinc-700 text-xs">
+                          {partner.active_leads}
+                        </td>
+                        <td className="text-center font-bold text-zinc-700 text-xs">
+                          {partner.site_visits}
                         </td>
                         <td className="text-center">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-800 text-[10px] font-extrabold">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-900 text-[10.5px] font-extrabold">
                             {partner.bookings}
                           </span>
                         </td>
-                        <td className="text-right font-bold text-[#b8922e] text-xs">
+                        <td className="text-right font-black text-zinc-900 text-xs">
+                          {formatPriceShort(partner.delivered_revenue)}
+                        </td>
+                        <td className="text-right font-black text-[#b8922e] text-xs">
                           {formatPriceShort(partner.accrued_commission)}
                         </td>
-                        <td>
+                        <td className="text-right font-extrabold text-emerald-700 text-xs">
+                          {formatPriceShort(partner.paid_commission)}
+                        </td>
+                        <td className="text-center" onClick={(e) => e.stopPropagation()}>
                           <button
                             type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedPartner(partner);
-                            }}
+                            onClick={() => setSelectedPartner(selectedPartner?.id === partner.id ? null : partner)}
                             className="text-[10.5px] font-bold text-[#d4ad4d] hover:text-[#b8922e] transition-colors whitespace-nowrap"
                           >
-                            View →
+                            {selectedPartner?.id === partner.id ? 'Close ✕' : 'Details →'}
                           </button>
                         </td>
                       </tr>
@@ -556,100 +618,153 @@ export default function ChannelPartnersAndCommissionsPage() {
               </table>
             </div>
 
-            {/* Selected Partner Highlight Card inside Left Section */}
+            {/* Selected Partner Highlight Details Box */}
             {selectedPartner && (
-              <div className="p-4 m-4 bg-[#fafaf8] border border-[#e8e7e4] rounded-xl space-y-3">
+              <div className="p-4 m-4 bg-[#fafaf8] border border-[#e8e7e4] rounded-xl space-y-3 animate-in fade-in duration-150">
                 <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="font-extrabold text-xs text-zinc-900">{selectedPartner.firm_name}</h3>
-                    <p className="text-[11px] text-zinc-500">{selectedPartner.contact_person} • {selectedPartner.phone} • {selectedPartner.email}</p>
+                  <div className="flex items-center gap-2.5">
+                    <div className="h-8 w-8 rounded-lg bg-zinc-900 text-white flex items-center justify-center font-black text-xs">
+                      {selectedPartner.firm_name.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div>
+                      <h3 className="font-extrabold text-xs text-zinc-900">{selectedPartner.firm_name}</h3>
+                      <p className="text-[11px] text-zinc-500">
+                        {selectedPartner.contact_person} • {selectedPartner.phone} • {selectedPartner.email} • MahaRERA: {selectedPartner.rera_number}
+                      </p>
+                    </div>
                   </div>
                   <button 
                     onClick={() => setSelectedPartner(null)} 
-                    className="text-zinc-400 hover:text-zinc-700"
+                    className="text-zinc-400 hover:text-zinc-700 p-1"
                   >
-                    <X className="h-3.5 w-3.5" />
+                    <X className="h-4 w-4" />
                   </button>
                 </div>
-                <div className="grid grid-cols-4 gap-2 pt-2 border-t border-[#ebebeb] text-[11px]">
-                  <div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-2 border-t border-[#ebebeb] text-xs">
+                  <div className="p-2 bg-white border border-[#e8e7e4] rounded-lg">
                     <span className="text-[9px] font-bold text-zinc-400 uppercase block">Active Leads</span>
-                    <span className="font-extrabold text-zinc-900">{selectedPartner.active_leads}</span>
+                    <span className="font-black text-zinc-900 text-sm">{selectedPartner.active_leads} Leads</span>
                   </div>
-                  <div>
+                  <div className="p-2 bg-white border border-[#e8e7e4] rounded-lg">
                     <span className="text-[9px] font-bold text-zinc-400 uppercase block">Site Visits</span>
-                    <span className="font-extrabold text-zinc-900">{selectedPartner.site_visits}</span>
+                    <span className="font-black text-zinc-900 text-sm">{selectedPartner.site_visits} Conducted</span>
                   </div>
-                  <div>
+                  <div className="p-2 bg-white border border-[#e8e7e4] rounded-lg">
                     <span className="text-[9px] font-bold text-zinc-400 uppercase block">Negotiations</span>
-                    <span className="font-extrabold text-zinc-900">{selectedPartner.negotiations}</span>
+                    <span className="font-black text-zinc-900 text-sm">{selectedPartner.negotiations} Active</span>
                   </div>
-                  <div>
-                    <span className="text-[9px] font-bold text-zinc-400 uppercase block">Paid Brokerage</span>
-                    <span className="font-extrabold text-emerald-700">{formatPriceShort(selectedPartner.paid_commission)}</span>
+                  <div className="p-2 bg-white border border-[#e8e7e4] rounded-lg">
+                    <span className="text-[9px] font-bold text-zinc-400 uppercase block">Total Delivered</span>
+                    <span className="font-black text-zinc-900 text-sm">{formatPriceShort(selectedPartner.delivered_revenue)}</span>
+                  </div>
+                  <div className="p-2 bg-white border border-[#e8e7e4] rounded-lg">
+                    <span className="text-[9px] font-bold text-zinc-400 uppercase block">Settled Brokerage</span>
+                    <span className="font-black text-emerald-700 text-sm">{formatPriceShort(selectedPartner.paid_commission)}</span>
                   </div>
                 </div>
               </div>
             )}
           </div>
+        )}
 
-          {/* ══════════════════════════════════════════════════════════════════
-              RIGHT SECTION (50% WIDTH): COMMISSION SETTLEMENT LEDGER
-             ══════════════════════════════════════════════════════════════════ */}
-          <div className="flex flex-col">
-            <div className="px-5 py-3.5 bg-[#fafaf8] border-b border-[#ebebeb] flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <BadgePercent className="h-4 w-4 text-[#d4ad4d]" />
-                <h2 className="text-[12px] font-extrabold text-zinc-900 tracking-tight">
-                  Commission Disbursements & Payouts ({filteredCommissions.length})
-                </h2>
+        {/* ── SECTION 2: COMMISSION DISBURSEMENTS & PAYOUTS LEDGER (100% WIDTH BELOW) ── */}
+        {(layoutMode === 'stacked' || layoutMode === 'side-by-side' || layoutMode === 'commissions') && (
+          <div className="overflow-hidden bg-white border border-[#e8e7e4] rounded-2xl shadow-sm flex flex-col">
+            
+            {/* Section Header */}
+            <div className="px-6 py-4 bg-[#fafaf8] border-b border-[#ebebeb] flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5">
+                <div className="h-7 w-7 rounded-lg bg-[#d4ad4d]/15 border border-[#d4ad4d]/30 flex items-center justify-center text-[#99771f]">
+                  <BadgePercent className="h-4 w-4" />
+                </div>
+                <div>
+                  <h2 className="text-[13px] font-extrabold text-zinc-900 tracking-tight">
+                    Commission Disbursements & Payouts Ledger ({filteredCommissions.length})
+                  </h2>
+                  <p className="text-[10px] text-zinc-400 font-medium">Deal-level financial settlement, brokerage accounting, and disbursements</p>
+                </div>
               </div>
-              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
-                Deal-Level Financial Ledger
-              </span>
+
+              {/* Summary Badges on Header */}
+              <div className="flex items-center gap-2">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200 rounded-lg text-xs font-bold text-emerald-800">
+                  <CreditCard className="h-3.5 w-3.5 text-emerald-600" />
+                  <span>Settled: {formatPriceShort(totalPaidCommission)}</span>
+                </div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200 rounded-lg text-xs font-bold text-amber-800">
+                  <Clock className="h-3.5 w-3.5 text-amber-600" />
+                  <span>Pending Approval: {formatPriceShort(totalPendingCommission)}</span>
+                </div>
+              </div>
             </div>
 
+            {/* Table Container */}
             <div className="dc-table-container">
               <table className="dc-table">
                 <thead>
                   <tr>
-                    <th>Beneficiary & Deal</th>
+                    <th>Beneficiary & Recipient</th>
+                    <th>Client Name & Property</th>
                     <th>Unit</th>
-                    <th className="text-right">Total Comm</th>
-                    <th className="text-right">Pending</th>
+                    <th className="text-right">Booking Value</th>
+                    <th className="text-center">Rate %</th>
+                    <th className="text-right">Total Comm.</th>
+                    <th className="text-right">Paid Amount</th>
+                    <th className="text-right">Pending Balance</th>
                     <th>Status</th>
-                    <th style={{ width: '80px' }}>Settlement</th>
+                    <th>Last Payout</th>
+                    <th style={{ width: '90px' }} className="text-center">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredCommissions.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-4 py-12 text-center text-xs font-semibold text-zinc-400">
-                        No commission records found
+                      <td colSpan={11} className="px-4 py-12 text-center text-xs font-semibold text-zinc-400">
+                        No commission records found matching current criteria
                       </td>
                     </tr>
                   ) : (
                     filteredCommissions.map((comm) => (
-                      <tr key={comm.id} className="cursor-pointer group hover:bg-[#fafaf7]">
+                      <tr key={comm.id} className="hover:bg-[#fafaf7] transition-colors">
                         <td>
                           <div className="flex flex-col">
-                            <span className="font-bold text-zinc-900 text-xs">
+                            <span className="font-extrabold text-zinc-900 text-xs">
                               {comm.recipient_name}
                             </span>
-                            <span className="text-[10px] text-zinc-400 font-medium">
-                              Client: {comm.client_name} • {comm.property_title}
+                            <span className="text-[10px] text-zinc-400 font-semibold uppercase tracking-wider">
+                              {comm.recipient_type}
                             </span>
                           </div>
                         </td>
                         <td>
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-zinc-100 text-[10px] font-bold text-zinc-700 uppercase">
+                          <div className="flex flex-col">
+                            <span className="font-bold text-zinc-800 text-xs">
+                              {comm.client_name}
+                            </span>
+                            <span className="text-[10.5px] text-zinc-500 font-medium">
+                              {comm.property_title}
+                            </span>
+                          </div>
+                        </td>
+                        <td>
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-zinc-100 text-[10.5px] font-extrabold text-zinc-800 uppercase">
                             {comm.unit_number}
                           </span>
                         </td>
-                        <td className="text-right font-bold text-zinc-900 text-xs">
+                        <td className="text-right font-extrabold text-zinc-900 text-xs">
+                          {formatPriceShort(comm.booking_value)}
+                        </td>
+                        <td className="text-center font-bold text-zinc-700 text-xs">
+                          {comm.commission_rate}%
+                        </td>
+                        <td className="text-right font-black text-zinc-900 text-xs">
                           {formatPriceShort(comm.total_commission)}
                         </td>
-                        <td className="text-right font-bold text-amber-700 text-xs">
+                        <td className="text-right font-extrabold text-emerald-700 text-xs">
+                          {formatPriceShort(comm.paid_amount)}
+                        </td>
+                        <td className="text-right font-black text-amber-700 text-xs">
                           {formatPriceShort(comm.pending_amount)}
                         </td>
                         <td>
@@ -658,6 +773,11 @@ export default function ChannelPartnersAndCommissionsPage() {
                           </span>
                         </td>
                         <td>
+                          <span className="text-[11px] text-zinc-500 font-medium">
+                            {comm.last_payout_date || '—'}
+                          </span>
+                        </td>
+                        <td className="text-center">
                           <button
                             type="button"
                             onClick={() => {
@@ -665,14 +785,14 @@ export default function ChannelPartnersAndCommissionsPage() {
                               setPayoutAmount(comm.pending_amount > 0 ? comm.pending_amount : 50000);
                               setIsPayoutModalOpen(true);
                             }}
-                            className={`px-2.5 py-1 rounded-md text-[10.5px] font-extrabold transition-all ${
+                            className={`px-3 py-1 rounded-md text-[10.5px] font-extrabold transition-all ${
                               comm.pending_amount > 0
-                                ? 'bg-[#d4ad4d] text-white hover:bg-[#b8922e] shadow-xs'
+                                ? 'bg-[#d4ad4d] text-white hover:bg-[#b8922e] shadow-xs cursor-pointer'
                                 : 'bg-zinc-100 text-zinc-400 cursor-not-allowed'
                             }`}
                             disabled={comm.pending_amount === 0}
                           >
-                            {comm.pending_amount > 0 ? 'Pay →' : 'Settled'}
+                            {comm.pending_amount > 0 ? 'Pay Out →' : 'Settled ✓'}
                           </button>
                         </td>
                       </tr>
@@ -682,19 +802,18 @@ export default function ChannelPartnersAndCommissionsPage() {
               </table>
             </div>
 
-            {/* Financial Summary Pill inside Right Section */}
-            <div className="p-4 m-4 bg-[#fcfcfa] border border-[#e8e7e4] rounded-xl flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2">
-                <CreditCard className="h-4 w-4 text-emerald-600" />
-                <span className="font-bold text-zinc-700">Settled to Date: {formatPriceShort(totalPaidCommission)}</span>
-              </div>
-              <div className="flex items-center gap-1.5 font-extrabold text-amber-800">
-                <Clock className="h-3.5 w-3.5" />
-                <span>Pending Approval: {formatPriceShort(totalPendingCommission)}</span>
+            {/* Bottom Financial Ledger Footer */}
+            <div className="px-6 py-3 bg-[#fafaf8] border-t border-[#ebebeb] flex flex-wrap items-center justify-between gap-4 text-xs font-bold text-zinc-600">
+              <span>Showing {filteredCommissions.length} of {commissions.length} deal commission records</span>
+              <div className="flex items-center gap-4">
+                <span>Total Accrued: <strong className="text-zinc-900">{formatCurrency(totalAccruedCommission)}</strong></span>
+                <span>Total Settled: <strong className="text-emerald-700">{formatCurrency(totalPaidCommission)}</strong></span>
+                <span>Total Pending: <strong className="text-amber-800">{formatCurrency(totalPendingCommission)}</strong></span>
               </div>
             </div>
           </div>
-        </div>
+        )}
+
       </div>
 
       {/* ── MODAL: RECORD COMMISSION PAYOUT ── */}
