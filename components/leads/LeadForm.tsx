@@ -1,0 +1,905 @@
+"use client";
+
+import { useActionState, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { createLeadAction, updateLeadAction } from '@/app/leads/actions';
+import { TagsInput } from '@/components/ui/tags-input';
+import { IndianNumberInput } from '@/components/ui/indian-number-input';
+import { supabase } from '@/lib/supabaseClient';
+import { useProfile } from '@/lib/auth';
+import { DEFAULT_PROPERTY_TYPES, fetchPropertyTypes, saveNewPropertyType, DEFAULT_CONFIG_OPTIONS, fetchConfigurationOptions, saveNewConfiguration, saveNewLocation } from '@/lib/propertyTypes';
+import { ChevronLeft, ChevronDown, User, Calendar, AlertTriangle, ExternalLink, Loader2, Plus, X } from 'lucide-react';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+
+const inputCls = "w-full h-10 px-3.5 bg-[#fafaf8] border border-zinc-200/80 rounded-xl text-base lg:text-[12px] font-semibold text-zinc-800 placeholder-zinc-400 focus:bg-white focus:outline-none focus:border-[#d4ad4d] focus:ring-4 focus:ring-[#d4ad4d]/10 transition-all";
+const selectCls = "w-full h-10 px-3.5 bg-[#fafaf8] border border-zinc-200/80 rounded-xl text-base lg:text-[12px] font-semibold text-zinc-800 focus:bg-white focus:outline-none focus:border-[#d4ad4d] focus:ring-4 focus:ring-[#d4ad4d]/10 transition-all appearance-none cursor-pointer";
+const textareaCls = "w-full px-3.5 py-2.5 bg-[#fafaf8] border border-zinc-200/80 rounded-xl text-base lg:text-[12px] font-semibold text-zinc-800 placeholder-zinc-400 focus:bg-white focus:outline-none focus:border-[#d4ad4d] focus:ring-4 focus:ring-[#d4ad4d]/10 transition-all resize-none";
+const labelCls = "text-[10px] font-bold text-zinc-400 uppercase tracking-widest";
+
+export function LeadForm({ initialValues = {} }: { initialValues?: Partial<any> }) {
+  const router = useRouter();
+  const isEdit = !!initialValues.id;
+  const [state, formAction, isPending] = useActionState((isEdit ? updateLeadAction : createLeadAction) as any, null);
+  const profile = useProfile();
+  const isAdmin = profile?.role === 'Admin' || profile?.role === 'SuperAdmin';
+
+  // Only one layout (desktop wizard or mobile single-scroll) is ever mounted at a time,
+  // matching the lg: (1024px) breakpoint the rest of the app uses. Previously both were
+  // always mounted with CSS display toggling, which duplicated every field's `name`
+  // attribute in the same <form> -- the hidden copy stayed empty, so native `required`
+  // validation silently blocked every submission with no visible error.
+  const [isDesktop, setIsDesktop] = useState(true);
+  useEffect(() => {
+    const check = () => setIsDesktop(window.innerWidth >= 1024);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
+  // Preferred Locations state
+  const [preferredLocations, setPreferredLocations] = useState<string[]>(
+    initialValues.preferred_location
+      ? initialValues.preferred_location.split(',').map((s: string) => s.trim()).filter(Boolean)
+      : []
+  );
+  const [locationOptions, setLocationOptions] = useState<{ value: string; label: string }[]>([]);
+
+  // Property types (default + custom from DB)
+  const [propertyTypes, setPropertyTypes] = useState<string[]>(DEFAULT_PROPERTY_TYPES);
+  const [selectedPropertyType, setSelectedPropertyType] = useState(initialValues.property_type ?? 'Apartment');
+  const [isAddingNewType, setIsAddingNewType] = useState(false);
+  const [newPropertyTypeInput, setNewPropertyTypeInput] = useState('');
+  const [isSavingType, setIsSavingType] = useState(false);
+
+  // Configuration options (default + custom from DB + existing from initialValues)
+  const [configOptions, setConfigOptions] = useState<string[]>(DEFAULT_CONFIG_OPTIONS);
+  const [isAddingNewConfig, setIsAddingNewConfig] = useState(false);
+  const [newConfigInput, setNewConfigInput] = useState('');
+  const [isSavingConfig, setIsSavingConfig] = useState(false);
+
+  // New location quick-creation
+  const [isAddingNewLocation, setIsAddingNewLocation] = useState(false);
+  const [newLocationInput, setNewLocationInput] = useState('');
+  const [isSavingLocation, setIsSavingLocation] = useState(false);
+
+  useEffect(() => {
+    fetchPropertyTypes(supabase).then(types => {
+      setPropertyTypes(types);
+      if (initialValues.property_type && !types.includes(initialValues.property_type)) {
+        setPropertyTypes(prev => [...prev, initialValues.property_type]);
+      }
+    });
+
+    fetchConfigurationOptions(supabase).then(configs => {
+      const existingConfigs = initialValues.configuration
+        ? initialValues.configuration.split(',').map((s: string) => s.trim()).filter(Boolean)
+        : [];
+      const merged = Array.from(new Set([...configs, ...existingConfigs]));
+      setConfigOptions(merged);
+    });
+
+    supabase.from('locations').select('name').order('name').then(({ data }) => {
+      if (data) setLocationOptions(data.map(l => ({ value: l.name, label: l.name })));
+    });
+  }, [initialValues.property_type, initialValues.configuration]);
+
+  const handleAddNewType = async () => {
+    const trimmed = newPropertyTypeInput.trim();
+    if (!trimmed) return;
+    setIsSavingType(true);
+    try {
+      const updated = await saveNewPropertyType(trimmed, supabase);
+      setPropertyTypes(updated);
+      setSelectedPropertyType(trimmed);
+      setIsAddingNewType(false);
+      setNewPropertyTypeInput('');
+      toast.success(`Property type "${trimmed}" created!`);
+    } catch (err) {
+      toast.error('Failed to create property type');
+    } finally {
+      setIsSavingType(false);
+    }
+  };
+
+  const handleAddNewConfig = async () => {
+    const trimmed = newConfigInput.trim();
+    if (!trimmed) return;
+    setIsSavingConfig(true);
+    try {
+      const updated = await saveNewConfiguration(trimmed, supabase);
+      setConfigOptions(prev => Array.from(new Set([...updated, ...prev, trimmed])));
+      if (!selectedConfigs.includes(trimmed)) {
+        setSelectedConfigs(prev => [...prev, trimmed]);
+      }
+      setIsAddingNewConfig(false);
+      setNewConfigInput('');
+      toast.success(`Configuration "${trimmed}" created!`);
+    } catch (err) {
+      toast.error('Failed to create configuration');
+    } finally {
+      setIsSavingConfig(false);
+    }
+  };
+
+  const handleAddNewLocation = async () => {
+    const trimmed = newLocationInput.trim();
+    if (!trimmed) return;
+    setIsSavingLocation(true);
+    try {
+      await saveNewLocation(trimmed, supabase);
+      setLocationOptions(prev => {
+        if (prev.some(l => l.value.toLowerCase() === trimmed.toLowerCase())) return prev;
+        return [...prev, { value: trimmed, label: trimmed }].sort((a, b) => a.label.localeCompare(b.label));
+      });
+      if (!preferredLocations.includes(trimmed)) {
+        setPreferredLocations(prev => [...prev, trimmed]);
+      }
+      setIsAddingNewLocation(false);
+      setNewLocationInput('');
+      toast.success(`Location "${trimmed}" added!`);
+    } catch (err) {
+      toast.error('Failed to add location');
+    } finally {
+      setIsSavingLocation(false);
+    }
+  };
+
+  // Multi-select BHK Configuration state
+  const [selectedConfigs, setSelectedConfigs] = useState<string[]>(
+    initialValues.configuration
+      ? initialValues.configuration.split(',').map((s: string) => s.trim()).filter(Boolean)
+      : ['3 BHK']
+  );
+
+
+  // Team Profiles list for "Assign To" dropdown
+  const [teamProfiles, setTeamProfiles] = useState<any[]>([]);
+
+  const [activeSection, setActiveSection] = useState(0);
+  const [formState, setFormState] = useState({ 
+    client_name: initialValues.client_name ?? '', 
+    phone: initialValues.phone ?? '', 
+    status: initialValues.status ?? 'Hot' 
+  });
+  const [previewBudgetMax, setPreviewBudgetMax] = useState(initialValues.budget_max ?? '');
+  const [alternatePhones, setAlternatePhones] = useState<string[]>(
+    Array.isArray(initialValues.alternate_phones) ? initialValues.alternate_phones : []
+  );
+
+  // Assigned Representative -- must be a controlled value synced from initialValues, not
+  // defaultValue. teamProfiles loads asynchronously below, so at first render the <select>
+  // only contains the placeholder option; with defaultValue, React applies the intended
+  // value once at mount, finds no matching <option> yet, and the browser silently falls back
+  // to the placeholder ("") -- permanently, even after the real option appears once
+
+  // teamProfiles loads. Saving the form then submits an empty assigned_to, which the server
+  // resolves to whoever is currently logged in, silently reassigning the lead away from its
+  // actual owner. This was the root cause of leads (e.g. "Zia Memon") appearing to vanish
+  // from a sales rep's list every time the lead was opened and saved.
+  const [assignedTo, setAssignedTo] = useState(initialValues.assigned_to ?? '');
+
+  // Non-admins can only ever own their own new leads -- auto-assign to themselves and never
+  // expose a picker to reassign to someone else. Admins/SuperAdmins keep full control.
+  useEffect(() => {
+    if (!isEdit && profile && !isAdmin) {
+      setAssignedTo(profile.id);
+    }
+  }, [profile, isAdmin, isEdit]);
+
+  function formatPrice(v: string | number) {
+    const n = parseFloat(String(v));
+    if (!n) return '';
+    if (n >= 10000000) return `₹${(n / 10000000).toFixed(1).replace(/\.0$/, '')} Cr`;
+    if (n >= 100000) return `₹${(n / 100000).toFixed(1).replace(/\.0$/, '')} L`;
+    return `₹${n.toLocaleString('en-IN')}`;
+  }
+  
+  const sections = [
+    { label: 'Contact' },
+    { label: 'Classify & Assign' },
+    { label: 'Requirements' },
+    { label: 'Notes' }
+  ];
+
+  // Fetch real team members from Supabase profiles (all assignable roles)
+  useEffect(() => {
+    async function loadTeam() {
+      try {
+        const { data } = await supabase
+          .from('profiles')
+          .select('id, full_name, role, email')
+          .in('role', ['SalesPerson', 'Admin', 'SuperAdmin', 'Senior Agent'])
+          .order('full_name');
+        if (data && data.length > 0) {
+          setTeamProfiles(data);
+        } else {
+          // Fallback static roster
+          setTeamProfiles([
+            { id: '29363d68-a8ad-4efb-8fd0-6b6dc29091e7', full_name: 'Saif Bhayani', role: 'Admin' },
+            { id: '59d23862-bb84-4bbe-9e70-8c59214f5020', full_name: 'Yohaan Mehta', role: 'SalesPerson' },
+            { id: 'e2c5f803-2500-4538-a763-680d7279b4e7', full_name: 'Husain Badri', role: 'SuperAdmin' },
+            { id: '540b2e7f-12f5-4d62-9aaf-089da959dfb7', full_name: 'Benazir Bhayani', role: 'SalesPerson' },
+            { id: '6d202aad-3e6e-4568-b6d2-1c236c770ef5', full_name: 'Hamirr Jobnputra', role: 'SalesPerson' },
+            { id: '1b973ead-d1b0-4500-8dca-d9b329affce9', full_name: 'Rishi Mahboobani', role: 'SalesPerson' },
+            { id: 'feacdf8b-e875-4dd0-ac62-692982e27835', full_name: 'Shriram Boyane', role: 'SalesPerson' },
+          ]);
+        }
+      } catch (err) {
+        console.error('Error loading team profiles:', err);
+      }
+    }
+    loadTeam();
+  }, []);
+
+  useEffect(() => {
+    if ((state as any)?.success) {
+      toast.success(isEdit ? 'Lead updated successfully' : 'Lead saved successfully');
+      if (preferredLocations.length > 0) {
+        preferredLocations.forEach(loc => {
+          supabase.from('locations').upsert({ name: loc }, { onConflict: 'name' });
+        });
+      }
+      router.push('/leads');
+      router.refresh();
+    } else if ((state as any)?.duplicate) {
+      toast.error('A lead with this mobile number already exists.');
+    } else if ((state as any)?.error) {
+      toast.error((state as any).error);
+    }
+  }, [state, router]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    setFormState(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const toggleConfig = (cfg: string) => {
+    setSelectedConfigs(prev =>
+      prev.includes(cfg) ? prev.filter(c => c !== cfg) : [...prev, cfg]
+    );
+  };
+
+  // Required fields are validated here rather than via the native `required` attribute:
+  // whichever wizard section isn't currently active is display:none, and a hidden required
+  // field can't be focused by the browser to show its validation error -- it just silently
+  // blocks submission instead. This runs on submit, jumps to the offending section, and
+  // shows a toast so the failure is actually visible.
+  function validateRequiredFields(): boolean {
+    if (!formState.client_name.trim()) {
+      toast.error('Client Name is required.');
+      setActiveSection(0);
+      return false;
+    }
+    if (!formState.phone.trim()) {
+      toast.error('Phone Number is required.');
+      setActiveSection(0);
+      return false;
+    }
+    if (!previewBudgetMax || !String(previewBudgetMax).trim()) {
+      toast.error('Max Budget is required.');
+      setActiveSection(2);
+      return false;
+    }
+    return true;
+  }
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    if (!validateRequiredFields()) {
+      e.preventDefault();
+    }
+  };
+
+  // ── Render Helpers for Form Sections ──
+
+  const renderContactFields = () => (
+    <div className="space-y-4">
+      <div className="space-y-1.5">
+        <label className={labelCls}>Client Name <span className="text-rose-500/80">*</span></label>
+        <input name="client_name" value={formState.client_name} onChange={handleChange} className={inputCls} placeholder="e.g. Rahul Sharma" />
+      </div>
+      
+      <div className="space-y-1.5">
+        <label className={labelCls}>Phone Number <span className="text-rose-500/80">*</span></label>
+        <input name="phone" value={formState.phone} onChange={handleChange} className={inputCls} placeholder="+91 98452 11002" />
+        <p className="text-[10px] text-zinc-400 italic font-medium">Main deciding element. CRM automatically checks for duplicate numbers.</p>
+      </div>
+
+      <div className="space-y-1.5">
+        <label className={labelCls}>Additional Mobile Numbers <span className="text-zinc-300 font-semibold">(Optional)</span></label>
+        <div className="space-y-2">
+          {alternatePhones.map((num, idx) => (
+            <div key={idx} className="flex items-center gap-2">
+              <input
+                name="alternate_phones"
+                value={num}
+                onChange={e => setAlternatePhones(prev => prev.map((p, i) => i === idx ? e.target.value : p))}
+                className={inputCls}
+                placeholder="+91 98765 43210"
+              />
+              <button
+                type="button"
+                onClick={() => setAlternatePhones(prev => prev.filter((_, i) => i !== idx))}
+                className="shrink-0 p-2 rounded-lg text-zinc-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => setAlternatePhones(prev => [...prev, ''])}
+            className="flex items-center gap-1 text-[11px] font-bold text-[#b8922e] hover:text-[#96751f] transition-colors"
+          >
+            <Plus className="h-3 w-3" /> Add another number
+          </button>
+        </div>
+        <p className="text-[10px] text-zinc-400 italic font-medium">Also checked for duplicates, same as the main number.</p>
+      </div>
+
+      <div className="space-y-1.5">
+        <label className={labelCls}>
+          Email ID <span className="text-zinc-300 font-semibold">(Optional)</span>
+        </label>
+        <input type="email" name="email" defaultValue={initialValues.email ?? ''} className={inputCls} placeholder="client@example.com" />
+      </div>
+    </div>
+  );
+
+  const renderClassifyFields = () => (
+    <div className="space-y-4">
+      <div className="space-y-1.5">
+        <label className="text-[10px] font-bold text-[#b8922e] uppercase tracking-widest flex items-center gap-1">
+          <User className="h-3.5 w-3.5" /> Assigned Representative *
+        </label>
+        {isAdmin ? (
+          <div className="relative">
+            <select
+              name="assigned_to"
+              value={assignedTo}
+              onChange={e => setAssignedTo(e.target.value)}
+              className={selectCls + " border-[#d4ad4d]/40 font-bold"}
+            >
+              <option value="">Select Sales Executive / Admin...</option>
+              {teamProfiles.map(p => (
+                <option key={p.id} value={p.id}>
+                  {p.full_name} ({p.role || 'Executive'})
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
+          </div>
+        ) : (
+          <>
+            <input type="hidden" name="assigned_to" value={assignedTo} />
+            <div className="h-10 px-3.5 flex items-center bg-zinc-100 border border-zinc-200 rounded-xl text-[12px] font-bold text-zinc-600">
+              {profile?.full_name || 'You'} <span className="ml-1 text-zinc-400 font-semibold">(You)</span>
+            </div>
+            <p className="text-[10px] text-zinc-400 italic font-medium">Leads are always assigned to you. Only Admins can reassign.</p>
+          </>
+        )}
+      </div>
+
+      <div className="space-y-1.5">
+        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-1">
+          <Calendar className="h-3.5 w-3.5 text-zinc-400" /> Next Follow-Up Date
+        </label>
+        <input 
+          type="date" 
+          name="next_followup_date" 
+          defaultValue={initialValues.next_followup_date ?? ''} 
+          className={inputCls} 
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <label className={labelCls}>Lead Source *</label>
+          <div className="relative">
+            <select name="lead_source_id" defaultValue={initialValues.lead_source_id ?? 'Google Ads'} className={selectCls}>
+              <option value="Google Ads">Google Ads</option>
+              <option value="WhatsApp Inbound">WhatsApp Inbound</option>
+              <option value="Direct Referral">Direct Referral</option>
+              <option value="Housing.com">Housing.com</option>
+              <option value="99acres">99acres</option>
+              <option value="Magicbricks">Magicbricks</option>
+              <option value="Instagram">Instagram</option>
+              <option value="Facebook">Facebook</option>
+              <option value="Website">Website</option>
+              <option value="Walk-in">Walk-in</option>
+            </select>
+            <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <label className={labelCls}>Category *</label>
+          <div className="relative">
+            <select name="category" defaultValue={initialValues.category ?? 'Residential'} className={selectCls}>
+              <option value="Residential">Residential</option>
+              <option value="Commercial">Commercial</option>
+            </select>
+            <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <label className={labelCls}>Transaction Type *</label>
+          <div className="relative">
+            <select name="transaction_type" defaultValue={initialValues.transaction_type ?? 'Outright'} className={selectCls}>
+              <option value="Outright">Outright (Buy)</option>
+              <option value="Rent">Rent / Lease</option>
+            </select>
+            <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <label className={labelCls}>Pipeline Stage</label>
+          <div className="relative">
+            <select name="stage_id" defaultValue={initialValues.stage_id ?? 'New inquiry'} className={selectCls}>
+              <option value="New inquiry">New inquiry</option>
+              <option value="Site visit">Site visit</option>
+              <option value="Follow up">Follow up</option>
+              <option value="Closure">Closure</option>
+            </select>
+            <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <label className={labelCls}>Status *</label>
+        <div className="flex flex-wrap gap-2">
+          <input type="hidden" name="status" value={formState.status} />
+          {['Hot', 'Warm', 'No answer', 'Not reachable', 'Switched off', 'Closed'].map(st => {
+            const isSelected = formState.status === st;
+            let bg = 'bg-zinc-50 text-zinc-500 border-zinc-200';
+            if (isSelected) {
+              bg = st === 'Hot' ? 'bg-rose-500 text-white border-rose-500' :
+                   st === 'Warm' ? 'bg-amber-500 text-white border-amber-500' :
+                   'bg-zinc-600 text-white border-zinc-600';
+            } else {
+              bg = st === 'Hot' ? 'bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100' :
+                   st === 'Warm' ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' :
+                   'bg-zinc-50 text-zinc-500 border-zinc-200 hover:bg-zinc-100';
+            }
+            return (
+              <button key={st} type="button" onClick={() => setFormState(prev => ({...prev, status: st}))}
+                className={`px-3 py-1.5 rounded-lg text-[11px] font-bold border transition-all cursor-pointer ${bg}`}>
+                {st}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      <div className="space-y-1.5 pt-1">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" name="is_active" value="true" defaultChecked={initialValues.is_active !== false} className="h-4 w-4 rounded border-[#e8e7e4] text-[#d4ad4d] focus:ring-[#d4ad4d]/20 transition-all cursor-pointer" />
+          <span className="text-[12px] font-bold text-zinc-700 select-none">Active Lead</span>
+        </label>
+      </div>
+    </div>
+  );
+
+  const renderRequirementsFields = () => (
+    <div className="space-y-4">
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between">
+          <label className={labelCls}>Property Type *</label>
+          {isAdmin && !isAddingNewType && (
+            <button
+              type="button"
+              onClick={() => setIsAddingNewType(true)}
+              className="text-[10px] font-bold text-[#d4ad4d] hover:text-[#b8922e] flex items-center gap-1 transition-colors cursor-pointer"
+            >
+              <Plus className="h-3 w-3" /> New Type
+            </button>
+          )}
+        </div>
+
+        {isAddingNewType ? (
+          <div className="space-y-1.5 p-2 bg-zinc-50 border border-zinc-200/80 rounded-xl">
+            <div className="flex items-center gap-1.5">
+              <input
+                type="text"
+                value={newPropertyTypeInput}
+                onChange={e => setNewPropertyTypeInput(e.target.value)}
+                placeholder="Type new property type..."
+                className={inputCls + " h-8 text-xs"}
+                autoFocus
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddNewType();
+                  }
+                }}
+              />
+              <button
+                type="button"
+                onClick={handleAddNewType}
+                disabled={isSavingType || !newPropertyTypeInput.trim()}
+                className="h-8 px-3 bg-[#d4ad4d] hover:bg-[#b8922e] text-white rounded-lg text-[11px] font-bold shrink-0 transition-colors disabled:opacity-50 flex items-center gap-1 cursor-pointer"
+              >
+                {isSavingType ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Save'}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setIsAddingNewType(false); setNewPropertyTypeInput(''); }}
+                className="h-8 px-2 text-zinc-400 hover:text-zinc-700 text-xs font-semibold shrink-0 cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+            <input type="hidden" name="property_type" value={selectedPropertyType} />
+          </div>
+        ) : (
+          <div className="relative">
+            <select
+              name="property_type"
+              value={selectedPropertyType}
+              onChange={e => {
+                if (e.target.value === '__add_new__') {
+                  setIsAddingNewType(true);
+                } else {
+                  setSelectedPropertyType(e.target.value);
+                }
+              }}
+              className={selectCls}
+            >
+              {propertyTypes.map(t => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+              {isAdmin && (
+                <option value="__add_new__" className="font-bold text-[#d4ad4d]">
+                  + Type & Create New Property Type...
+                </option>
+              )}
+            </select>
+            <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
+          </div>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <label className={labelCls}>
+            Configuration Requirements (Select Multiple) *
+          </label>
+          {isAdmin && !isAddingNewConfig && (
+            <button
+              type="button"
+              onClick={() => setIsAddingNewConfig(true)}
+              className="text-[10px] font-bold text-[#d4ad4d] hover:text-[#b8922e] flex items-center gap-1 transition-colors cursor-pointer"
+            >
+              <Plus className="h-3 w-3" /> New Config
+            </button>
+          )}
+        </div>
+
+        {isAddingNewConfig && (
+          <div className="flex items-center gap-1.5 p-2 bg-zinc-50 border border-zinc-200/80 rounded-xl mb-2">
+            <input
+              type="text"
+              value={newConfigInput}
+              onChange={e => setNewConfigInput(e.target.value)}
+              placeholder="Type new config (e.g. 7 BHK, Duplex Penthouse)..."
+              className={inputCls + " h-8 text-xs"}
+              autoFocus
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAddNewConfig();
+                }
+              }}
+            />
+            <button
+              type="button"
+              onClick={handleAddNewConfig}
+              disabled={isSavingConfig || !newConfigInput.trim()}
+              className="h-8 px-3 bg-[#d4ad4d] hover:bg-[#b8922e] text-white rounded-lg text-[11px] font-bold shrink-0 transition-colors disabled:opacity-50 flex items-center gap-1 cursor-pointer"
+            >
+              {isSavingConfig ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Add'}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setIsAddingNewConfig(false); setNewConfigInput(''); }}
+              className="h-8 px-2 text-zinc-400 hover:text-zinc-700 text-xs font-semibold shrink-0 cursor-pointer"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+
+        <div className="flex flex-wrap gap-2">
+          {configOptions.map(cfg => {
+            const isSelected = selectedConfigs.includes(cfg);
+            return (
+              <button
+                key={cfg}
+                type="button"
+                onClick={() => toggleConfig(cfg)}
+                className={`px-3.5 py-1.5 rounded-xl text-[11px] font-bold border transition-all cursor-pointer ${
+                  isSelected
+                    ? 'bg-zinc-900 text-white border-zinc-900 shadow-xs'
+                    : 'bg-white text-zinc-600 border-[#e8e7e4] hover:bg-zinc-50'
+                }`}
+              >
+                {isSelected ? '✓ ' : '+ '}{cfg}
+              </button>
+            );
+          })}
+        </div>
+        <input type="hidden" name="configuration" value={selectedConfigs.join(', ')} />
+      </div>
+
+
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between">
+          <label className={labelCls}>Preferred Locations</label>
+          {isAdmin && !isAddingNewLocation && (
+            <button
+              type="button"
+              onClick={() => setIsAddingNewLocation(true)}
+              className="text-[10px] font-bold text-[#d4ad4d] hover:text-[#b8922e] flex items-center gap-1 transition-colors cursor-pointer"
+            >
+              <Plus className="h-3 w-3" /> Add Location
+            </button>
+          )}
+        </div>
+
+        {isAddingNewLocation && (
+          <div className="flex items-center gap-1.5 p-2 bg-zinc-50 border border-zinc-200/80 rounded-xl mb-2">
+            <input
+              type="text"
+              value={newLocationInput}
+              onChange={e => setNewLocationInput(e.target.value)}
+              placeholder="Type new Pune location (e.g. Model Colony, Prabhat Road)..."
+              className={inputCls + " h-8 text-xs"}
+              autoFocus
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAddNewLocation();
+                }
+              }}
+            />
+            <button
+              type="button"
+              onClick={handleAddNewLocation}
+              disabled={isSavingLocation || !newLocationInput.trim()}
+              className="h-8 px-3 bg-[#d4ad4d] hover:bg-[#b8922e] text-white rounded-lg text-[11px] font-bold shrink-0 transition-colors disabled:opacity-50 flex items-center gap-1 cursor-pointer"
+            >
+              {isSavingLocation ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Add'}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setIsAddingNewLocation(false); setNewLocationInput(''); }}
+              className="h-8 px-2 text-zinc-400 hover:text-zinc-700 text-xs font-semibold shrink-0 cursor-pointer"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+
+        <TagsInput
+          value={preferredLocations}
+          onChange={setPreferredLocations}
+          options={locationOptions}
+          allowCustom={true}
+          placeholder="Type or select locations..."
+        />
+        <input type="hidden" name="preferred_location" value={preferredLocations.join(', ')} />
+      </div>
+
+
+      <div className="space-y-1.5">
+        <label className={labelCls}>Max Budget *</label>
+        <div className="relative">
+          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 text-base lg:text-[12px] font-bold">₹</span>
+          <IndianNumberInput
+            name="budget_max"
+            defaultValue={initialValues.budget_max ?? ''}
+            className={inputCls + " pl-7"}
+            placeholder="e.g. 5,00,00,000"
+            onValueChange={setPreviewBudgetMax}
+          />
+        </div>
+        {previewBudgetMax && (
+          <div className="text-[11px] font-bold text-[#d4ad4d] mt-1">
+            {formatPrice(previewBudgetMax)}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderNotesFields = () => (
+    <div className="space-y-4">
+      <div className="space-y-1.5">
+        <label className={labelCls}>Internal Notes & Requirements</label>
+        <textarea name="notes" defaultValue={initialValues.notes ?? ''} className={textareaCls + " h-32"} placeholder="Enter specific timeline, preferred floor, facing, or budget details..." />
+      </div>
+    </div>
+  );
+
+  return (
+    <form action={formAction} onSubmit={handleSubmit} className="min-h-screen bg-[#fafaf8]">
+      {isEdit && <input type="hidden" name="id" value={initialValues.id} />}
+
+      {/* Sticky top header bar */}
+      <div className="sticky top-0 z-10 bg-white border-b border-[#ebebeb] px-4 lg:px-6 py-3 lg:py-4 flex items-center justify-between gap-3">
+        <Link href="/leads" className="flex items-center gap-1.5 text-zinc-500 hover:text-zinc-800 transition-colors shrink-0">
+          <ChevronLeft className="h-4 w-4" />
+          <span className="text-xs font-semibold hidden sm:block">Back to Leads</span>
+        </Link>
+        <h1 className="text-[15px] font-extrabold text-zinc-900 tracking-tight flex-1 text-center lg:text-left" style={{letterSpacing:'-0.3px'}}>
+          {isEdit ? 'Edit Lead' : 'New Lead'}
+        </h1>
+        <button type="submit" disabled={isPending} className="dc-btn gold font-bold flex items-center gap-1.5 cursor-pointer shrink-0 disabled:opacity-60 disabled:cursor-not-allowed">
+          {isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+          {isPending ? 'Saving…' : 'Save Lead'}
+        </button>
+      </div>
+
+      <div className="lg:max-w-4xl lg:mx-auto">
+        {/* 🛑 Duplicate Warning Banner */}
+        {(state as any)?.duplicate && (state as any)?.existingLead && (
+          <div className="m-4 lg:mx-8 p-4 bg-rose-50 border border-rose-200 rounded-2xl space-y-3 text-left">
+            <div className="flex items-center gap-2.5 text-rose-700">
+              <AlertTriangle className="h-5 w-5 shrink-0 text-rose-600" />
+              <div>
+                <h4 className="text-xs font-extrabold uppercase tracking-wide">Duplicate Mobile Number Blocked</h4>
+                <p className="text-[11px] font-medium text-rose-600 mt-0.5">
+                  A lead with mobile number <strong>{(state as any).existingLead.phone}</strong> already exists in your CRM database!
+                </p>
+              </div>
+            </div>
+
+            <div className="p-3 bg-white rounded-xl border border-rose-100 flex items-center justify-between text-xs">
+              <div>
+                <span className="font-extrabold text-zinc-900">{(state as any).existingLead.client_name}</span>
+                <div className="text-[10px] text-zinc-500 font-bold mt-0.5">
+                  Assigned Representative: <span className="text-[#b8922e]">{(state as any).existingLead.assigneeName}</span>
+                </div>
+              </div>
+
+              <Link href={`/leads/${(state as any).existingLead.id}`}>
+                <button
+                  type="button"
+                  className="px-3 py-1.5 rounded-lg bg-zinc-900 text-white text-[11px] font-bold hover:bg-zinc-800 transition-all flex items-center gap-1 cursor-pointer"
+                >
+                  <span>View Existing Lead</span>
+                  <ExternalLink className="h-3 w-3" />
+                </button>
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {(state as any)?.error && !(state as any)?.duplicate && (
+          <div className="m-4 lg:mx-8 p-4 bg-rose-50 text-rose-600 border border-rose-100 rounded-xl text-[11px] font-bold">
+            Error: {(state as any).error}
+          </div>
+        )}
+
+        {/* Only one of these layouts is ever mounted (see isDesktop above) -- previously
+            both were always mounted with CSS show/hide, duplicating every field's name
+            attribute in this <form> and breaking both validation and submitted values. */}
+        {isDesktop ? (
+        /* ── DESKTOP VIEWPORT: Split Panel Dot Wizard Nav ── */
+        <div className="flex" style={{minHeight:'calc(100vh - 65px)'}}>
+
+          {/* Left section navigation */}
+          <div className="w-[200px] shrink-0 border-r border-[#ebebeb] bg-white pt-6 pb-10">
+            {sections.map((s, i) => (
+              <button type="button" key={i} onClick={() => setActiveSection(i)}
+                className={`w-full flex items-center gap-3 px-5 py-2.5 text-left transition-all border-r-2 ${
+                  activeSection === i
+                    ? 'border-[#d4ad4d] bg-zinc-50 text-zinc-900'
+                    : 'border-transparent text-zinc-400 hover:text-zinc-700 hover:bg-zinc-50'
+                }`}>
+                <span className={`w-2 h-2 rounded-full shrink-0 ${
+                  i < activeSection ? 'bg-[#d4ad4d]' : activeSection === i ? 'bg-[#d4ad4d] ring-4 ring-[#d4ad4d]/20' : 'bg-[#e8e7e4]'
+                }`} />
+                <span className="text-[11px] font-700">{s.label}</span>
+              </button>
+            ))}
+            
+            {/* Live preview card */}
+            {(formState.client_name || formState.phone) && (
+              <div className="mx-4 mt-6 p-3 bg-[#fafaf8] border border-[#ebebeb] rounded-xl">
+                <div className="text-[9px] font-extrabold text-zinc-300 uppercase tracking-wider mb-2">Preview</div>
+                <div className="text-[11px] font-extrabold text-zinc-900">{formState.client_name || '—'}</div>
+                <div className="text-[9.5px] text-zinc-400 mt-0.5">{formState.phone}</div>
+                {formState.status && (
+                  <div className="mt-2">
+                    <span className={`inline-block px-2 py-0.5 rounded text-[8.5px] font-bold ${
+                      formState.status === 'Hot' ? 'bg-rose-50 text-rose-600 border border-rose-200' :
+                      formState.status === 'Warm' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+                      'bg-zinc-50 text-zinc-500 border border-zinc-200'
+                    }`}>{formState.status}</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          
+          {/* Right content panel */}
+          {/* Sections stay mounted (display:none when inactive) rather than unmounting,
+              so fields from earlier sections are still present in FormData when submitting
+              from a later section — otherwise saving from the last page would silently
+              drop required fields like client_name/phone and fail. */}
+          <div className="flex-1 px-8 py-6 max-w-2xl text-left">
+            <div style={{ display: activeSection === 0 ? 'block' : 'none' }}>{renderContactFields()}</div>
+            <div style={{ display: activeSection === 1 ? 'block' : 'none' }}>{renderClassifyFields()}</div>
+            <div style={{ display: activeSection === 2 ? 'block' : 'none' }}>{renderRequirementsFields()}</div>
+            <div style={{ display: activeSection === 3 ? 'block' : 'none' }}>{renderNotesFields()}</div>
+
+            {/* Bottom navigation bar */}
+            <div className="mt-8 flex items-center justify-between pt-4 border-t border-[#ebebeb]">
+              {activeSection > 0 ? (
+                <button type="button" onClick={() => setActiveSection(s => s-1)}
+                  className="text-[11px] font-bold text-zinc-400 hover:text-zinc-700 flex items-center gap-1 transition-colors">
+                  ← {sections[activeSection-1].label}
+                </button>
+              ) : <span />}
+              {activeSection < sections.length - 1 ? (
+                <button type="button" onClick={() => setActiveSection(s => s+1)}
+                  className="dc-btn font-bold text-[11px] flex items-center gap-1">
+                  {sections[activeSection+1].label} →
+                </button>
+              ) : (
+                <button type="submit" disabled={isPending} className="dc-btn gold font-bold flex items-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed">
+                  {isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                  {isPending ? 'Saving…' : 'Save Lead'}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+        ) : (
+        /* ── MOBILE VIEWPORT: Single Page Scrolling stacked layout ── */
+        <div className="text-left space-y-0 bg-white">
+          
+          <div className="px-5 pt-6 pb-5 border-b border-zinc-100 space-y-4">
+            <h3 className="text-[11px] font-black text-zinc-900 pb-2.5 uppercase tracking-wider flex items-baseline gap-2 border-b border-zinc-100">
+              <span className="font-serif italic font-bold text-[#d4ad4d] text-sm">01.</span>
+              <span>Contact Details</span>
+            </h3>
+            {renderContactFields()}
+          </div>
+
+          <div className="px-5 pt-6 pb-5 border-b border-zinc-100 space-y-4">
+            <h3 className="text-[11px] font-black text-zinc-900 pb-2.5 uppercase tracking-wider flex items-baseline gap-2 border-b border-zinc-100">
+              <span className="font-serif italic font-bold text-[#d4ad4d] text-sm">02.</span>
+              <span>Classification & Assignment</span>
+            </h3>
+            {renderClassifyFields()}
+          </div>
+
+          <div className="px-5 pt-6 pb-5 border-b border-zinc-100 space-y-4">
+            <h3 className="text-[11px] font-black text-zinc-900 pb-2.5 uppercase tracking-wider flex items-baseline gap-2 border-b border-zinc-100">
+              <span className="font-serif italic font-bold text-[#d4ad4d] text-sm">03.</span>
+              <span>Requirements</span>
+            </h3>
+            {renderRequirementsFields()}
+          </div>
+
+          <div className="px-5 pt-6 pb-8 space-y-4">
+            <h3 className="text-[11px] font-black text-zinc-900 pb-2.5 uppercase tracking-wider flex items-baseline gap-2 border-b border-zinc-100">
+              <span className="font-serif italic font-bold text-[#d4ad4d] text-sm">04.</span>
+              <span>Internal Notes</span>
+            </h3>
+            {renderNotesFields()}
+          </div>
+        </div>
+        )}
+
+      </div>
+    </form>
+  );
+}

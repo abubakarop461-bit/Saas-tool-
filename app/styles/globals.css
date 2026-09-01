@@ -1,0 +1,101 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+@import "./porcelain.css";
+@source "../../components";
+@source "..";
+
+@theme {
+  /* Design Tokens compatibility with existing component code */
+  --color-primary: #1f1f1f;
+  --color-secondary: #f9fafb;
+  --color-tertiary: #5d5d5d;
+  --color-quaternary: #888888;
+  
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f9fafb;
+  
+  --color-border-primary: #e7e7e7;
+  --color-border-secondary: #e7e7e7;
+  
+  --color-focus-ring: #d4ad4d;
+  
+  /* Shares Style Reference Design Tokens */
+  --color-signal-gold: #d4ad4d;
+  --color-inkstone: #1f1f1f;
+  --color-graphite: #333333;
+  --color-slate: #5d5d5d;
+  --color-smoke: #888888;
+  --color-ash: #b0b0b0;
+  --color-mist: #e7e7e7;
+  --color-cloud: #f6f6f6;
+  --color-porcelain: #ffffff;
+  --color-obsidian: #000000;
+
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  --radius-card: 14px;
+  --radius-control: 9px;
+  --radius-pill: 99px;
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Base Porcelain Body Canvas */
+body {
+  background-color: #ffffff;
+  color: #1f1f1f;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+  min-height: 100vh;
+}
+
+/* Graph-paper grid background pattern from design.md */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, rgba(212, 173, 77, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(212, 173, 77, 0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* Custom Soft Hairline Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #e7e7e7;
+  border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #b0b0b0;
+}
+
+/* Form Styles & Inputs */
+input, select, textarea {
+  font-family: var(--font-sans);
+  outline: none;
+  transition: all 0.15s ease-in-out;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: #d4ad4d !important;
+  box-shadow: 0 0 0 2px rgba(212, 173, 77, 0.15) !important;
+}
+
+/* Transition utility classes */
+.transition-all-300 {
+  transition: all 300ms ease-out;
+}
