@@ -27,6 +27,8 @@ import {
 } from 'lucide-react';
 import { useProfile } from '@/lib/auth';
 import { supabase } from '@/lib/supabaseClient';
+import { fetchLeads } from '@/lib/queries';
+import { fetchSiteVisits } from '@/lib/siteVisits';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 
@@ -133,41 +135,34 @@ export function Header({ onToggleMenu }: { onToggleMenu?: () => void }) {
         const todayStr = today.toISOString().slice(0, 10);
         const horizon = new Date(today.getTime() + 2 * 86400000).toISOString().slice(0, 10);
 
-        // 1. Lead follow-ups due (overdue through the next 2 days), scoped to this user
-        //    unless they're a manager -- same assigned_to filter used on the Site Visits page.
-        let followupsQuery = supabase
-          .from('leads')
-          .select('id, client_name, phone, next_followup_date')
-          .not('next_followup_date', 'is', null)
-          .lte('next_followup_date', horizon)
-          .order('next_followup_date', { ascending: true })
-          .limit(5);
-        if (!isManager) followupsQuery = followupsQuery.eq('assigned_to', profileId);
-        const { data: followups } = await followupsQuery;
+        const allLeads = await fetchLeads(profile).catch(() => []);
+        const allVisits = await fetchSiteVisits(profile).catch(() => []);
 
-        // 2. Site visits happening in the next 2 days, same scoping
-        let visitsQuery = supabase
-          .from('site_visits')
-          .select('id, visit_date, visit_time, status, leads(client_name), properties(title, location)')
-          .gte('visit_date', todayStr)
-          .lte('visit_date', horizon)
-          .neq('status', 'Cancelled')
-          .order('visit_date', { ascending: true })
-          .limit(5);
-        if (!isManager) visitsQuery = visitsQuery.eq('assigned_to', profileId);
-        const { data: upcomingVisits } = await visitsQuery;
+        // 1. Lead follow-ups due (overdue through next 2 days)
+        const relevantLeads = allLeads.filter(l => {
+          if (!l.next_followup_date) return false;
+          const matchesAssignee = isManager || !l.assigned_to || l.assigned_to === profileId;
+          return matchesAssignee && l.next_followup_date <= horizon;
+        });
 
-        const followupItems: NotificationItem[] = (followups || []).map((l: any) => ({
+        // 2. Site visits happening in the next 2 days
+        const relevantVisits = allVisits.filter(v => {
+          if (!v.visit_date || v.status === 'Cancelled') return false;
+          const matchesAssignee = isManager || !v.assigned_to || v.assigned_to === profileId;
+          return matchesAssignee && v.visit_date >= todayStr && v.visit_date <= horizon;
+        });
+
+        const followupItems: NotificationItem[] = relevantLeads.slice(0, 5).map((l: any) => ({
           id: `followup-${l.id}`,
           title: l.next_followup_date < todayStr ? 'Follow-Up Overdue' : 'Lead Follow-Up Due',
           message: `${l.client_name} (${l.phone || 'no phone on file'}) needs a follow-up call.`,
           time: formatDueRelative(l.next_followup_date),
           unread: l.next_followup_date <= todayStr,
           type: 'lead',
-          link: `/leads/${l.id}`
+          link: `/leads`
         }));
 
-        const visitItems: NotificationItem[] = (upcomingVisits || []).map((v: any) => ({
+        const visitItems: NotificationItem[] = relevantVisits.slice(0, 5).map((v: any) => ({
           id: `visit-${v.id}`,
           title: v.visit_date === todayStr ? 'Site Visit Today' : 'Upcoming Site Visit',
           message: `${v.leads?.client_name || 'Client'} — ${v.properties?.title || 'Property'} (${v.properties?.location || 'TBD'}) at ${v.visit_time || 'TBD'}.`,

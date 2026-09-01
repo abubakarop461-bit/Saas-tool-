@@ -52,10 +52,53 @@ export interface Property {
   created_at?: string;
 }
 
+export interface SalesPersonProfile {
+  id: string;
+  full_name: string;
+  email: string;
+  role: string;
+  designation?: string;
+}
+
 // ─────────────────────────────────────────────────────────────
-// POPULATED PROPERTY LEADS DATASET FOR FEATURE ANALYSIS & TESTING
+// 4 SALESPEOPLE ROSTER
+// ─────────────────────────────────────────────────────────────
+export const SEED_SALESPEOPLE: SalesPersonProfile[] = [
+  {
+    id: 'agent-rishi-01',
+    full_name: 'Rishi Mahboobani',
+    email: 'rishi@luxerealtypune.com',
+    role: 'SalesPerson',
+    designation: 'Senior Sales Executive'
+  },
+  {
+    id: 'agent-vikram-02',
+    full_name: 'Vikram Seth',
+    email: 'vikram@luxerealtypune.com',
+    role: 'Admin',
+    designation: 'Luxury Sales Manager'
+  },
+  {
+    id: 'agent-pooja-03',
+    full_name: 'Pooja Hegde',
+    email: 'pooja@luxerealtypune.com',
+    role: 'SalesPerson',
+    designation: 'Client Relationship Manager'
+  },
+  {
+    id: 'agent-tanmay-04',
+    full_name: 'Tanmay Deshpande',
+    email: 'tanmay@luxerealtypune.com',
+    role: 'SalesPerson',
+    designation: 'Commercial & Luxury Specialist'
+  }
+];
+
+// ─────────────────────────────────────────────────────────────
+// POPULATED PROPERTY LEADS ASSIGNED EQUALLY ACROSS THE 4 SALESPEOPLE
 // ─────────────────────────────────────────────────────────────
 export const SEED_LEADS: Lead[] = [
+  // ── AGENT 1: Rishi Mahboobani (agent-rishi-01) ──
   {
     id: 'lead-001',
     client_name: 'Sandesh Kulkarni',
@@ -71,36 +114,13 @@ export const SEED_LEADS: Lead[] = [
     transaction_type: 'Outright',
     required_area: 1650,
     purpose: 'Self Use',
-    assigned_to: 'c0a3d601-0300-2316-8541-460b505792c5', // Rishi Mahboobani
+    assigned_to: 'agent-rishi-01',
     stage_id: 'Negotiation',
     next_followup_date: '2026-09-03',
     status: 'Hot',
     is_active: true,
     notes: 'Token amount of ₹5L ready. Requested smart cost sheet quotation for Tower A Unit 1204 with 2 car parks.',
     created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: 'lead-002',
-    client_name: 'Vikramaditya Singhania',
-    phone: '+91 99224 88710',
-    email: 'vikram.singhania@singhaniaholdings.com',
-    lead_source_id: 'Direct Referral',
-    budget_min: 35000000,
-    budget_max: 50000000,
-    preferred_location: 'Boat Club Road',
-    property_type: 'Penthouse',
-    configuration: '4.5 BHK',
-    category: 'Residential',
-    transaction_type: 'Outright',
-    required_area: 3400,
-    purpose: 'Luxury Upgrade',
-    assigned_to: 'd1b4e702-1400-3427-9652-570c6168a3d6', // Vikram Seth
-    stage_id: 'Site visit',
-    next_followup_date: '2026-09-02',
-    status: 'Hot',
-    is_active: true,
-    notes: 'Attended VIP site tour at Solitaire Grand. Highly interested in top-floor private plunge pool unit.',
-    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
   },
   {
     id: 'lead-003',
@@ -117,36 +137,13 @@ export const SEED_LEADS: Lead[] = [
     transaction_type: 'Outright',
     required_area: 1550,
     purpose: 'Family Residence',
-    assigned_to: 'c0a3d601-0300-2316-8541-460b505792c5',
+    assigned_to: 'agent-rishi-01',
     stage_id: 'Follow up',
     next_followup_date: '2026-08-30', // Overdue for risk demo
     status: 'Hot',
     is_active: true,
     notes: 'Strict Vastu East-facing requirement. HDFC home loan sanction letter available for ₹1.2 Cr.',
     created_at: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: 'lead-004',
-    client_name: 'Rajiv & Meera Bajaj',
-    phone: '+91 98220 99123',
-    email: 'rajiv.bajaj@automotive-pune.com',
-    lead_source_id: 'MagicBricks Luxury',
-    budget_min: 45000000,
-    budget_max: 65000000,
-    preferred_location: 'Koregaon Park',
-    property_type: 'Villa',
-    configuration: '5 BHK',
-    category: 'Residential',
-    transaction_type: 'Outright',
-    required_area: 4200,
-    purpose: 'Primary Residence',
-    assigned_to: 'e2c5f803-2500-4538-a763-680d7279b4e7', // Rahul Sharma
-    stage_id: 'Closure',
-    next_followup_date: '2026-09-10',
-    status: 'Closed',
-    is_active: true,
-    notes: 'Deal closed for ₹6.2 Cr. Agreement registration milestone scheduled for Sept 15.',
-    created_at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString()
   },
   {
     id: 'lead-005',
@@ -163,13 +160,38 @@ export const SEED_LEADS: Lead[] = [
     transaction_type: 'Outright',
     required_area: 1280,
     purpose: 'First Home',
-    assigned_to: 'c0a3d601-0300-2316-8541-460b505792c5',
+    assigned_to: 'agent-rishi-01',
     stage_id: 'New inquiry',
     next_followup_date: '2026-09-02',
     status: 'Warm',
     is_active: true,
     notes: 'IT professionals working at EON Free Zone. Looking for clubhouse amenities and school transport connectivity.',
     created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+  },
+
+  // ── AGENT 2: Vikram Seth (agent-vikram-02) ──
+  {
+    id: 'lead-002',
+    client_name: 'Vikramaditya Singhania',
+    phone: '+91 99224 88710',
+    email: 'vikram.singhania@singhaniaholdings.com',
+    lead_source_id: 'Direct Referral',
+    budget_min: 35000000,
+    budget_max: 50000000,
+    preferred_location: 'Boat Club Road',
+    property_type: 'Penthouse',
+    configuration: '4.5 BHK',
+    category: 'Residential',
+    transaction_type: 'Outright',
+    required_area: 3400,
+    purpose: 'Luxury Upgrade',
+    assigned_to: 'agent-vikram-02',
+    stage_id: 'Site visit',
+    next_followup_date: '2026-09-02',
+    status: 'Hot',
+    is_active: true,
+    notes: 'Attended VIP site tour at Solitaire Grand. Highly interested in top-floor private plunge pool unit.',
+    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
   },
   {
     id: 'lead-006',
@@ -186,105 +208,13 @@ export const SEED_LEADS: Lead[] = [
     transaction_type: 'Outright',
     required_area: 2100,
     purpose: 'Upgrade',
-    assigned_to: 'd1b4e702-1400-3427-9652-570c6168a3d6',
+    assigned_to: 'agent-vikram-02',
     stage_id: 'Follow up',
     next_followup_date: '2026-09-04',
     status: 'Hot',
     is_active: true,
     notes: 'Evaluating between Luxe Azure Palms and Yoo Pune. Requested comparative payment milestones.',
     created_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: 'lead-007',
-    client_name: 'Amitav Ghosh',
-    phone: '+91 98900 11223',
-    email: 'amitav@ghoshcapital.com',
-    lead_source_id: 'Channel Partner (Knight Frank)',
-    budget_min: 25000000,
-    budget_max: 35000000,
-    preferred_location: 'Baner',
-    property_type: 'Commercial Office',
-    configuration: 'Grade-A Office',
-    category: 'Commercial',
-    transaction_type: 'Outright',
-    required_area: 2500,
-    purpose: 'Investment / Rental Yield',
-    assigned_to: 'e2c5f803-2500-4538-a763-680d7279b4e7',
-    stage_id: 'Negotiation',
-    next_followup_date: '2026-09-05',
-    status: 'Hot',
-    is_active: true,
-    notes: 'Targeting minimum 8.5% rental yield. Examining leased corporate spaces on Balewadi High Street.',
-    created_at: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: 'lead-008',
-    client_name: 'Siddharth Malhotra',
-    phone: '+91 97663 88990',
-    email: 'siddharth.m@aerospace.com',
-    lead_source_id: 'Google Search Ads',
-    budget_min: 16000000,
-    budget_max: 21000000,
-    preferred_location: 'Viman Nagar',
-    property_type: 'Penthouse',
-    configuration: '3 BHK',
-    category: 'Residential',
-    transaction_type: 'Outright',
-    required_area: 1950,
-    purpose: 'Self Use',
-    assigned_to: 'c0a3d601-0300-2316-8541-460b505792c5',
-    stage_id: 'Site visit',
-    next_followup_date: '2026-09-03',
-    status: 'Hot',
-    is_active: true,
-    notes: 'Pilot with Pune International Airport connectivity requirement. Site tour confirmed.',
-    created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: 'lead-009',
-    client_name: 'Natasha Poonawalla',
-    phone: '+91 98229 00111',
-    email: 'natasha.p@poonawallagroup.com',
-    lead_source_id: 'VIP Direct',
-    budget_min: 60000000,
-    budget_max: 90000000,
-    preferred_location: 'Kalyani Nagar',
-    property_type: 'Sky Villa',
-    configuration: '5 BHK',
-    category: 'Residential',
-    transaction_type: 'Outright',
-    required_area: 4800,
-    purpose: 'Luxury Upgrade',
-    assigned_to: 'e2c5f803-2500-4538-a763-680d7279b4e7',
-    stage_id: 'Negotiation',
-    next_followup_date: '2026-09-06',
-    status: 'Hot',
-    is_active: true,
-    notes: 'Ultra High Net Worth client. Requesting customized duplex design and 4 parking slots.',
-    created_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: 'lead-010',
-    client_name: 'Ketan & Shweta Parekh',
-    phone: '+91 98231 66778',
-    email: 'ketan.parekh@fintech.co',
-    lead_source_id: 'Housing.com',
-    budget_min: 7500000,
-    budget_max: 9200000,
-    preferred_location: 'Hinjewadi',
-    property_type: 'Apartment',
-    configuration: '2 BHK',
-    category: 'Residential',
-    transaction_type: 'Outright',
-    required_area: 980,
-    purpose: 'First Home',
-    assigned_to: 'c0a3d601-0300-2316-8541-460b505792c5',
-    stage_id: 'New inquiry',
-    next_followup_date: '2026-09-04',
-    status: 'Cold',
-    is_active: true,
-    notes: 'Looking for under-construction tower with possession by 2027.',
-    created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
   },
   {
     id: 'lead-011',
@@ -301,13 +231,61 @@ export const SEED_LEADS: Lead[] = [
     transaction_type: 'Outright',
     required_area: 1750,
     purpose: 'Family Residence',
-    assigned_to: 'd1b4e702-1400-3427-9652-570c6168a3d6',
+    assigned_to: 'agent-vikram-02',
     stage_id: 'Site visit',
     next_followup_date: '2026-09-03',
     status: 'Hot',
     is_active: true,
     notes: 'Tour scheduled. Focus on senior citizen friendly amenities and landscape podium.',
     created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
+  },
+
+  // ── AGENT 3: Pooja Hegde (agent-pooja-03) ──
+  {
+    id: 'lead-008',
+    client_name: 'Siddharth Malhotra',
+    phone: '+91 97663 88990',
+    email: 'siddharth.m@aerospace.com',
+    lead_source_id: 'Google Search Ads',
+    budget_min: 16000000,
+    budget_max: 21000000,
+    preferred_location: 'Viman Nagar',
+    property_type: 'Penthouse',
+    configuration: '3 BHK',
+    category: 'Residential',
+    transaction_type: 'Outright',
+    required_area: 1950,
+    purpose: 'Self Use',
+    assigned_to: 'agent-pooja-03',
+    stage_id: 'Site visit',
+    next_followup_date: '2026-09-03',
+    status: 'Hot',
+    is_active: true,
+    notes: 'Pilot with Pune International Airport connectivity requirement. Site tour confirmed.',
+    created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: 'lead-010',
+    client_name: 'Ketan & Shweta Parekh',
+    phone: '+91 98231 66778',
+    email: 'ketan.parekh@fintech.co',
+    lead_source_id: 'Housing.com',
+    budget_min: 7500000,
+    budget_max: 9200000,
+    preferred_location: 'Hinjewadi',
+    property_type: 'Apartment',
+    configuration: '2 BHK',
+    category: 'Residential',
+    transaction_type: 'Outright',
+    required_area: 980,
+    purpose: 'First Home',
+    assigned_to: 'agent-pooja-03',
+    stage_id: 'New inquiry',
+    next_followup_date: '2026-09-04',
+    status: 'Cold',
+    is_active: true,
+    notes: 'Looking for under-construction tower with possession by 2027.',
+    created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
   },
   {
     id: 'lead-012',
@@ -324,13 +302,84 @@ export const SEED_LEADS: Lead[] = [
     transaction_type: 'Outright',
     required_area: 2600,
     purpose: 'Upgrade',
-    assigned_to: 'e2c5f803-2500-4538-a763-680d7279b4e7',
+    assigned_to: 'agent-pooja-03',
     stage_id: 'Follow up',
     next_followup_date: '2026-09-07',
     status: 'Warm',
     is_active: true,
     notes: 'Requested customized payment schedule tied to construction slabs.',
     created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+  },
+
+  // ── AGENT 4: Tanmay Deshpande (agent-tanmay-04) ──
+  {
+    id: 'lead-004',
+    client_name: 'Rajiv & Meera Bajaj',
+    phone: '+91 98220 99123',
+    email: 'rajiv.bajaj@automotive-pune.com',
+    lead_source_id: 'MagicBricks Luxury',
+    budget_min: 45000000,
+    budget_max: 65000000,
+    preferred_location: 'Koregaon Park',
+    property_type: 'Villa',
+    configuration: '5 BHK',
+    category: 'Residential',
+    transaction_type: 'Outright',
+    required_area: 4200,
+    purpose: 'Primary Residence',
+    assigned_to: 'agent-tanmay-04',
+    stage_id: 'Closure',
+    next_followup_date: '2026-09-10',
+    status: 'Closed',
+    is_active: true,
+    notes: 'Deal closed for ₹6.2 Cr. Agreement registration milestone scheduled for Sept 15.',
+    created_at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: 'lead-007',
+    client_name: 'Amitav Ghosh',
+    phone: '+91 98900 11223',
+    email: 'amitav@ghoshcapital.com',
+    lead_source_id: 'Channel Partner (Knight Frank)',
+    budget_min: 25000000,
+    budget_max: 35000000,
+    preferred_location: 'Baner',
+    property_type: 'Commercial Office',
+    configuration: 'Grade-A Office',
+    category: 'Commercial',
+    transaction_type: 'Outright',
+    required_area: 2500,
+    purpose: 'Investment / Rental Yield',
+    assigned_to: 'agent-tanmay-04',
+    stage_id: 'Negotiation',
+    next_followup_date: '2026-09-05',
+    status: 'Hot',
+    is_active: true,
+    notes: 'Targeting minimum 8.5% rental yield. Examining leased corporate spaces on Balewadi High Street.',
+    created_at: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: 'lead-009',
+    client_name: 'Natasha Poonawalla',
+    phone: '+91 98229 00111',
+    email: 'natasha.p@poonawallagroup.com',
+    lead_source_id: 'VIP Direct',
+    budget_min: 60000000,
+    budget_max: 90000000,
+    preferred_location: 'Kalyani Nagar',
+    property_type: 'Sky Villa',
+    configuration: '5 BHK',
+    category: 'Residential',
+    transaction_type: 'Outright',
+    required_area: 4800,
+    purpose: 'Luxury Upgrade',
+    assigned_to: 'agent-tanmay-04',
+    stage_id: 'Negotiation',
+    next_followup_date: '2026-09-06',
+    status: 'Hot',
+    is_active: true,
+    notes: 'Ultra High Net Worth client. Requesting customized duplex design and 4 parking slots.',
+    created_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString()
   }
 ];
 
@@ -517,10 +566,9 @@ export async function fetchLeads(profile: Profile | null): Promise<Lead[]> {
       .limit(200);
     if (!error && data && data.length > 0) return data as Lead[];
   } catch {
-    // fallback to populated demo leads
+    // fallback
   }
 
-  // Check localStorage for local modifications
   if (typeof window !== 'undefined') {
     const local = localStorage.getItem('luxe-leads-store');
     if (local) {
@@ -531,7 +579,6 @@ export async function fetchLeads(profile: Profile | null): Promise<Lead[]> {
         // use default seed
       }
     }
-    // Initialize store
     localStorage.setItem('luxe-leads-store', JSON.stringify(SEED_LEADS));
   }
 
@@ -547,7 +594,7 @@ export async function fetchProperties(profile: Profile | null): Promise<Property
       .limit(200);
     if (!error && data && data.length > 0) return data as Property[];
   } catch {
-    // fallback to populated demo properties
+    // fallback
   }
 
   if (typeof window !== 'undefined') {
@@ -564,6 +611,18 @@ export async function fetchProperties(profile: Profile | null): Promise<Property
   }
 
   return SEED_PROPERTIES;
+}
+
+export async function fetchSalesPeople(): Promise<SalesPersonProfile[]> {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, full_name, email, role');
+    if (!error && data && data.length > 0) return data as SalesPersonProfile[];
+  } catch {
+    // fallback
+  }
+  return SEED_SALESPEOPLE;
 }
 
 export async function fetchProperty(id: string): Promise<Property | null> {

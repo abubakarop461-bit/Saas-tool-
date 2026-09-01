@@ -1,26 +1,27 @@
 // src/lib/supabaseClient.ts
-// Supabase connection stub (Disconnected Mode)
+// Supabase connection stub with dynamic chainable query proxy (Disconnected / Local Mode)
 
-const dummyQueryBuilder: any = {
-  select: () => dummyQueryBuilder,
-  insert: () => dummyQueryBuilder,
-  update: () => dummyQueryBuilder,
-  delete: () => dummyQueryBuilder,
-  upsert: () => dummyQueryBuilder,
-  eq: () => dummyQueryBuilder,
-  neq: () => dummyQueryBuilder,
-  gte: () => dummyQueryBuilder,
-  lte: () => dummyQueryBuilder,
-  in: () => dummyQueryBuilder,
-  order: () => dummyQueryBuilder,
-  limit: () => dummyQueryBuilder,
-  single: async () => ({ data: null, error: null }),
-  then: (onfulfilled?: ((value: { data: any[]; error: any }) => any) | null) =>
-    Promise.resolve({ data: [] as any[], error: null }).then(onfulfilled),
-};
+function createChainableQueryBuilder(): any {
+  const handler: ProxyHandler<any> = {
+    get(target, prop) {
+      if (prop === 'then') {
+        return (onfulfilled?: ((value: { data: any[]; error: any; count?: number }) => any) | null) =>
+          Promise.resolve({ data: [] as any[], error: null, count: 0 }).then(onfulfilled);
+      }
+      if (prop === 'single' || prop === 'maybeSingle') {
+        return async () => ({ data: null, error: null });
+      }
+      if (typeof prop === 'string') {
+        return (...args: any[]) => new Proxy({}, handler);
+      }
+      return (target as any)[prop];
+    }
+  };
+  return new Proxy({}, handler);
+}
 
 export const supabase: any = {
-  from: () => dummyQueryBuilder,
+  from: () => createChainableQueryBuilder(),
   auth: {
     getUser: async () => ({ data: { user: null }, error: null }),
     getSession: async () => ({ data: { session: null }, error: null }),

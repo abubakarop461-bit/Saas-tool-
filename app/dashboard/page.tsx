@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useProfile } from '@/lib/auth';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { fetchLeads, fetchProperties, Lead, Property } from '@/lib/queries';
+import { fetchLeads, fetchProperties, Lead, Property, SEED_SALESPEOPLE } from '@/lib/queries';
 import { fetchSiteVisits, SiteVisit } from '@/lib/siteVisits';
 import { supabase } from '@/lib/supabaseClient';
 import { motion } from 'framer-motion';
@@ -116,8 +116,8 @@ export default function DashboardPage() {
         setLeads(fetchedLeads);
         setProperties(fetchedProperties);
         setSiteVisits(fetchedVisits);
-        setAuditLogs((fetchedLogs || []).filter((log: any) => isRealTeamMember(log.profiles?.email)));
-        setTeamProfiles((fetchedProfiles || []).filter((p: any) => isRealTeamMember(p.email)));
+        const realTeam = (fetchedProfiles || []).filter((p: any) => isRealTeamMember(p.email));
+        setTeamProfiles(realTeam.length > 0 ? realTeam : SEED_SALESPEOPLE);
       } catch (err) {
         console.error(err);
       } finally {

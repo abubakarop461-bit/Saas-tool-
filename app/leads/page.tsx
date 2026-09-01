@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { useProfile } from '@/lib/auth';
-import { fetchLeads, Lead } from '@/lib/queries';
+import { fetchLeads, Lead, SEED_SALESPEOPLE } from '@/lib/queries';
 import { getPermissions } from '@/lib/permissions';
 import { supabase } from '@/lib/supabaseClient';
 import { 
@@ -184,7 +184,10 @@ export default function LeadsPage() {
         .select('id, full_name, role')
         .eq('role', 'SalesPerson')
         .then(({ data }: any) => {
-          setSalesExecutives(data || []);
+          setSalesExecutives(data && data.length > 0 ? data : SEED_SALESPEOPLE);
+        })
+        .catch(() => {
+          setSalesExecutives(SEED_SALESPEOPLE);
         });
 
       return () => clearTimeout(timer);
