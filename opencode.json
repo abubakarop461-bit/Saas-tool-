@@ -5,20 +5,34 @@
       "type": "local",
       "command": ["npx", "-y", "@heroui/react-mcp@latest"]
     },
-    "supabase": {
-      "type": "local",
-      "command": [
-        "node",
-        "/Users/hussian/LUXE-ERP/node_modules/@supabase/mcp-server-supabase/dist/transports/stdio.js",
-        "--features",
-        "account,database,debugging,development,docs,functions,storage",
-        "--project-ref",
-        "sjnwbezerwxdreyhdpci"
-      ],
-      "env": {
-        "SUPABASE_ACCESS_TOKEN": "your_supabase_access_token",
-        "SUPABASE_PROJECT_REF": "your_supabase_project_ref"
-      }
+    "cloudflare": {
+      "type": "remote",
+      "url": "https://mcp.cloudflare.com/mcp",
+      "enabled": true,
+      "oauth": {}
+    },
+    "cloudflare-docs": {
+      "type": "remote",
+      "url": "https://docs.mcp.cloudflare.com/mcp",
+      "enabled": true
+    },
+    "cloudflare-bindings": {
+      "type": "remote",
+      "url": "https://bindings.mcp.cloudflare.com/mcp",
+      "enabled": true,
+      "oauth": {}
+    },
+    "cloudflare-builds": {
+      "type": "remote",
+      "url": "https://builds.mcp.cloudflare.com/mcp",
+      "enabled": true,
+      "oauth": {}
+    },
+    "cloudflare-observability": {
+      "type": "remote",
+      "url": "https://observability.mcp.cloudflare.com/mcp",
+      "enabled": true,
+      "oauth": {}
     }
   }
 }

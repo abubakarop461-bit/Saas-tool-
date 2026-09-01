@@ -5,5 +5,21 @@
   "compatibility_flags": [
     "nodejs_compat"
   ],
-  "pages_build_output_dir": ".next"
+  "pages_build_output_dir": ".next",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "saas-tool-db",
+      "database_id": "local-saas-tool-db"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "STORAGE",
+      "bucket_name": "saas-tool-storage"
+    }
+  ],
+  "ai": {
+    "binding": "AI"
+  }
 }
