@@ -54,7 +54,7 @@ export function NavUser({
 
   const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault();
-    window.location.href = '/login';
+    window.location.href = '/dashboard';
   };
 
   const user = propUser || (profile ? {

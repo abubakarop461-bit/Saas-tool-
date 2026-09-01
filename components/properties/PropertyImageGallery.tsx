@@ -13,11 +13,11 @@ export function PropertyImageGallery({ propertyId }: { propertyId: string }) {
         .from('property_images')
         .select('url')
         .eq('property_id', propertyId);
-      if (error) {
+      if (error || !data) {
         console.error('Error loading images', error);
         return;
       }
-      setImages(data.map((img) => img.url));
+      setImages((data as Array<{ url: string }>).map((img) => img.url));
       setLoading(false);
     };
     fetchImages();

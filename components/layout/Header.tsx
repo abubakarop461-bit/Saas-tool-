@@ -214,8 +214,12 @@ export function Header({ onToggleMenu }: { onToggleMenu?: () => void }) {
   }, [profile, isManager]);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    window.location.href = '/login';
+    localStorage.removeItem('luxe-demo-user');
+    localStorage.removeItem('luxe-role-override');
+    localStorage.removeItem('luxe-user-override');
+    localStorage.removeItem('luxe-user-name-override');
+    localStorage.removeItem('luxe-user-email-override');
+    window.location.href = '/dashboard';
   };
 
   useEffect(() => {

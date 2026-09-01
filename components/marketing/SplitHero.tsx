@@ -32,8 +32,8 @@ export function SplitHero() {
 
           {/* 4. Action Buttons */}
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-            <Button color="primary" size="lg" href="/login">
-              Start Free Trial
+            <Button color="primary" size="lg" href="/dashboard">
+              Launch ERP Dashboard
             </Button>
             <Button color="secondary" size="lg" iconLeading={Play} href="/dashboard">
               View Dashboard
