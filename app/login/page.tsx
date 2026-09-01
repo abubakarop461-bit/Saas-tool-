@@ -127,10 +127,82 @@ export default function LoginPage() {
           </button>
         </form>
 
+        {/* 1-Click Demo Role Fast-Track */}
+        <div className="pt-5 border-t border-zinc-800 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#d4ad4d]">
+              Quick Demo Access
+            </span>
+            <span className="text-[9px] text-zinc-500 font-bold">1-Click Role Exploration</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-left">
+            <button
+              type="button"
+              onClick={() => {
+                const demoProfile = {
+                  id: 'e2c5f803-2500-4538-a763-680d7279b4e7',
+                  role: 'SuperAdmin',
+                  full_name: 'Rahul Sharma (Managing Director)',
+                  email: 'rahul@luxerealtypune.com',
+                  company_name: 'Luxe Realty Advisors'
+                };
+                localStorage.setItem('luxe-demo-user', JSON.stringify(demoProfile));
+                localStorage.setItem('luxe-role-override', 'SuperAdmin');
+                router.replace('/dashboard');
+              }}
+              className="p-3 rounded-xl bg-zinc-950/80 border border-zinc-800 hover:border-[#d4ad4d] hover:bg-zinc-950 transition-all text-xs group cursor-pointer"
+            >
+              <div className="font-bold text-white group-hover:text-[#d4ad4d]">👑 SuperAdmin</div>
+              <p className="text-[10px] text-zinc-500 mt-0.5">Full ERP + Ledgers</p>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                const demoProfile = {
+                  id: 'd1b4e702-1400-3427-9652-570c6168a3d6',
+                  role: 'Admin',
+                  full_name: 'Vikram Seth (Sales Manager)',
+                  email: 'vikram@luxerealtypune.com',
+                  company_name: 'Luxe Realty Advisors'
+                };
+                localStorage.setItem('luxe-demo-user', JSON.stringify(demoProfile));
+                localStorage.setItem('luxe-role-override', 'Admin');
+                router.replace('/dashboard');
+              }}
+              className="p-3 rounded-xl bg-zinc-950/80 border border-zinc-800 hover:border-[#d4ad4d] hover:bg-zinc-950 transition-all text-xs group cursor-pointer"
+            >
+              <div className="font-bold text-white group-hover:text-[#d4ad4d]">🛡️ Manager</div>
+              <p className="text-[10px] text-zinc-500 mt-0.5">Pipeline & Risks</p>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                const demoProfile = {
+                  id: 'c0a3d601-0300-2316-8541-460b505792c5',
+                  role: 'SalesPerson',
+                  full_name: 'Rishi Mahboobani (Sales Exec)',
+                  email: 'rishi@luxerealtypune.com',
+                  company_name: 'Luxe Realty Advisors'
+                };
+                localStorage.setItem('luxe-demo-user', JSON.stringify(demoProfile));
+                localStorage.setItem('luxe-role-override', 'SalesPerson');
+                router.replace('/leads');
+              }}
+              className="p-3 rounded-xl bg-zinc-950/80 border border-zinc-800 hover:border-[#d4ad4d] hover:bg-zinc-950 transition-all text-xs group cursor-pointer"
+            >
+              <div className="font-bold text-white group-hover:text-[#d4ad4d]">👤 Sales Exec</div>
+              <p className="text-[10px] text-zinc-500 mt-0.5">Leads & Tours</p>
+            </button>
+          </div>
+        </div>
+
         {/* Team hint */}
-        <div className="pt-4 border-t border-zinc-800 text-center">
+        <div className="pt-2 text-center">
           <p className="text-[10px] text-zinc-500 font-semibold leading-relaxed">
-            Access restricted to authorized Luxe Realty team members only.
+            Access restricted to authorized Luxe Realty team members and verified partners.
           </p>
         </div>
       </div>

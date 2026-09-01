@@ -23,25 +23,37 @@ export function useProfile(): Profile | null {
       email: 'admin@luxerealty.com',
     };
 
-    // Apply role override if set (demo mode)
-    const roleOverride = typeof window !== 'undefined' ? localStorage.getItem('luxe-role-override') : null;
-    if (roleOverride && ['SuperAdmin', 'Admin', 'SalesPerson'].includes(roleOverride)) {
-      profileData.role = roleOverride;
-    }
+    if (typeof window !== 'undefined') {
+      const demoUser = localStorage.getItem('luxe-demo-user');
+      if (demoUser) {
+        try {
+          const parsed = JSON.parse(demoUser);
+          profileData = parsed;
+        } catch (e) {
+          localStorage.removeItem('luxe-demo-user');
+        }
+      }
 
-    const userIdOverride = typeof window !== 'undefined' ? localStorage.getItem('luxe-user-override') : null;
-    if (userIdOverride) {
-      profileData.id = userIdOverride;
-    }
+      // Apply role override if set (demo mode)
+      const roleOverride = localStorage.getItem('luxe-role-override');
+      if (roleOverride && ['SuperAdmin', 'Admin', 'SalesPerson'].includes(roleOverride)) {
+        profileData.role = roleOverride;
+      }
 
-    const userNameOverride = typeof window !== 'undefined' ? localStorage.getItem('luxe-user-name-override') : null;
-    if (userNameOverride) {
-      profileData.full_name = userNameOverride;
-    }
+      const userIdOverride = localStorage.getItem('luxe-user-override');
+      if (userIdOverride) {
+        profileData.id = userIdOverride;
+      }
 
-    const userEmailOverride = typeof window !== 'undefined' ? localStorage.getItem('luxe-user-email-override') : null;
-    if (userEmailOverride) {
-      profileData.email = userEmailOverride;
+      const userNameOverride = localStorage.getItem('luxe-user-name-override');
+      if (userNameOverride) {
+        profileData.full_name = userNameOverride;
+      }
+
+      const userEmailOverride = localStorage.getItem('luxe-user-email-override');
+      if (userEmailOverride) {
+        profileData.email = userEmailOverride;
+      }
     }
 
     setProfile(profileData);
@@ -55,7 +67,7 @@ export function useProfile(): Profile | null {
   };
 }
 
-// Server-side helper to get profile (Disconnected Mode)
+// Server-side helper to get profile (Disconnected / Local Mode)
 export async function getProfile(): Promise<Profile | null> {
   return {
     id: 'local-admin-id',
