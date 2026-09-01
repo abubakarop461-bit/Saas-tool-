@@ -54,7 +54,7 @@ export default function PropertyDetailPage() {
         setProperty(prop);
         if (imgResult.data && imgResult.data.length > 0) {
           const signedUrls = await Promise.all(
-            imgResult.data.map(async (img) => {
+            imgResult.data.map(async (img: any) => {
               if (img.url.startsWith('http')) return img.url;
               const { data: sData } = await supabase.storage
                 .from('property-images')

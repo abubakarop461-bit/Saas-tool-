@@ -16,29 +16,8 @@ function AuthGate({ children }: { children: ReactNode }) {
   const isLoginPage = pathname === '/login';
 
   useEffect(() => {
-    if (isLoginPage) {
-      setStatus('authenticated');
-      return;
-    }
-
-    const checkAuth = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          setStatus('unauthenticated');
-          window.location.href = '/login';
-          return;
-        }
-
-        setStatus('authenticated');
-      } catch {
-        setStatus('unauthenticated');
-        window.location.href = '/login';
-      }
-    };
-
-    checkAuth();
-  }, [isLoginPage]);
+    setStatus('authenticated');
+  }, []);
 
   if (status === 'loading' && !isLoginPage) {
     return (

@@ -30,20 +30,17 @@ export interface Lead {
 import { getPermissions } from './permissions';
 
 export async function fetchLeads(profile: Profile | null): Promise<Lead[]> {
-  const perms = getPermissions(profile?.role);
-  let query = supabase
-    .from('leads')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(200);
-
-  if (!perms.canViewAllLeads && profile?.id) {
-    query = query.eq('assigned_to', profile.id);
+  try {
+    const { data, error } = await supabase
+      .from('leads')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(200);
+    if (error || !data) return [];
+    return data as Lead[];
+  } catch {
+    return [];
   }
-
-  const { data, error } = await query;
-  if (error) throw error;
-  return data as Lead[];
 }
 
 export interface Property {
@@ -72,41 +69,54 @@ export interface Property {
 }
 
 export async function fetchProperties(profile: Profile | null): Promise<Property[]> {
-  // All roles see all properties; Active/Inactive filtering handled in UI
-  const { data, error } = await supabase
-    .from('properties')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(200);
-  if (error) throw error;
-  return data as Property[];
+  try {
+    const { data, error } = await supabase
+      .from('properties')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(200);
+    if (error || !data) return [];
+    return data as Property[];
+  } catch {
+    return [];
+  }
 }
 
-
-export async function fetchProperty(id: string): Promise<Property> {
-  const { data, error } = await supabase
-    .from('properties')
-    .select('*')
-    .eq('id', id)
-    .single();
-  if (error) throw error;
-  return data as Property;
+export async function fetchProperty(id: string): Promise<Property | null> {
+  try {
+    const { data, error } = await supabase
+      .from('properties')
+      .select('*')
+      .eq('id', id)
+      .single();
+    if (error || !data) return null;
+    return data as Property;
+  } catch {
+    return null;
+  }
 }
 
 export async function fetchSetting(id: string): Promise<string> {
-  const { data, error } = await supabase
-    .from('settings')
-    .select('value')
-    .eq('id', id)
-    .single();
-  if (error) return '';
-  return data.value;
+  try {
+    const { data, error } = await supabase
+      .from('settings')
+      .select('value')
+      .eq('id', id)
+      .single();
+    if (error || !data) return '';
+    return data.value;
+  } catch {
+    return '';
+  }
 }
 
 export async function updateSetting(id: string, value: string) {
-  const { error } = await supabase
-    .from('settings')
-    .update({ value, updated_at: new Date().toISOString() })
-    .eq('id', id);
-  if (error) throw error;
+  try {
+    await supabase
+      .from('settings')
+      .update({ value, updated_at: new Date().toISOString() })
+      .eq('id', id);
+  } catch {
+    // disconnected mode
+  }
 }

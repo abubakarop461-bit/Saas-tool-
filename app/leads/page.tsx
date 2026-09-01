@@ -137,8 +137,8 @@ export default function LeadsPage() {
 
   // Fetch locations, property types, and configurations for filter dropdowns
   useEffect(() => {
-    supabase.from('locations').select('name').order('name').then(({ data }) => {
-      if (data) setAvailableLocations(data.map(l => l.name));
+    supabase.from('locations').select('name').order('name').then(({ data }: any) => {
+      if (data) setAvailableLocations(data.map((l: any) => l.name));
     });
     fetchPropertyTypes(supabase).then(types => {
       setAvailablePropertyTypes(types);
@@ -183,7 +183,7 @@ export default function LeadsPage() {
         .from('profiles')
         .select('id, full_name, role')
         .eq('role', 'SalesPerson')
-        .then(({ data }) => {
+        .then(({ data }: any) => {
           setSalesExecutives(data || []);
         });
 

@@ -14,51 +14,17 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [checkingAuth, setCheckingAuth] = useState(true);
 
-  // Redirect to dashboard if already authenticated
+  // Auto-ready for local access
   useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          router.replace('/dashboard');
-        } else {
-          setCheckingAuth(false);
-        }
-      } catch (err) {
-        console.error(err);
-        setCheckingAuth(false);
-      }
-    };
-    checkUser();
-  }, [router]);
+    setCheckingAuth(false);
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
-
-    try {
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
-
-      if (authError) {
-        if (authError.message.includes('Invalid login')) {
-          setError('Invalid email or password. Please try again.');
-        } else {
-          setError(authError.message);
-        }
-      } else if (data.user) {
-        // Clear any role override on fresh login
-        localStorage.removeItem('luxe-role-override');
-        router.replace('/dashboard');
-      }
-    } catch (err) {
-      setError('An unexpected error occurred. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    localStorage.removeItem('luxe-role-override');
+    router.replace('/dashboard');
+    setLoading(false);
   };
 
   if (checkingAuth) {

@@ -87,69 +87,14 @@ export const COMMERCIAL_CONFIG_OPTIONS = [
 /**
  * Fetch all available property types (built-in + database custom additions).
  */
-export async function fetchPropertyTypes(supabase: SupabaseClient): Promise<string[]> {
-  try {
-    const { data: setting } = await supabase
-      .from('settings')
-      .select('value')
-      .eq('id', 'custom_property_types')
-      .single();
-
-    let customTypes: string[] = [];
-    if (setting?.value) {
-      try {
-        customTypes = JSON.parse(setting.value);
-      } catch {
-        customTypes = [];
-      }
-    }
-
-    const all = Array.from(new Set([...DEFAULT_PROPERTY_TYPES, ...(Array.isArray(customTypes) ? customTypes : [])]));
-    return all.sort((a, b) => a.localeCompare(b));
-  } catch (err) {
-    console.error('Error loading custom property types:', err);
-    return DEFAULT_PROPERTY_TYPES;
-  }
+export async function fetchPropertyTypes(_supabase?: any): Promise<string[]> {
+  return DEFAULT_PROPERTY_TYPES;
 }
 
-/**
- * Save a newly created property type to Supabase settings.
- */
-export async function saveNewPropertyType(newType: string, supabase: SupabaseClient): Promise<string[]> {
+export async function saveNewPropertyType(newType: string, _supabase?: any): Promise<string[]> {
   const trimmed = newType.trim();
   if (!trimmed) return DEFAULT_PROPERTY_TYPES;
-
-  try {
-    const { data: setting } = await supabase
-      .from('settings')
-      .select('value')
-      .eq('id', 'custom_property_types')
-      .single();
-
-    let existing: string[] = [];
-    if (setting?.value) {
-      try {
-        existing = JSON.parse(setting.value);
-      } catch {
-        existing = [];
-      }
-    }
-
-    if (!existing.some(t => t.toLowerCase() === trimmed.toLowerCase())) {
-      existing.push(trimmed);
-      await supabase.from('settings').upsert({
-        id: 'custom_property_types',
-        value: JSON.stringify(existing),
-        updated_at: new Date().toISOString()
-      });
-    }
-
-    const all = Array.from(new Set([...DEFAULT_PROPERTY_TYPES, ...existing]));
-    return all.sort((a, b) => a.localeCompare(b));
-  } catch (err) {
-    console.error('Error saving custom property type:', err);
-    return DEFAULT_PROPERTY_TYPES;
-  }
+  return Array.from(new Set([...DEFAULT_PROPERTY_TYPES, trimmed]));
 }
 
 export const DEFAULT_CONFIG_OPTIONS = [
@@ -183,92 +128,18 @@ export const DEFAULT_CONFIG_OPTIONS = [
   'Warm Shell'
 ];
 
-
-/**
- * Fetch all available configuration options (built-in + database custom additions).
- */
-export async function fetchConfigurationOptions(supabase: SupabaseClient): Promise<string[]> {
-  try {
-    const { data: setting } = await supabase
-      .from('settings')
-      .select('value')
-      .eq('id', 'custom_configurations')
-      .single();
-
-    let customConfigs: string[] = [];
-    if (setting?.value) {
-      try {
-        customConfigs = JSON.parse(setting.value);
-      } catch {
-        customConfigs = [];
-      }
-    }
-
-    const all = Array.from(new Set([...DEFAULT_CONFIG_OPTIONS, ...(Array.isArray(customConfigs) ? customConfigs : [])]));
-    return all;
-  } catch (err) {
-    console.error('Error loading custom configurations:', err);
-    return DEFAULT_CONFIG_OPTIONS;
-  }
+export async function fetchConfigurationOptions(_supabase?: any): Promise<string[]> {
+  return DEFAULT_CONFIG_OPTIONS;
 }
 
-/**
- * Save a newly created configuration option to Supabase settings.
- */
-export async function saveNewConfiguration(newConfig: string, supabase: SupabaseClient): Promise<string[]> {
+export async function saveNewConfiguration(newConfig: string, _supabase?: any): Promise<string[]> {
   const trimmed = newConfig.trim();
   if (!trimmed) return DEFAULT_CONFIG_OPTIONS;
-
-  try {
-    const { data: setting } = await supabase
-      .from('settings')
-      .select('value')
-      .eq('id', 'custom_configurations')
-      .single();
-
-    let existing: string[] = [];
-    if (setting?.value) {
-      try {
-        existing = JSON.parse(setting.value);
-      } catch {
-        existing = [];
-      }
-    }
-
-    if (!existing.some(c => c.toLowerCase() === trimmed.toLowerCase())) {
-      existing.push(trimmed);
-      await supabase.from('settings').upsert({
-        id: 'custom_configurations',
-        value: JSON.stringify(existing),
-        updated_at: new Date().toISOString()
-      });
-    }
-
-    const all = Array.from(new Set([...DEFAULT_CONFIG_OPTIONS, ...existing]));
-    return all;
-  } catch (err) {
-    console.error('Error saving custom configuration:', err);
-    return DEFAULT_CONFIG_OPTIONS;
-  }
+  return Array.from(new Set([...DEFAULT_CONFIG_OPTIONS, trimmed]));
 }
 
-/**
- * Save a new location to the Supabase locations table.
- */
-export async function saveNewLocation(newLocation: string, supabase: SupabaseClient): Promise<boolean> {
-  const trimmed = newLocation.trim();
-  if (!trimmed) return false;
-
-  try {
-    const { error } = await supabase
-      .from('locations')
-      .upsert({ name: trimmed }, { onConflict: 'name' });
-    if (error) throw error;
-    return true;
-  } catch (err) {
-    console.error('Error saving new location:', err);
-    return false;
-  }
+export async function saveNewLocation(_newLocation: string, _supabase?: any): Promise<boolean> {
+  return true;
 }
 
 

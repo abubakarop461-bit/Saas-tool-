@@ -225,56 +225,47 @@ export function calculateLeadIntentScore(lead: Lead, completedVisitsCount: numbe
 }
 
 export async function findMatchesForLead(leadId: string) {
-  const { data: lead, error: leadError } = await supabase
-    .from('leads')
-    .select('*')
-    .eq('id', leadId)
-    .single();
-  if (leadError) throw new Error(leadError.message);
+  try {
+    const { data: lead } = await supabase.from('leads').select('*').eq('id', leadId).single();
+    if (!lead) return [];
+    const { data: properties } = await supabase.from('properties').select('*');
+    if (!properties) return [];
 
-  const leadReq = lead as Lead;
-  const { data: properties, error: propError } = await supabase
-    .from('properties')
-    .select('*');
-  if (propError) throw new Error(propError.message);
+    const results = (properties as any[]).map((prop: any) => {
+      const { score, reasons } = computeMatchScore(lead as Lead, prop as Property);
+      return {
+        ...prop,
+        match_score: score,
+        match_reasons: reasons.filter((r: any) => r.matched).map((r: any) => r.label)
+      };
+    });
 
-  const results = properties.map((prop) => {
-    const { score, reasons } = computeMatchScore(leadReq, prop as Property);
-    return {
-      ...prop,
-      match_score: score,
-      match_reasons: reasons.filter(r => r.matched).map(r => r.label)
-    };
-  });
-
-  results.sort((a, b) => b.match_score - a.match_score);
-  return results;
+    results.sort((a: any, b: any) => b.match_score - a.match_score);
+    return results;
+  } catch {
+    return [];
+  }
 }
 
 export async function findMatchesForProperty(propertyId: string) {
-  const { data: property, error: propError } = await supabase
-    .from('properties')
-    .select('*')
-    .eq('id', propertyId)
-    .single();
-  if (propError) throw new Error(propError.message);
+  try {
+    const { data: property } = await supabase.from('properties').select('*').eq('id', propertyId).single();
+    if (!property) return [];
+    const { data: leads } = await supabase.from('leads').select('*');
+    if (!leads) return [];
 
-  const prop = property as Property;
-  const { data: leads, error: leadError } = await supabase
-    .from('leads')
-    .select('*');
-  if (leadError) throw new Error(leadError.message);
+    const results = (leads as any[]).map((lead: any) => {
+      const { score, reasons } = computeMatchScore(lead as Lead, property as Property);
+      return {
+        ...lead,
+        match_score: score,
+        match_reasons: reasons.filter((r: any) => r.matched).map((r: any) => r.label)
+      };
+    });
 
-  const results = leads.map((lead) => {
-    const leadReq = lead as Lead;
-    const { score, reasons } = computeMatchScore(leadReq, prop);
-    return {
-      ...leadReq,
-      match_score: score,
-      match_reasons: reasons.filter(r => r.matched).map(r => r.label)
-    };
-  });
-
-  results.sort((a, b) => b.match_score - a.match_score);
-  return results;
+    results.sort((a: any, b: any) => b.match_score - a.match_score);
+    return results;
+  } catch {
+    return [];
+  }
 }

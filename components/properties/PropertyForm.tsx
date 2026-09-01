@@ -90,9 +90,9 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
         .select('*')
         .eq('property_id', initialValues.id)
         .order('sort_order', { ascending: true })
-        .then(async ({ data }) => {
+        .then(async ({ data }: any) => {
           if (data) {
-            const mapped = await Promise.all(data.map(async img => {
+            const mapped = await Promise.all(data.map(async (img: any) => {
               if (img.url.startsWith('http')) return { ...img, previewUrl: img.url };
               const { data: sData } = await supabase.storage.from('property-images').createSignedUrl(img.url, 604800);
               return { ...img, previewUrl: sData?.signedUrl || img.url };
@@ -171,8 +171,8 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
       setCustomConfigOptions(configs);
     });
 
-    supabase.from('locations').select('name').order('name').then(({ data }) => {
-      if (data) setLocationOptions(data.map(l => ({ value: l.name, label: l.name })));
+    supabase.from('locations').select('name').order('name').then(({ data }: any) => {
+      if (data) setLocationOptions(data.map((l: any) => ({ value: l.name, label: l.name })));
     });
   }, [initialValues.property_type]);
 

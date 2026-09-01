@@ -99,7 +99,7 @@ export default function UserManagementPage() {
       });
       // Override with user-specific permissions
       if (data) {
-        data.forEach(p => {
+        data.forEach((p: any) => {
           permMap[p.module] = p.enabled;
         });
       }

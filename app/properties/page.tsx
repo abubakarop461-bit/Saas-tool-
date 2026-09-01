@@ -72,8 +72,8 @@ export default function PropertyInventoryPage() {
 
   // Fetch available locations, property types, and configurations
   useEffect(() => {
-    supabase.from('locations').select('name').order('name').then(({ data }) => {
-      if (data) setAvailableLocations(data.map(l => l.name));
+    supabase.from('locations').select('name').order('name').then(({ data }: any) => {
+      if (data) setAvailableLocations(data.map((l: any) => l.name));
     });
     fetchPropertyTypes(supabase).then(types => {
       setAvailablePropertyTypes(types);
@@ -301,7 +301,7 @@ export default function PropertyInventoryPage() {
         .order('sort_order', { ascending: true });
       if (data && data.length > 0) {
         const signedUrls = await Promise.all(
-          data.map(async (img) => {
+          data.map(async (img: any) => {
             if (img.url.startsWith('http')) return img.url;
             const { data: sData } = await supabase.storage
               .from('property-images')

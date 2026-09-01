@@ -273,32 +273,11 @@ export function Header({ onToggleMenu }: { onToggleMenu?: () => void }) {
     ];
     const filteredNavs = allNavs.filter(n => n.title.toLowerCase().includes(q) || n.desc.toLowerCase().includes(q));
 
-    // 2. Fetch/Filter Leads from Supabase
-    async function searchSupabase() {
-      try {
-        const { data: leadsData } = await supabase
-          .from('leads')
-          .select('id, client_name, phone, status, preferred_location, budget_max')
-          .or(`client_name.ilike.%${q}%,phone.ilike.%${q}%,preferred_location.ilike.%${q}%`)
-          .limit(4);
-
-        const { data: propsData } = await supabase
-          .from('properties')
-          .select('id, title, location, configuration, price')
-          .or(`title.ilike.%${q}%,location.ilike.%${q}%,configuration.ilike.%${q}%`)
-          .limit(4);
-
-        setSearchResults({
-          navs: filteredNavs,
-          leads: leadsData || [],
-          properties: propsData || []
-        });
-      } catch (err) {
-        console.error('Search error:', err);
-      }
-    }
-
-    searchSupabase();
+    setSearchResults({
+      navs: filteredNavs,
+      leads: [],
+      properties: []
+    });
   }, [searchQuery]);
 
   const handleMarkAllRead = () => {

@@ -54,7 +54,6 @@ export function NavUser({
 
   const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault();
-    await supabase.auth.signOut();
     window.location.href = '/login';
   };
 

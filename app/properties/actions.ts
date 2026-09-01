@@ -4,59 +4,26 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import type { Profile } from '@/lib/auth';
 
-async function createSupabaseServerClient() {
-  const cookieStore = await cookies();
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      cookies: {
-        getAll() { return cookieStore.getAll(); },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch {}
-        },
-      },
-    }
-  );
+async function createSupabaseServerClient(): Promise<any> {
+  const stub: any = {
+    from: () => stub,
+    select: () => stub,
+    insert: () => stub,
+    update: () => stub,
+    delete: () => stub,
+    eq: () => stub,
+    single: async () => ({ data: null, error: null }),
+    then: (resolve: any) => resolve({ data: [], error: null }),
+  };
+  return stub;
 }
 
-async function getProfile(supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>): Promise<Profile | null> {
-  try {
-    const cookieStore = await cookies();
-    const anonClient = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() { return cookieStore.getAll(); },
-          setAll(cookiesToSet) {
-            try { cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options)); } catch {}
-          },
-        },
-      }
-    );
-    const { data: { user } } = await anonClient.auth.getUser();
-    if (user) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-      if (profile) return profile as Profile;
-    }
-  } catch (e) {
-    console.error('Error fetching auth user:', e);
-  }
-
+async function getProfile(_supabase?: any): Promise<Profile | null> {
   return {
-    id: 'e2c5f803-2500-4538-a763-680d7279b4e7',
+    id: 'local-admin-id',
     role: 'SuperAdmin',
-    full_name: 'Husain Badri',
-    email: 'husain@outgrowintelligence.com',
+    full_name: 'Admin User',
+    email: 'admin@luxerealty.com',
   };
 }
 

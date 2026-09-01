@@ -256,7 +256,7 @@ export default function SettingsPage() {
         };
 
         if (data && data.length > 0) {
-          data.forEach(p => {
+          data.forEach((p: any) => {
             map[p.module] = p.enabled;
           });
         }
@@ -731,7 +731,7 @@ export default function SettingsPage() {
                     className={inputClass}
                   />
                   <p className="text-[10px] text-zinc-400 font-medium">
-                    This Webhook automatically ingests incoming lead submissions into Supabase and assigns them to active sales agents.
+                    This Webhook automatically ingests incoming lead submissions and assigns them to active sales agents.
                   </p>
                 </div>
 
@@ -811,20 +811,20 @@ export default function SettingsPage() {
                   </p>
                 </div>
 
-                {/* Cloud Protection Status Banner */}
-                <div className="p-4 bg-emerald-50/70 border border-emerald-200/80 rounded-2xl flex items-start gap-3.5">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                {/* Local Mode Protection Status Banner */}
+                <div className="p-4 bg-zinc-100/90 border border-zinc-200/80 rounded-2xl flex items-start gap-3.5">
+                  <div className="w-8 h-8 rounded-xl bg-zinc-700 text-white flex items-center justify-center shrink-0 shadow-xs">
                     <CloudDownload className="h-4 w-4" />
                   </div>
                   <div className="flex-1 text-xs">
-                    <div className="font-extrabold text-emerald-950 flex items-center gap-1.5">
-                      Supabase Cloud Automated Daily Backups: Active
-                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-200 text-emerald-900">
-                        Live Safeguard
+                    <div className="font-extrabold text-zinc-950 flex items-center gap-1.5">
+                      Backend Disconnected Mode: Ready for Cloudflare Integration
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-zinc-200 text-zinc-800">
+                        Disconnected
                       </span>
                     </div>
-                    <p className="text-emerald-800/90 text-[11px] mt-0.5">
-                      Your database is hosted on Supabase PostgreSQL with continuous write-ahead logging (WAL), automated daily snapshots, and point-in-time rollback protection.
+                    <p className="text-zinc-600 text-[11px] mt-0.5">
+                      Supabase backend integration is disconnected. The application interface is running in local mode awaiting backend connection.
                     </p>
                   </div>
                 </div>

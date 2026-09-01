@@ -80,8 +80,8 @@ export function LeadForm({ initialValues = {} }: { initialValues?: Partial<any> 
       setConfigOptions(merged);
     });
 
-    supabase.from('locations').select('name').order('name').then(({ data }) => {
-      if (data) setLocationOptions(data.map(l => ({ value: l.name, label: l.name })));
+    supabase.from('locations').select('name').order('name').then(({ data }: any) => {
+      if (data) setLocationOptions(data.map((l: any) => ({ value: l.name, label: l.name })));
     });
   }, [initialValues.property_type, initialValues.configuration]);
 

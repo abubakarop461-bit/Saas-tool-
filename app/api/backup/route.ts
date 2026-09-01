@@ -1,13 +1,8 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabaseClient';
 
 export async function GET(req: Request) {
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-    const supabase = createClient(supabaseUrl, serviceRoleKey);
-
     const { searchParams } = new URL(req.url);
     const table = searchParams.get('table');
     const format = searchParams.get('format') || 'json';
@@ -48,7 +43,7 @@ export async function GET(req: Request) {
         const headers = Object.keys(rows[0]);
         const csvContent = [
           headers.join(','),
-          ...rows.map(row =>
+          ...rows.map((row: any) =>
             headers
               .map(field => {
                 const val = (row as any)[field];
