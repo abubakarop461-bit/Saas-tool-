@@ -33,8 +33,7 @@ export function SidebarNav({ onClose, className = '' }: { onClose?: () => void; 
     { title: 'Unit Inventory', href: '/inventory', icon: Building2 },
     { title: 'Pipeline', href: '/pipeline', icon: TrendingUp },
     { title: 'Transactions', href: '/transactions', icon: DollarSign },
-    { title: 'Channel Partners', href: '/channel-partners', icon: Users2 },
-    { title: 'Commissions', href: '/commissions', icon: BadgePercent },
+    { title: 'Partners & Commissions', href: '/channel-partners', icon: Users2 },
     { title: 'Matchmaker', href: '/matchmaking', icon: UserCheck },
     { title: 'Site Visits', href: '/site-visits', icon: Calendar },
     { title: 'Creative Studio', href: '/dashboard/creative-studio', icon: Sparkles },
@@ -64,7 +63,10 @@ export function SidebarNav({ onClose, className = '' }: { onClose?: () => void; 
         {/* Navigation Items */}
         <nav className="space-y-1">
           {filteredNavItems.map((item) => {
-            const isActive = pathname === item.href || (pathname !== '/' && item.href !== '/' && pathname.startsWith(item.href));
+            const isActive = 
+              pathname === item.href || 
+              (pathname !== '/' && item.href !== '/' && pathname.startsWith(item.href)) ||
+              (item.href === '/channel-partners' && pathname.startsWith('/commissions'));
             const Icon = item.icon;
             return (
               <Link
