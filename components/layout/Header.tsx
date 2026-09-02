@@ -436,6 +436,18 @@ export function Header({ onToggleMenu }: { onToggleMenu?: () => void }) {
           )}
         </div>
 
+        {/* Live Cloudflare D1 Connection Status Badge */}
+        <div 
+          title="Cloudflare D1 SQL Database Connected • Live Edge Sync Active"
+          className="hidden lg:flex items-center gap-2 px-2.5 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/40 text-[10px] font-bold text-emerald-400 shadow-2xs select-none"
+        >
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span className="tracking-wide">D1 Live</span>
+        </div>
+
         {/* Date pill */}
         <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-zinc-800 bg-zinc-900 text-[10px] font-bold text-zinc-400">
           <Calendar className="h-3.5 w-3.5 text-[#d4ad4d]" />

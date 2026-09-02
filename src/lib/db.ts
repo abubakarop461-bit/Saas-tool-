@@ -1,4 +1,7 @@
-import { SEED_PROPERTIES } from '@/lib/queries';
+import { SEED_PROPERTIES, SEED_LEADS } from '@/lib/queries';
+import { SEED_TRANSACTIONS } from '@/lib/transactions';
+import { SEED_CHANNEL_PARTNERS, SEED_COMMISSIONS } from '@/lib/partners';
+import { SEED_DEVELOPER_UNITS } from '@/lib/inventory';
 
 export interface D1Database {
   prepare: (query: string) => {
@@ -20,45 +23,13 @@ export interface CloudflareEnv {
 
 // In-memory local storage cache for development & disconnected mode
 const localCache: Record<string, any[]> = {
-  leads: [
-    {
-      id: 'lead-1',
-      client_name: 'Rahul Sharma',
-      phone: '+91 98230 11223',
-      email: 'rahul.sharma@example.com',
-      budget_min: 15000000,
-      budget_max: 25000000,
-      preferred_location: 'Kalyani Nagar',
-      property_type: 'Apartment',
-      configuration: '3 BHK',
-      category: 'Residential',
-      transaction_type: 'Outright',
-      status: 'Hot',
-      assigned_to: 'Admin User',
-      created_at: new Date().toISOString()
-    },
-    {
-      id: 'lead-2',
-      client_name: 'Ananya Deshmukh',
-      phone: '+91 97654 32100',
-      email: 'ananya.d@example.com',
-      budget_min: 30000000,
-      budget_max: 45000000,
-      preferred_location: 'Koregaon Park',
-      property_type: 'Penthouse',
-      configuration: '4 BHK',
-      category: 'Residential',
-      transaction_type: 'Outright',
-      status: 'Warm',
-      assigned_to: 'Admin User',
-      created_at: new Date().toISOString()
-    }
-  ],
+  leads: SEED_LEADS,
   properties: SEED_PROPERTIES,
   site_visits: [],
-  transactions: [],
-  channel_partners: [],
-  commissions: [],
+  transactions: SEED_TRANSACTIONS,
+  channel_partners: SEED_CHANNEL_PARTNERS,
+  commissions: SEED_COMMISSIONS,
+  inventory: SEED_DEVELOPER_UNITS,
   users: [
     {
       id: 'user-admin',

@@ -36,7 +36,8 @@ import {
   PaymentMilestone,
   DealTransaction,
   SEED_TRANSACTIONS,
-  fetchTransactions
+  fetchTransactions,
+  saveTransactions
 } from '@/lib/transactions';
 
 export default function TransactionsPage() {
@@ -101,7 +102,9 @@ export default function TransactionsPage() {
     if (!selectedTx) return;
     const updated = { ...selectedTx, current_stage: newStageValue };
     setSelectedTx(updated);
-    setTransactions(prev => prev.map(t => t.id === selectedTx.id ? updated : t));
+    const updatedAll = transactions.map(t => t.id === selectedTx.id ? updated : t);
+    setTransactions(updatedAll);
+    saveTransactions(updatedAll);
   };
 
   const handleToggleMilestone = (milestoneId: string) => {
@@ -119,7 +122,9 @@ export default function TransactionsPage() {
     });
     const updatedTx = { ...selectedTx, payment_schedule: updatedSchedule };
     setSelectedTx(updatedTx);
-    setTransactions(prev => prev.map(t => t.id === selectedTx.id ? updatedTx : t));
+    const updatedAll = transactions.map(t => t.id === selectedTx.id ? updatedTx : t);
+    setTransactions(updatedAll);
+    saveTransactions(updatedAll);
   };
 
   const handleCreateTransaction = (e: React.FormEvent) => {
@@ -150,7 +155,9 @@ export default function TransactionsPage() {
       ],
       notes: 'New transaction registered.'
     };
-    setTransactions([newTx, ...transactions]);
+    const updatedAll = [newTx, ...transactions];
+    setTransactions(updatedAll);
+    saveTransactions(updatedAll);
     setSelectedTx(newTx);
     setIsNewModalOpen(false);
   };

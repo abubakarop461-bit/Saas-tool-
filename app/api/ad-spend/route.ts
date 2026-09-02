@@ -35,7 +35,7 @@ export async function GET(req: Request) {
 // POST /api/ad-spend
 export async function POST(req: Request) {
   try {
-    const body = await req.json().catch(() => ({}));
+    const body = (await req.json().catch(() => ({}))) as Record<string, any>;
     const { lead_source_id, spend_amount, property_id, campaign_name, platform } = body;
 
     if (!lead_source_id || typeof lead_source_id !== 'string') {

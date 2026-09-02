@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Building2, 
   Search, 
@@ -24,32 +24,15 @@ import {
 import { formatCurrency, formatPriceShort } from '@/lib/formatters';
 import { CostSheetModal, CostSheetUnit } from '@/components/cost-sheet/CostSheetModal';
 import { InlineStatsBar } from '@/components/ui/InlineStatsBar';
+import {
+  DeveloperUnit,
+  UnitStatus,
+  SEED_DEVELOPER_UNITS,
+  fetchDeveloperUnits,
+  saveDeveloperUnits
+} from '@/lib/inventory';
 
-export type UnitStatus = 'Available' | 'Hold' | 'Token' | 'Negotiation' | 'Booked' | 'Sold';
-
-export interface DeveloperUnit {
-  id: string;
-  project_title: string;
-  tower: string;
-  floor: number;
-  unit_number: string;
-  configuration: string;
-  carpet_area: number; // sq ft
-  built_up_area: number; // sq ft
-  facing: string; // 'East' | 'North' | 'Garden' | 'Pool'
-  base_price: number;
-  floor_rise_rate: number;
-  parking_charges: number;
-  amenities_charges: number;
-  other_charges: number;
-  gst_rate: number;
-  stamp_duty_rate: number;
-  registration_rate: number;
-  possession_date: string;
-  status: UnitStatus;
-  buyer_name?: string;
-  agent_name?: string;
-}
+export type { UnitStatus, DeveloperUnit };
 
 export const STATUS_COLORS: Record<UnitStatus, {
   badge: string;
@@ -111,280 +94,16 @@ export default function UnitInventoryPage() {
   const [selectedUnit, setSelectedUnit] = useState<DeveloperUnit | null>(null);
   const [costSheetTargetUnit, setCostSheetTargetUnit] = useState<CostSheetUnit | null>(null);
 
-  // Initial developer building inventory
-  const [units, setUnits] = useState<DeveloperUnit[]>([
-    // Floor 14
-    {
-      id: 'u-1401',
-      project_title: 'Panchshil Silverwoods',
-      tower: 'Tower A',
-      floor: 14,
-      unit_number: '1401',
-      configuration: '3 BHK',
-      carpet_area: 1650,
-      built_up_area: 2150,
-      facing: 'East (Sunrise View)',
-      base_price: 14800000,
-      floor_rise_rate: 50,
-      parking_charges: 500000,
-      amenities_charges: 300000,
-      other_charges: 150000,
-      gst_rate: 5.0,
-      stamp_duty_rate: 6.0,
-      registration_rate: 30000,
-      possession_date: 'December 2026',
-      status: 'Available'
-    },
-    {
-      id: 'u-1402',
-      project_title: 'Panchshil Silverwoods',
-      tower: 'Tower A',
-      floor: 14,
-      unit_number: '1402',
-      configuration: '3 BHK',
-      carpet_area: 1680,
-      built_up_area: 2200,
-      facing: 'Garden Facing',
-      base_price: 15200000,
-      floor_rise_rate: 50,
-      parking_charges: 500000,
-      amenities_charges: 300000,
-      other_charges: 150000,
-      gst_rate: 5.0,
-      stamp_duty_rate: 6.0,
-      registration_rate: 30000,
-      possession_date: 'December 2026',
-      status: 'Token',
-      buyer_name: 'Anil Deshmukh',
-      agent_name: 'Rishi M.'
-    },
-    {
-      id: 'u-1403',
-      project_title: 'Panchshil Silverwoods',
-      tower: 'Tower A',
-      floor: 14,
-      unit_number: '1403',
-      configuration: '4.5 BHK',
-      carpet_area: 2450,
-      built_up_area: 3200,
-      facing: 'North-East (Vastu Compliant)',
-      base_price: 24500000,
-      floor_rise_rate: 60,
-      parking_charges: 1000000,
-      amenities_charges: 400000,
-      other_charges: 200000,
-      gst_rate: 5.0,
-      stamp_duty_rate: 6.0,
-      registration_rate: 30000,
-      possession_date: 'December 2026',
-      status: 'Hold',
-      buyer_name: 'Sunita Rao',
-      agent_name: 'Vikram Seth'
-    },
-    {
-      id: 'u-1404',
-      project_title: 'Panchshil Silverwoods',
-      tower: 'Tower A',
-      floor: 14,
-      unit_number: '1404',
-      configuration: '4.5 BHK',
-      carpet_area: 2480,
-      built_up_area: 3250,
-      facing: 'Pool & Clubhouse View',
-      base_price: 25200000,
-      floor_rise_rate: 60,
-      parking_charges: 1000000,
-      amenities_charges: 400000,
-      other_charges: 200000,
-      gst_rate: 5.0,
-      stamp_duty_rate: 6.0,
-      registration_rate: 30000,
-      possession_date: 'December 2026',
-      status: 'Sold',
-      buyer_name: 'Rajiv Bajaj',
-      agent_name: 'Vikram Seth'
-    },
+  // Persistent building inventory
+  const [units, setUnits] = useState<DeveloperUnit[]>(SEED_DEVELOPER_UNITS);
 
-    // Floor 12
-    {
-      id: 'u-1201',
-      project_title: 'Panchshil Silverwoods',
-      tower: 'Tower A',
-      floor: 12,
-      unit_number: '1201',
-      configuration: '3 BHK',
-      carpet_area: 1650,
-      built_up_area: 2150,
-      facing: 'East (Sunrise View)',
-      base_price: 14600000,
-      floor_rise_rate: 50,
-      parking_charges: 500000,
-      amenities_charges: 300000,
-      other_charges: 150000,
-      gst_rate: 5.0,
-      stamp_duty_rate: 6.0,
-      registration_rate: 30000,
-      possession_date: 'December 2026',
-      status: 'Available'
-    },
-    {
-      id: 'u-1202',
-      project_title: 'Panchshil Silverwoods',
-      tower: 'Tower A',
-      floor: 12,
-      unit_number: '1202',
-      configuration: '3 BHK',
-      carpet_area: 1680,
-      built_up_area: 2200,
-      facing: 'Garden Facing',
-      base_price: 14900000,
-      floor_rise_rate: 50,
-      parking_charges: 500000,
-      amenities_charges: 300000,
-      other_charges: 150000,
-      gst_rate: 5.0,
-      stamp_duty_rate: 6.0,
-      registration_rate: 30000,
-      possession_date: 'December 2026',
-      status: 'Negotiation',
-      buyer_name: 'Dr. Deshmukh',
-      agent_name: 'Rishi M.'
-    },
-    {
-      id: 'u-1203',
-      project_title: 'Panchshil Silverwoods',
-      tower: 'Tower A',
-      floor: 12,
-      unit_number: '1203',
-      configuration: '4.5 BHK',
-      carpet_area: 2450,
-      built_up_area: 3200,
-      facing: 'North-East (Vastu Compliant)',
-      base_price: 24100000,
-      floor_rise_rate: 60,
-      parking_charges: 1000000,
-      amenities_charges: 400000,
-      other_charges: 200000,
-      gst_rate: 5.0,
-      stamp_duty_rate: 6.0,
-      registration_rate: 30000,
-      possession_date: 'December 2026',
-      status: 'Booked',
-      buyer_name: 'Vikramaditya S.',
-      agent_name: 'Vikram Seth'
-    },
-    {
-      id: 'u-1204',
-      project_title: 'Panchshil Silverwoods',
-      tower: 'Tower A',
-      floor: 12,
-      unit_number: '1204',
-      configuration: '4.5 BHK',
-      carpet_area: 2480,
-      built_up_area: 3250,
-      facing: 'Pool & Clubhouse View',
-      base_price: 24800000,
-      floor_rise_rate: 60,
-      parking_charges: 1000000,
-      amenities_charges: 400000,
-      other_charges: 200000,
-      gst_rate: 5.0,
-      stamp_duty_rate: 6.0,
-      registration_rate: 30000,
-      possession_date: 'December 2026',
-      status: 'Available'
-    },
-
-    // Floor 10
-    {
-      id: 'u-1001',
-      project_title: 'Panchshil Silverwoods',
-      tower: 'Tower A',
-      floor: 10,
-      unit_number: '1001',
-      configuration: '3 BHK',
-      carpet_area: 1650,
-      built_up_area: 2150,
-      facing: 'East (Sunrise View)',
-      base_price: 14400000,
-      floor_rise_rate: 50,
-      parking_charges: 500000,
-      amenities_charges: 300000,
-      other_charges: 150000,
-      gst_rate: 5.0,
-      stamp_duty_rate: 6.0,
-      registration_rate: 30000,
-      possession_date: 'December 2026',
-      status: 'Available'
-    },
-    {
-      id: 'u-1002',
-      project_title: 'Panchshil Silverwoods',
-      tower: 'Tower A',
-      floor: 10,
-      unit_number: '1002',
-      configuration: '3 BHK',
-      carpet_area: 1680,
-      built_up_area: 2200,
-      facing: 'Garden Facing',
-      base_price: 14700000,
-      floor_rise_rate: 50,
-      parking_charges: 500000,
-      amenities_charges: 300000,
-      other_charges: 150000,
-      gst_rate: 5.0,
-      stamp_duty_rate: 6.0,
-      registration_rate: 30000,
-      possession_date: 'December 2026',
-      status: 'Available'
-    },
-    {
-      id: 'u-1003',
-      project_title: 'Panchshil Silverwoods',
-      tower: 'Tower A',
-      floor: 10,
-      unit_number: '1003',
-      configuration: '4.5 BHK',
-      carpet_area: 2450,
-      built_up_area: 3200,
-      facing: 'North-East (Vastu Compliant)',
-      base_price: 23800000,
-      floor_rise_rate: 60,
-      parking_charges: 1000000,
-      amenities_charges: 400000,
-      other_charges: 200000,
-      gst_rate: 5.0,
-      stamp_duty_rate: 6.0,
-      registration_rate: 30000,
-      possession_date: 'December 2026',
-      status: 'Hold',
-      buyer_name: 'Priya Sharma',
-      agent_name: 'Rishi M.'
-    },
-    {
-      id: 'u-1004',
-      project_title: 'Panchshil Silverwoods',
-      tower: 'Tower A',
-      floor: 10,
-      unit_number: '1004',
-      configuration: '4.5 BHK',
-      carpet_area: 2480,
-      built_up_area: 3250,
-      facing: 'Pool & Clubhouse View',
-      base_price: 24400000,
-      floor_rise_rate: 60,
-      parking_charges: 1000000,
-      amenities_charges: 400000,
-      other_charges: 200000,
-      gst_rate: 5.0,
-      stamp_duty_rate: 6.0,
-      registration_rate: 30000,
-      possession_date: 'December 2026',
-      status: 'Sold',
-      buyer_name: 'Amitav Ghosh',
-      agent_name: 'Vikram Seth'
+  useEffect(() => {
+    async function loadUnits() {
+      const data = await fetchDeveloperUnits();
+      if (data && data.length > 0) setUnits(data);
     }
-  ]);
+    loadUnits();
+  }, []);
 
   // Distinct floors sorted descending
   const floors = useMemo(() => {
@@ -429,7 +148,9 @@ export default function UnitInventoryPage() {
   }, [units, selectedTower, statusFilter, configFilter, searchQuery]);
 
   const handleUpdateUnitStatus = (unitId: string, newStatus: UnitStatus) => {
-    setUnits(prev => prev.map(u => u.id === unitId ? { ...u, status: newStatus } : u));
+    const updated = units.map(u => u.id === unitId ? { ...u, status: newStatus } : u);
+    setUnits(updated);
+    saveDeveloperUnits(updated);
     if (selectedUnit && selectedUnit.id === unitId) {
       setSelectedUnit(prev => prev ? { ...prev, status: newStatus } : null);
     }

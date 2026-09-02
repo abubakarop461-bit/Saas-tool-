@@ -37,7 +37,7 @@ export async function fetchAdSpendMap(companyId: string = 'default_company'): Pr
   try {
     const res = await fetch(`/api/ad-spend`);
     if (res.ok) {
-      const data = await res.json();
+      const data = (await res.json()) as { success?: boolean; records?: AdSpendRecord[] };
       if (data && data.success && Array.isArray(data.records)) {
         data.records.forEach((r: AdSpendRecord) => {
           if (r.lead_source_id) {
@@ -112,8 +112,8 @@ export async function saveAdSpendRecord(
     });
 
     if (res.ok) {
-      const data = await res.json();
-      if (data.success) {
+      const data = (await res.json()) as { success?: boolean };
+      if (data && data.success) {
         return { success: true, mode: 'd1' };
       }
     }

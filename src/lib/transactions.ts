@@ -186,3 +186,9 @@ export async function fetchTransactions(): Promise<DealTransaction[]> {
 
   return SEED_TRANSACTIONS;
 }
+
+export async function saveTransactions(txs: DealTransaction[]): Promise<void> {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('luxe-transactions-store', JSON.stringify(txs));
+  }
+}
