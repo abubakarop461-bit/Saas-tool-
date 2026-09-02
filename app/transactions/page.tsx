@@ -23,7 +23,8 @@ import {
   ShieldCheck, 
   Check,
   Download,
-  MessageSquare
+  MessageSquare,
+  Sparkles
 } from 'lucide-react';
 import { formatCurrency, formatPriceShort } from '@/lib/formatters';
 import { CostSheetModal, CostSheetUnit } from '@/components/cost-sheet/CostSheetModal';
@@ -215,7 +216,8 @@ export default function TransactionsPage() {
         tx.client_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         tx.unit_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
         tx.property_title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        tx.channel_partner.toLowerCase().includes(searchQuery.toLowerCase());
+        tx.channel_partner.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        tx.sales_agent.toLowerCase().includes(searchQuery.toLowerCase());
       
       const matchesStage = stageFilter === 'All' || tx.current_stage === stageFilter;
       return matchesSearch && matchesStage;
@@ -310,9 +312,11 @@ export default function TransactionsPage() {
   const getStageIndex = (stg: TransactionStage) => ALL_TRANSACTION_STAGES.indexOf(stg);
 
   return (
-    <div className="w-full pb-20 text-zinc-900 text-left">
+    <div className="w-full pb-20 text-zinc-900 text-left space-y-6">
       
-      {/* ── UNIFIED DIRECTION C PORCELAIN CARD FRAME ── */}
+      {/* ══════════════════════════════════════════════════════════════════════
+          UPPER SECTION (100% FULL WIDTH): DEALS & TRANSACTIONS TABLE
+         ══════════════════════════════════════════════════════════════════════ */}
       <div className="overflow-hidden bg-white border border-[#e8e7e4] rounded-2xl shadow-sm">
         
         {/* Editorial Header */}
@@ -327,17 +331,17 @@ export default function TransactionsPage() {
               </span>
             </div>
             <p className="text-[11px] text-zinc-400 font-medium mt-0.5">
-              11-Stage Pipeline Tracking: Token ➔ Booking ➔ Agreement ➔ Payment Milestones ➔ Possession
+              11-Stage Full Pipeline Tracking: Token ➔ Booking ➔ Agreement ➔ Payment Milestones ➔ Registration ➔ Possession
             </p>
           </div>
 
-          {/* Actions */}
+          {/* Header Actions */}
           <div className="flex items-center gap-2 shrink-0">
             {selectedTx && (
               <button
                 type="button"
                 onClick={() => openCostSheetForDeal(selectedTx)}
-                className="dc-btn font-semibold flex items-center gap-1.5"
+                className="dc-btn font-semibold flex items-center gap-1.5 text-zinc-700"
               >
                 <Calculator className="h-3.5 w-3.5 text-[#d4ad4d]" />
                 Cost Sheet
@@ -364,7 +368,7 @@ export default function TransactionsPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-400" />
             <input 
               type="text" 
-              placeholder="Search deal by client, unit, property, partner..." 
+              placeholder="Search by client, property, unit #, agent, partner..." 
               className="dc-search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -377,261 +381,346 @@ export default function TransactionsPage() {
             onChange={(e) => setStageFilter(e.target.value)}
             className="dc-btn font-semibold cursor-pointer"
           >
-            <option value="All">All 11 Stages</option>
+            <option value="All">All 11 Transaction Stages</option>
             {ALL_TRANSACTION_STAGES.map(s => (
               <option key={s} value={s}>{s}</option>
             ))}
           </select>
         </div>
 
-        {/* ── SPLIT LAYOUT: TRANSACTIONS LIST & ACTIVE DEAL INSPECTOR ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-[#ebebeb] bg-white">
-          
-          {/* Table Column (7 Cols) */}
-          <div className="lg:col-span-7 dc-table-container">
-            <table className="dc-table">
-              <thead>
+        {/* ── FULLY SHOWN 100% WIDTH TABLE ── */}
+        <div className="dc-table-container">
+          <table className="dc-table">
+            <thead>
+              <tr>
+                <th>Client Details & Contact</th>
+                <th>Property Project & Layout</th>
+                <th className="text-center">Unit #</th>
+                <th className="text-right">Deal Value</th>
+                <th className="text-right">Token Amount</th>
+                <th>Current Stage & Progress</th>
+                <th>Sales Agent</th>
+                <th>Channel Partner</th>
+                <th>Booking Status</th>
+                <th style={{ width: '80px' }} className="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredTransactions.length === 0 ? (
                 <tr>
-                  <th>Client & Property</th>
-                  <th>Unit</th>
-                  <th className="text-right">Deal Value</th>
-                  <th>Stage</th>
-                  <th>Agent</th>
-                  <th style={{ width: '60px' }}>Action</th>
+                  <td colSpan={10} className="px-4 py-12 text-center text-xs font-semibold text-zinc-400">
+                    No transactions match the selected filters
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {filteredTransactions.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-4 py-12 text-center text-xs font-semibold text-zinc-400">
-                      No deals found matching your filter
-                    </td>
-                  </tr>
-                ) : (
-                  filteredTransactions.map((tx) => {
-                    const isSelected = selectedTx?.id === tx.id;
-                    const stageIdx = getStageIndex(tx.current_stage);
-                    return (
-                      <tr 
-                        key={tx.id} 
-                        className={`cursor-pointer group ${isSelected ? 'bg-[#fafaf7]' : ''}`}
-                        onClick={() => setSelectedTx(tx)}
-                      >
-                        <td>
-                          <div className="flex flex-col">
-                            <span className="font-bold text-zinc-900 text-xs group-hover:text-[#b8922e] transition-colors">
-                              {tx.client_name}
-                            </span>
-                            <span className="text-[10px] text-zinc-400 font-medium">
-                              {tx.property_title} • {tx.configuration}
-                            </span>
-                          </div>
-                        </td>
-                        <td>
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-zinc-100 text-[10px] font-bold text-zinc-700 uppercase">
-                            {tx.unit_number}
+              ) : (
+                filteredTransactions.map((tx) => {
+                  const isSelected = selectedTx?.id === tx.id;
+                  const stageIdx = getStageIndex(tx.current_stage);
+                  return (
+                    <tr 
+                      key={tx.id} 
+                      className={`cursor-pointer group hover:bg-[#fafaf7] ${isSelected ? 'bg-[#fffdf5]' : ''}`}
+                      onClick={() => setSelectedTx(tx)}
+                    >
+                      <td>
+                        <div className="flex flex-col">
+                          <span className="font-extrabold text-zinc-900 text-xs group-hover:text-[#b8922e] transition-colors">
+                            {tx.client_name}
                           </span>
-                        </td>
-                        <td className="text-right font-bold text-zinc-900 text-xs">
-                          {formatPriceShort(tx.deal_value)}
-                        </td>
-                        <td>
-                          <div className="flex flex-col gap-1">
+                          <span className="text-[10.5px] text-zinc-500 font-medium">
+                            {tx.client_phone} {tx.client_email ? `• ${tx.client_email}` : ''}
+                          </span>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-zinc-800 text-xs">
+                            {tx.property_title}
+                          </span>
+                          <span className="text-[10.5px] text-zinc-500 font-medium">
+                            {tx.configuration} • Tower {tx.tower}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="text-center">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded bg-zinc-100 text-[10.5px] font-extrabold text-zinc-800 uppercase">
+                          {tx.unit_number}
+                        </span>
+                      </td>
+                      <td className="text-right font-black text-zinc-900 text-xs">
+                        {formatPriceShort(tx.deal_value)}
+                      </td>
+                      <td className="text-right font-bold text-emerald-700 text-xs">
+                        {formatPriceShort(tx.token_amount)}
+                      </td>
+                      <td>
+                        <div className="flex flex-col gap-1 min-w-[130px]">
+                          <div className="flex items-center justify-between">
                             <span className="dc-badge dc-hot">
                               {tx.current_stage}
                             </span>
-                            <div className="w-16 h-1 bg-zinc-100 rounded-full overflow-hidden">
-                              <div 
-                                className="h-full bg-[#d4ad4d]" 
-                                style={{ width: `${((stageIdx + 1) / 11) * 100}%` }}
-                              />
-                            </div>
+                            <span className="text-[9px] font-extrabold text-zinc-400">
+                              {stageIdx + 1}/11
+                            </span>
                           </div>
-                        </td>
-                        <td>
-                          <span className="text-[11px] text-zinc-600 font-semibold truncate max-w-[100px] block">
-                            {tx.sales_agent}
-                          </span>
-                        </td>
-                        <td>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedTx(tx);
-                            }}
-                            className="text-[10.5px] font-bold text-[#d4ad4d] hover:text-[#b8922e] transition-colors whitespace-nowrap"
-                          >
-                            Inspect →
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Inspector & Payment Milestone Ledger Column (5 Cols) */}
-          <div className="lg:col-span-5 p-6 bg-[#fafaf8] space-y-6">
-            {selectedTx ? (
-              <>
-                {/* Active Deal Overview Card */}
-                <div className="bg-white p-5 rounded-2xl border border-[#e8e7e4] shadow-xs space-y-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <span className="text-[9.5px] font-extrabold uppercase tracking-wider text-[#d4ad4d]">
-                        Selected Deal Inspection
-                      </span>
-                      <h3 className="text-base font-extrabold text-zinc-900 mt-0.5">
-                        {selectedTx.client_name}
-                      </h3>
-                      <p className="text-[11px] text-zinc-500 font-medium">
-                        {selectedTx.client_phone} • {selectedTx.client_email || 'No email'}
-                      </p>
-                    </div>
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-extrabold">
-                      {selectedTx.booking_status}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3 p-3 bg-[#fafaf8] border border-[#ebebeb] rounded-xl text-xs">
-                    <div>
-                      <span className="text-[9px] font-bold text-zinc-400 uppercase block">Property & Unit</span>
-                      <span className="font-extrabold text-zinc-900">{selectedTx.property_title} (Unit {selectedTx.unit_number})</span>
-                    </div>
-                    <div>
-                      <span className="text-[9px] font-bold text-zinc-400 uppercase block">Total Deal Value</span>
-                      <span className="font-extrabold text-[#b8922e]">{formatPriceShort(selectedTx.deal_value)}</span>
-                    </div>
-                    <div>
-                      <span className="text-[9px] font-bold text-zinc-400 uppercase block">Token / EOI</span>
-                      <span className="font-bold text-zinc-800">{formatPriceShort(selectedTx.token_amount)} (Collected)</span>
-                    </div>
-                    <div>
-                      <span className="text-[9px] font-bold text-zinc-400 uppercase block">Channel Partner</span>
-                      <span className="font-bold text-zinc-800">{selectedTx.channel_partner}</span>
-                    </div>
-                  </div>
-
-                  {/* 11-Stage Interactive Pipeline Step Selector */}
-                  <div className="space-y-2 pt-2 border-t border-[#ebebeb]">
-                    <div className="flex items-center justify-between text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
-                      <span>Transaction Progress</span>
-                      <span className="text-zinc-900 font-extrabold">
-                        Stage {getStageIndex(selectedTx.current_stage) + 1} of 11 ({selectedTx.current_stage})
-                      </span>
-                    </div>
-
-                    <div className="flex flex-wrap gap-1">
-                      {ALL_TRANSACTION_STAGES.map((stg, i) => {
-                        const isCurrent = selectedTx.current_stage === stg;
-                        const isPassed = getStageIndex(selectedTx.current_stage) >= i;
-                        return (
-                          <button
-                            key={stg}
-                            type="button"
-                            onClick={() => handleStageChange(stg)}
-                            className={`px-2 py-1 rounded text-[9.5px] font-extrabold transition-all cursor-pointer ${
-                              isCurrent
-                                ? 'bg-[#d4ad4d] text-white shadow-xs'
-                                : isPassed
-                                ? 'bg-zinc-200 text-zinc-800 hover:bg-zinc-300'
-                                : 'bg-white border border-[#e8e7e4] text-zinc-400 hover:text-zinc-700'
-                            }`}
-                          >
-                            {i + 1}. {stg}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Milestone Payment Ledger */}
-                <div className="bg-white p-5 rounded-2xl border border-[#e8e7e4] shadow-xs space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <CreditCard className="h-4 w-4 text-[#d4ad4d]" />
-                      <h4 className="text-xs font-extrabold text-zinc-900 tracking-tight">
-                        Milestone Payment Schedule & Ledger
-                      </h4>
-                    </div>
-                    <span className="text-[10px] font-bold text-zinc-400 uppercase">
-                      Click to toggle status
-                    </span>
-                  </div>
-
-                  <div className="space-y-2">
-                    {selectedTx.payment_schedule.map((milestone) => (
-                      <div 
-                        key={milestone.id}
-                        onClick={() => handleToggleMilestone(milestone.id)}
-                        className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
-                          milestone.status === 'Paid'
-                            ? 'bg-emerald-50/50 border-emerald-200 hover:bg-emerald-50'
-                            : 'bg-white border-[#e8e7e4] hover:border-zinc-400'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`h-5 w-5 rounded-full flex items-center justify-center text-xs font-bold ${
-                            milestone.status === 'Paid' 
-                              ? 'bg-emerald-500 text-white' 
-                              : 'bg-zinc-100 text-zinc-400 border border-zinc-300'
-                          }`}>
-                            {milestone.status === 'Paid' ? '✓' : '•'}
-                          </div>
-                          <div>
-                            <p className="font-bold text-xs text-zinc-900">{milestone.name}</p>
-                            <p className="text-[10px] text-zinc-400 font-medium">Due: {milestone.dueDate} {milestone.paidDate ? `• Paid: ${milestone.paidDate}` : ''}</p>
+                          <div className="w-full h-1 bg-zinc-100 rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-[#d4ad4d]" 
+                              style={{ width: `${((stageIdx + 1) / 11) * 100}%` }}
+                            />
                           </div>
                         </div>
+                      </td>
+                      <td>
+                        <span className="text-xs text-zinc-700 font-semibold truncate block max-w-[120px]">
+                          {tx.sales_agent}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="text-xs text-zinc-700 font-semibold truncate block max-w-[120px]">
+                          {tx.channel_partner}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-extrabold">
+                          {tx.booking_status}
+                        </span>
+                      </td>
+                      <td className="text-center" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedTx(tx)}
+                          className="text-[10.5px] font-bold text-[#d4ad4d] hover:text-[#b8922e] transition-colors whitespace-nowrap"
+                        >
+                          {isSelected ? 'Selected ✓' : 'Inspect →'}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
 
-                        <div className="text-right">
-                          <p className="font-extrabold text-xs text-zinc-900">{formatPriceShort(milestone.amount)}</p>
-                          <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded ${
-                            milestone.status === 'Paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                          }`}>
-                            {milestone.status}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Actions Bar inside Inspector */}
-                  <div className="pt-3 border-t border-[#ebebeb] flex items-center justify-between">
-                    <button
-                      type="button"
-                      onClick={() => openCostSheetForDeal(selectedTx)}
-                      className="dc-btn font-semibold flex items-center gap-1.5 text-xs text-zinc-800"
-                    >
-                      <Calculator className="h-3.5 w-3.5 text-[#d4ad4d]" />
-                      Recalculate Cost Sheet
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const msg = `Hi ${selectedTx.client_name}, your booking for ${selectedTx.property_title} (Unit ${selectedTx.unit_number}) is in stage: ${selectedTx.current_stage}.`;
-                        window.open(`https://wa.me/${selectedTx.client_phone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
-                      }}
-                      className="dc-btn gold font-bold flex items-center gap-1.5 text-xs"
-                    >
-                      <MessageSquare className="h-3.5 w-3.5" />
-                      WhatsApp Client
-                    </button>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="p-12 text-center text-zinc-400 text-xs">
-                Select a transaction from the left table to inspect details and milestone payments.
-              </div>
-            )}
+        {/* Footer Summary */}
+        <div className="px-6 py-3 bg-[#fafaf8] border-t border-[#ebebeb] flex flex-wrap items-center justify-between gap-4 text-xs font-bold text-zinc-500">
+          <span>Showing {filteredTransactions.length} of {transactions.length} commercial transactions</span>
+          <div className="flex items-center gap-4">
+            <span>Total Value: <strong className="text-zinc-900">{formatCurrency(totalPipelineValue)}</strong></span>
+            <span>Tokens Collected: <strong className="text-emerald-700">{formatCurrency(totalTokensCollected)}</strong></span>
           </div>
         </div>
       </div>
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          LOWER SECTION: 2 CARDS BESIDE EACH OTHER (50% / 50% GRID)
+         ══════════════════════════════════════════════════════════════════════ */}
+      {selectedTx ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+          
+          {/* ── CARD 1 (LEFT 50%): SELECTED DEAL OVERVIEW & 11-STAGE PROGRESS ── */}
+          <div className="overflow-hidden bg-white border border-[#e8e7e4] rounded-2xl shadow-sm flex flex-col">
+            
+            {/* Card Header */}
+            <div className="px-6 py-4 bg-[#fafaf8] border-b border-[#ebebeb] flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="h-7 w-7 rounded-lg bg-[#d4ad4d]/15 border border-[#d4ad4d]/30 flex items-center justify-center text-[#99771f]">
+                  <FileText className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="text-[13px] font-extrabold text-zinc-900 tracking-tight">
+                    Deal Inspection: {selectedTx.client_name}
+                  </h3>
+                  <p className="text-[10.5px] text-zinc-400 font-medium">
+                    {selectedTx.client_phone} • {selectedTx.client_email || 'No email registered'}
+                  </p>
+                </div>
+              </div>
+
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-extrabold">
+                {selectedTx.booking_status}
+              </span>
+            </div>
+
+            {/* Card Body */}
+            <div className="p-6 space-y-5">
+              
+              {/* Granular Specs Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3.5 bg-[#fafaf8] border border-[#ebebeb] rounded-xl text-xs">
+                <div>
+                  <span className="text-[9.5px] font-bold text-zinc-400 uppercase block">Property & Unit</span>
+                  <span className="font-extrabold text-zinc-900 text-xs">{selectedTx.property_title}</span>
+                  <span className="text-[10.5px] text-zinc-500 font-medium block">Unit {selectedTx.unit_number} ({selectedTx.configuration})</span>
+                </div>
+                <div>
+                  <span className="text-[9.5px] font-bold text-zinc-400 uppercase block">Total Agreed Value</span>
+                  <span className="font-black text-[#b8922e] text-sm">{formatPriceShort(selectedTx.deal_value)}</span>
+                  <span className="text-[10px] text-zinc-400 font-medium block">{formatCurrency(selectedTx.deal_value)}</span>
+                </div>
+                <div>
+                  <span className="text-[9.5px] font-bold text-zinc-400 uppercase block">Token / EOI</span>
+                  <span className="font-black text-emerald-700 text-sm">{formatPriceShort(selectedTx.token_amount)}</span>
+                  <span className="text-[10px] text-emerald-600 font-medium block">✓ Received</span>
+                </div>
+                <div>
+                  <span className="text-[9.5px] font-bold text-zinc-400 uppercase block">Sales Agent</span>
+                  <span className="font-bold text-zinc-800">{selectedTx.sales_agent}</span>
+                </div>
+                <div>
+                  <span className="text-[9.5px] font-bold text-zinc-400 uppercase block">Channel Partner</span>
+                  <span className="font-bold text-zinc-800">{selectedTx.channel_partner}</span>
+                </div>
+                <div>
+                  <span className="text-[9.5px] font-bold text-zinc-400 uppercase block">Booking Date</span>
+                  <span className="font-bold text-zinc-800">{selectedTx.booking_date}</span>
+                </div>
+              </div>
+
+              {/* 11-Stage Interactive Pipeline Step Selector */}
+              <div className="space-y-2.5 pt-2 border-t border-[#ebebeb]">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                    Transaction Stage Progress
+                  </span>
+                  <span className="text-zinc-900 font-extrabold text-xs">
+                    Stage {getStageIndex(selectedTx.current_stage) + 1} of 11: <span className="text-[#b8922e]">{selectedTx.current_stage}</span>
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap gap-1.5">
+                  {ALL_TRANSACTION_STAGES.map((stg, i) => {
+                    const isCurrent = selectedTx.current_stage === stg;
+                    const isPassed = getStageIndex(selectedTx.current_stage) >= i;
+                    return (
+                      <button
+                        key={stg}
+                        type="button"
+                        onClick={() => handleStageChange(stg)}
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition-all cursor-pointer ${
+                          isCurrent
+                            ? 'bg-[#d4ad4d] text-white shadow-xs scale-105'
+                            : isPassed
+                            ? 'bg-zinc-200 text-zinc-800 hover:bg-zinc-300'
+                            : 'bg-white border border-[#e8e7e4] text-zinc-400 hover:text-zinc-700 hover:border-zinc-300'
+                        }`}
+                      >
+                        {i + 1}. {stg}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Notes / Remarks */}
+              {selectedTx.notes && (
+                <div className="p-3 bg-zinc-50 border border-zinc-200 rounded-xl text-xs space-y-1">
+                  <span className="text-[9.5px] font-bold text-zinc-400 uppercase block">Internal Remarks & Next Actions</span>
+                  <p className="text-zinc-700 font-medium text-[11px]">{selectedTx.notes}</p>
+                </div>
+              )}
+
+            </div>
+          </div>
+
+          {/* ── CARD 2 (RIGHT 50%): MILESTONE PAYMENT SCHEDULE & LEDGER ── */}
+          <div className="overflow-hidden bg-white border border-[#e8e7e4] rounded-2xl shadow-sm flex flex-col">
+            
+            {/* Card Header */}
+            <div className="px-6 py-4 bg-[#fafaf8] border-b border-[#ebebeb] flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="h-7 w-7 rounded-lg bg-[#d4ad4d]/15 border border-[#d4ad4d]/30 flex items-center justify-center text-[#99771f]">
+                  <CreditCard className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="text-[13px] font-extrabold text-zinc-900 tracking-tight">
+                    Milestone Payment Schedule & Ledger
+                  </h3>
+                  <p className="text-[10.5px] text-zinc-400 font-medium">Click any milestone row to toggle Paid / Pending reconciliation</p>
+                </div>
+              </div>
+
+              <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">
+                {selectedTx.payment_schedule.filter(m => m.status === 'Paid').length} of {selectedTx.payment_schedule.length} Paid
+              </span>
+            </div>
+
+            {/* Card Body */}
+            <div className="p-6 space-y-4">
+              
+              <div className="space-y-2">
+                {selectedTx.payment_schedule.map((milestone) => (
+                  <div 
+                    key={milestone.id}
+                    onClick={() => handleToggleMilestone(milestone.id)}
+                    className={`p-3.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
+                      milestone.status === 'Paid'
+                        ? 'bg-emerald-50/50 border-emerald-200 hover:bg-emerald-50'
+                        : 'bg-white border-[#e8e7e4] hover:border-zinc-400'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                        milestone.status === 'Paid' 
+                          ? 'bg-emerald-500 text-white shadow-2xs' 
+                          : 'bg-zinc-100 text-zinc-400 border border-zinc-300'
+                      }`}>
+                        {milestone.status === 'Paid' ? '✓' : '•'}
+                      </div>
+                      <div>
+                        <p className="font-extrabold text-xs text-zinc-900">{milestone.name}</p>
+                        <p className="text-[10.5px] text-zinc-400 font-medium">
+                          Due: {milestone.dueDate} {milestone.paidDate ? `• Settled: ${milestone.paidDate}` : ''}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <p className="font-black text-xs text-zinc-900">{formatPriceShort(milestone.amount)}</p>
+                      <span className={`text-[9.5px] font-black uppercase px-2 py-0.5 rounded ${
+                        milestone.status === 'Paid' 
+                          ? 'bg-emerald-100 text-emerald-800' 
+                          : 'bg-amber-100 text-amber-800'
+                      }`}>
+                        {milestone.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Actions Bar inside Card */}
+              <div className="pt-3 border-t border-[#ebebeb] flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={() => openCostSheetForDeal(selectedTx)}
+                  className="dc-btn font-semibold flex items-center gap-1.5 text-xs text-zinc-800"
+                >
+                  <Calculator className="h-3.5 w-3.5 text-[#d4ad4d]" />
+                  Recalculate Cost Sheet
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const msg = `Hi ${selectedTx.client_name}, your booking for ${selectedTx.property_title} (Unit ${selectedTx.unit_number}) is in stage: ${selectedTx.current_stage}. Milestone payments update is available.`;
+                    window.open(`https://wa.me/${selectedTx.client_phone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+                  }}
+                  className="dc-btn gold font-bold flex items-center gap-1.5 text-xs"
+                >
+                  <MessageSquare className="h-3.5 w-3.5" />
+                  WhatsApp Client
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      ) : (
+        <div className="p-12 text-center text-zinc-400 text-xs bg-white border border-[#e8e7e4] rounded-2xl">
+          Select a transaction from the table above to inspect details and milestone payments.
+        </div>
+      )}
 
       {/* ── MODAL: CREATE NEW TRANSACTION ── */}
       {isNewModalOpen && (

@@ -73,7 +73,7 @@ export default function MediaLibraryModal({
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      const data = await response.json();
+      const data = (await response.json()) as any;
       const mediaArray = Array.isArray(data.media) ? data.media : Array.isArray(data) ? data : [];
       setMedia(mediaArray);
       setDirectories(data.directories || []);
@@ -141,7 +141,7 @@ export default function MediaLibraryModal({
         credentials: 'same-origin',
       });
       
-      const result = await response.json();
+      const result = (await response.json()) as any;
       
       if (response.ok) {
         fetchMedia(); // Refresh to show files in current directory

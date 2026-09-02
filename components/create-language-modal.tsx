@@ -37,7 +37,7 @@ export function CreateLanguageModal({ open, onOpenChange, onSuccess }: CreateLan
                 body: JSON.stringify(formData)
             });
 
-            const data = await response.json();
+            const data = (await response.json()) as any;
 
             if (response.ok) {
                 toast.success(t('Language created successfully'));
@@ -47,7 +47,7 @@ export function CreateLanguageModal({ open, onOpenChange, onSuccess }: CreateLan
                 // Reload page to update language list
                 window.location.reload();
             } else {
-                toast.error(data.error || t('Failed to create language'));
+                toast.error(data?.error || t('Failed to create language'));
             }
         } catch (error) {
             toast.error(t('Failed to create language'));
