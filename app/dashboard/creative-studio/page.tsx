@@ -141,8 +141,7 @@ export default function CreativeStudioPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           propertyId: selectedProperty.id,
-          platform: selectedPlatform,
-          propertyData: selectedProperty
+          platform: selectedPlatform
         })
       });
 

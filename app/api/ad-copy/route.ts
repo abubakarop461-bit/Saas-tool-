@@ -22,20 +22,22 @@ const PLATFORM_STYLES: Record<string, string> = {
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
-    const { propertyId, platform = 'facebook', propertyData } = body;
+    const { propertyId, platform = 'facebook' } = body;
 
-    if (!propertyId) {
-      return NextResponse.json({ error: 'Property ID is required' }, { status: 400 });
+    if (!propertyId || typeof propertyId !== 'string') {
+      return NextResponse.json({ error: 'Valid Property ID is required' }, { status: 400 });
     }
 
-    const normalizedPlatform = (platform as string).toLowerCase();
+    const normalizedPlatform = typeof platform === 'string' ? platform.toLowerCase() : 'facebook';
     const platformStyle = PLATFORM_STYLES[normalizedPlatform] || PLATFORM_STYLES.facebook;
 
-    // Fetch property data: payload > D1 > fallback SEED
-    let prop: Property | null = propertyData || null;
+    // Fetch authoritative property record from D1 or server-side seed data only
+    let prop: Property | null = null;
 
-    if (!prop && process.env.DB) {
+    try {
       prop = await getD1Record<Property>('properties', propertyId);
+    } catch {
+      // D1 query fallback
     }
 
     if (!prop) {
@@ -43,7 +45,7 @@ export async function POST(req: Request) {
     }
 
     if (!prop) {
-      return NextResponse.json({ error: 'Property not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Property not found in server database' }, { status: 404 });
     }
 
     // Extract non-empty facts only
