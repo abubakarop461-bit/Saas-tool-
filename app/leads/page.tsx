@@ -597,7 +597,7 @@ export default function LeadsPage() {
           ? `${formatBudgetAbbreviated(l.budget_min)} - ${formatBudgetAbbreviated(l.budget_max)}`
           : formatBudgetAbbreviated(l.budget_max))
       : 'Flexible';
-    return `LUXE REALTY PUNE - LEAD DETAILS
+    return `REALTYOS - LEAD DETAILS
 
 Name: ${l.client_name}
 Phone: ${l.phone || 'N/A'}
@@ -666,7 +666,7 @@ Notes: ${l.notes || 'None'}`;
     // No repeated-character divider here -- a fixed-width line (e.g. 40 dashes) wraps
     // across 2-3 visual lines in WhatsApp's narrow message bubble instead of staying on
     // one, which is what showed up as extra blank-looking lines under the header.
-    const headerText = `LUXE REALTY PUNE - SHARED LEADS SUMMARY (${selectedLeads.length} Lead${selectedLeads.length > 1 ? 's' : ''})\n\n`;
+    const headerText = `REALTYOS - SHARED LEADS SUMMARY (${selectedLeads.length} Lead${selectedLeads.length > 1 ? 's' : ''})\n\n`;
     const fullText = headerText + leadsSummary;
 
     if (type === 'copy') {
@@ -761,7 +761,7 @@ Notes: ${l.notes || 'None'}`;
                 {sortedLeads.length}
               </span>
             </div>
-            <p className="text-[11px] text-zinc-400 font-medium mt-0.5">All client enquiries · Luxe Realty Pune</p>
+            <p className="text-[11px] text-zinc-400 font-medium mt-0.5">All client enquiries · RealtyOS</p>
           </div>
           {/* Header actions: Export + New Lead */}
           <div className="flex items-center gap-2 shrink-0">

@@ -186,7 +186,7 @@ export function OnboardingGatewayModal({ forceOpen = false, onClose }: Onboardin
             <div className="flex items-center gap-2">
               <span className="h-6 px-2.5 rounded-full bg-[#d4ad4d]/15 text-[#99771f] border border-[#d4ad4d]/30 text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
                 <Sparkles className="h-3 w-3" />
-                Outgrow Gateway Intake
+                RealtyOS Gateway Intake
               </span>
               <span className="hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-bold">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -199,7 +199,7 @@ export function OnboardingGatewayModal({ forceOpen = false, onClose }: Onboardin
           </div>
 
           <h2 className="text-lg font-extrabold text-zinc-900 tracking-tight mt-2">
-            {step === 1 ? 'Welcome to Outgrow — Tell Us About You' : 
+            {step === 1 ? 'Welcome to RealtyOS — Tell Us About You' : 
              step === 2 ? `Personalize Your ${personaType} Experience` : 
              'Access Unlocked!'}
           </h2>
@@ -302,7 +302,7 @@ export function OnboardingGatewayModal({ forceOpen = false, onClose }: Onboardin
               {/* Persona Selection Cards */}
               <div className="space-y-2 pt-2">
                 <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500 block">
-                  I am using Outgrow Suite as a: <span className="text-rose-500">*</span>
+                  I am using RealtyOS Suite as a: <span className="text-rose-500">*</span>
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {[
@@ -794,7 +794,7 @@ export function OnboardingGatewayModal({ forceOpen = false, onClose }: Onboardin
               </div>
               <div className="space-y-1">
                 <h3 className="text-base font-extrabold text-zinc-900">
-                  Welcome to Outgrow, {fullName}!
+                  Welcome to RealtyOS, {fullName}!
                 </h3>
                 <p className="text-xs text-zinc-500 max-w-sm">
                   Your customized {personaType} profile has been saved to the Cloudflare D1 Database. Dashboard access is now unlocked.

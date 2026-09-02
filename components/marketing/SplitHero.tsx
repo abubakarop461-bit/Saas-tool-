@@ -46,9 +46,9 @@ export function SplitHero() {
               Trusted by leading developers
             </p>
             <div className="flex flex-wrap gap-x-8 gap-y-4 items-center opacity-65">
-              <span className="text-md font-bold text-quaternary">Outgrow Realty</span>
-              <span className="text-md font-bold text-quaternary">Intelligence Studios</span>
-              <span className="text-md font-bold text-quaternary">Luxe Realty Pune</span>
+              <span className="text-md font-bold text-quaternary">RealtyOS Enterprise</span>
+              <span className="text-md font-bold text-quaternary">Outgrow Intelligence</span>
+              <span className="text-md font-bold text-quaternary">Prestige Developers</span>
             </div>
           </div>
 

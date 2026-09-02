@@ -78,7 +78,7 @@ export function CostSheetModal({
   };
 
   const handleWhatsAppShare = () => {
-    const text = `LUXE REALTY PUNE - OFFICIAL COST SHEET ESTIMATE
+    const text = `REALTYOS - OFFICIAL COST SHEET ESTIMATE
 
 Project: ${unit.project_title}
 Unit: ${unit.unit_number} (Tower ${unit.tower}, Floor ${unit.floor})
@@ -100,7 +100,7 @@ Agreement Value: ₹${(agreementValue / 10000000).toFixed(2)} Cr
 TOTAL ALL-INCLUSIVE: ₹${(totalAllInclusive / 10000000).toFixed(2)} Cr
 (₹${totalAllInclusive.toLocaleString('en-IN')})
 
-Generated via Luxe Realty ERP`;
+Generated via RealtyOS ERP`;
 
     const url = clientPhone 
       ? `https://wa.me/${clientPhone.replace(/\D/g, '')}?text=${encodeURIComponent(text)}`

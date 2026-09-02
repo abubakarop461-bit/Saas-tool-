@@ -793,7 +793,7 @@ export function Header({ onToggleMenu }: { onToggleMenu?: () => void }) {
             {/* Footer Shortcut Bar */}
             <div className="p-2.5 border-t border-zinc-800 bg-zinc-950 text-center text-[10px] font-bold text-zinc-500 flex items-center justify-between px-4">
               <span>Press <kbd className="bg-zinc-850 border border-zinc-750 px-1.5 py-0.5 rounded text-zinc-300">ESC</kbd> to exit</span>
-              <span>Universal Luxe ERP Indexer</span>
+              <span>Universal RealtyOS Indexer</span>
             </div>
 
           </div>

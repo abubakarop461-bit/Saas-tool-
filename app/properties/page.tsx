@@ -235,7 +235,7 @@ export default function PropertyInventoryPage() {
     if (items.length === 0) return;
     // No repeated-character divider -- a fixed-width line wraps across multiple visual
     // lines in WhatsApp's narrow message bubble instead of staying on one.
-    const header = items.length > 1 ? `LUXE REALTY PUNE - ${items.length} PROPERTIES\n\n` : `LUXE REALTY PUNE\n\n`;
+    const header = items.length > 1 ? `REALTYOS - ${items.length} PROPERTIES\n\n` : `REALTYOS\n\n`;
     const text = header + items.map((p, i) => items.length > 1 ? `${i + 1}. ${getPropertyText(p)}` : getPropertyText(p)).join('\n\n---\n\n');
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
@@ -245,7 +245,7 @@ export default function PropertyInventoryPage() {
     if (items.length === 0) return;
     const subject = items.length === 1 
       ? `Property: ${items[0].title} (${items[0].property_code})`
-      : `${items.length} Property Listings from Luxe Realty`;
+      : `${items.length} Property Listings from RealtyOS`;
     const body = items.map(p => getPropertyText(p).replace(/\*/g, '')).join('\n\n---\n\n');
     window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
   };
@@ -369,7 +369,7 @@ export default function PropertyInventoryPage() {
                 {filteredProperties.length}
               </span>
             </div>
-            <p className="text-[11px] text-zinc-400 font-medium mt-0.5">Real-time inventory database · Luxe Realty Pune</p>
+            <p className="text-[11px] text-zinc-400 font-medium mt-0.5">Real-time inventory database · RealtyOS</p>
           </div>
           {/* Header actions: Share selection + New Property */}
           <div className="flex items-center gap-2 shrink-0">

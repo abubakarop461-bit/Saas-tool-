@@ -145,7 +145,7 @@ export default function LeadDetailPage() {
           ? `${formatBudgetAbbreviated(l.budget_min)} - ${formatBudgetAbbreviated(l.budget_max)}`
           : formatBudgetAbbreviated(l.budget_max))
       : 'Flexible';
-    return `📋 *LUXE REALTY LEAD DETAILS*
+    return `📋 *REALTYOS LEAD DETAILS*
 👤 *Client Name:* ${l.client_name}
 📞 *Phone:* ${l.phone || 'N/A'}
 ✉️ *Email:* ${l.email || 'N/A'}

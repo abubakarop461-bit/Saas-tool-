@@ -96,7 +96,7 @@ export default function SettingsPage() {
   const [email, setEmail] = useState(profile?.email || 'rahul@luxerealty.in');
   const [phone, setPhone] = useState('+91 98200 12345');
   const [role, setRole] = useState(profile?.role || 'Senior Agent');
-  const [agency, setAgency] = useState('Luxe Realty India');
+  const [agency, setAgency] = useState('RealtyOS');
   const [bio, setBio] = useState('Luxury real estate specialist with 8+ years of experience in high-value residential and commercial properties across Pune.');
   const [profileSaved, setProfileSaved] = useState(false);
 
@@ -420,11 +420,11 @@ export default function SettingsPage() {
                 System Settings & Administration
               </h1>
               <span className="px-2 py-0.5 rounded text-[9.5px] font-extrabold bg-[#f4ebd0] text-[#967420] border border-[#e8d5a3] uppercase tracking-wider">
-                Luxe ERP
+                RealtyOS
               </span>
             </div>
             <p className="text-[11px] text-zinc-400 font-medium mt-0.5">
-              Manage personal identity, team roles, module permissions & platform security · Luxe Realty Pune
+              Manage personal identity, team roles, module permissions & platform security · RealtyOS
             </p>
           </div>
 

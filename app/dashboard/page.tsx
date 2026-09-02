@@ -264,12 +264,12 @@ export default function DashboardPage() {
       second: '2-digit'
     });
     const userName = profile?.full_name || 'Rahul Sharma';
-    const watermarkText = `CONFIDENTIAL REPORT · Downloaded by ${userName} · ${timestamp} · Luxe Realty Pune ERP`;
+    const watermarkText = `CONFIDENTIAL REPORT · Downloaded by ${userName} · ${timestamp} · RealtyOS ERP`;
 
     const printContent = `
       <html>
         <head>
-          <title>Executive Operations Summary Report — Luxe Realty ERP</title>
+          <title>Executive Operations Summary Report — RealtyOS ERP</title>
           <style>
             body { font-family: system-ui, -apple-system, sans-serif; padding: 40px; color: #111; position: relative; }
             .watermark { position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); font-size: 20px; font-weight: 900; color: rgba(212, 173, 77, 0.18); text-transform: uppercase; text-align: center; pointer-events: none; width: 100%; letter-spacing: 2px; }
@@ -290,11 +290,11 @@ export default function DashboardPage() {
           <div class="watermark">${watermarkText}</div>
           <div class="header">
             <div>
-              <div class="title">LUXE REALTY PUNE — EXECUTIVE OPERATIONS REPORT</div>
+              <div class="title">REALTYOS — EXECUTIVE OPERATIONS REPORT</div>
               <div class="meta">Period Scope: ${dateRange.toUpperCase()} · Generated on ${timestamp}</div>
             </div>
             <div style="text-align:right;">
-              <div style="font-weight:800; font-size:12px;">Luxe Realty ERP System</div>
+              <div style="font-weight:800; font-size:12px;">RealtyOS ERP System</div>
               <div style="font-size:10px; color:#d4ad4d; font-weight:700;">Downloaded by: ${userName}</div>
             </div>
           </div>
@@ -345,7 +345,7 @@ export default function DashboardPage() {
           </table>
 
           <div class="footer">
-            <div>Official Executive Record · Luxe Realty Pune</div>
+            <div>Official Executive Record · RealtyOS</div>
             <div>${watermarkText}</div>
           </div>
 
@@ -377,7 +377,7 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between w-full md:w-auto">
           <div>
             <h1 className="text-[17px] font-extrabold text-zinc-900 tracking-tight" style={{ letterSpacing: '-0.3px' }}>Dashboard Overview</h1>
-            <p className="text-[10px] text-zinc-400 font-medium">Luxe Realty Pune CRM metrics</p>
+            <p className="text-[10px] text-zinc-400 font-medium">RealtyOS CRM metrics</p>
           </div>
           <button
             type="button"

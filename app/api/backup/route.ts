@@ -73,7 +73,7 @@ export async function GET(req: Request) {
 
     // Full system backup across all tables
     const backup: Record<string, any> = {
-      system: 'Luxe Realty Pune ERP',
+      system: 'RealtyOS ERP',
       version: '1.0.0',
       exported_at: new Date().toISOString(),
       counts: {},

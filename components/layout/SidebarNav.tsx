@@ -54,7 +54,7 @@ export function SidebarNav({ onClose, className = '' }: { onClose?: () => void; 
           <Link href="/dashboard" className="block group">
             <img 
               src="/oglogo.png" 
-              alt="Outgrow Logo" 
+              alt="RealtyOS Logo" 
               className="h-12 w-auto object-contain transition-transform group-hover:scale-105" 
             />
           </Link>

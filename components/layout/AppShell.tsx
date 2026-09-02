@@ -37,7 +37,7 @@ function AuthGate({ children }: { children: ReactNode }) {
 
           <div className="space-y-1">
             <h2 className="text-[11px] font-black text-zinc-900 uppercase tracking-[0.25em]" style={{ letterSpacing: '0.25em' }}>
-              Outgrow
+              RealtyOS
             </h2>
             <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest animate-pulse">
               Authenticating Session
