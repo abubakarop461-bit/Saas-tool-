@@ -32,6 +32,11 @@ import {
   Layers,
   Search
 } from 'lucide-react';
+import { 
+  computeAdPerformanceMetrics, 
+  SourceMetrics, 
+  ComputedAttributionResult 
+} from '@/lib/attributionEngine';
 
 // Helper to normalize strings for conservative exact matching
 function normalizeName(name?: string | null): string {
@@ -60,21 +65,6 @@ function categorizeSource(source: string): 'Paid Digital' | 'Portals' | 'Channel
   return 'Other';
 }
 
-interface SourceMetrics {
-  source: string;
-  category: 'Paid Digital' | 'Portals' | 'Channel Partners' | 'Organic / Direct' | 'Other';
-  spend: number;
-  leadsCount: number;
-  qualifiedCount: number;
-  visitsCount: number;
-  dealsCount: number;
-  revenue: number;
-  cpl: number | null;
-  cac: number | null;
-  roas: number | null;
-  roi: number | null;
-}
-
 export default function AdPerformancePage() {
   const profile = useProfile();
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -82,267 +72,102 @@ export default function AdPerformancePage() {
   const [siteVisits, setSiteVisits] = useState<SiteVisit[]>([]);
   const [transactions, setTransactions] = useState<DealTransaction[]>([]);
   const [adSpendMap, setAdSpendMap] = useState<Record<string, number>>({});
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
 
-  // Filters
+  // Filter States
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedPropertyId, setSelectedPropertyId] = useState<string>('All');
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('table');
 
-  // Editable spend values state
+  // Inline table spend editing state
   const [editingSpend, setEditingSpend] = useState<Record<string, string>>({});
   const [savingSource, setSavingSource] = useState<string | null>(null);
 
-  // Load all required dataset
+  // Modal State for Spend Management
+  const [isSpendModalOpen, setIsSpendModalOpen] = useState(false);
+  const [editingSource, setEditingSource] = useState<string | null>(null);
+  const [spendInputValue, setSpendInputValue] = useState<string>('');
+  const [isSavingSpend, setIsSavingSpend] = useState(false);
+
+  // Load all foundational data sources
   useEffect(() => {
     async function loadData() {
-      setLoading(true);
       try {
-        const [loadedLeads, loadedProps, loadedVisits, loadedTx, spendMap] = await Promise.all([
+        const [l, p, sv, tx, spend] = await Promise.all([
           fetchLeads(profile),
           fetchProperties(profile),
           fetchSiteVisits(profile),
           fetchTransactions(),
           fetchAdSpendMap(profile?.company_name || 'default_company')
         ]);
+        setLeads(l || []);
+        setProperties(p || []);
+        setSiteVisits(sv || []);
+        setTransactions(tx || []);
+        setAdSpendMap(spend || {});
 
-        setLeads(loadedLeads || []);
-        setProperties(loadedProps || []);
-        setSiteVisits(loadedVisits || []);
-        setTransactions(loadedTx || []);
-        setAdSpendMap(spendMap || {});
-
-        // Init editing state
         const initialEdit: Record<string, string> = {};
-        Object.entries(spendMap || {}).forEach(([src, val]) => {
+        Object.entries(spend || {}).forEach(([src, val]) => {
           initialEdit[src] = String(val);
         });
         setEditingSpend(initialEdit);
       } catch (err) {
-        console.error('Failed to load Ad Performance data:', err);
-        toast.error('Failed to load performance metrics');
+        console.error('Failed to load ad performance data:', err);
+        toast.error('Failed to load marketing analytics');
       } finally {
         setLoading(false);
       }
     }
-
     loadData();
   }, [profile]);
 
-  // Handle single spend save
-  const handleSaveSpend = async (source: string) => {
-    const rawVal = editingSpend[source] || '0';
-    const numVal = Math.max(0, parseFloat(rawVal) || 0);
+  const handleOpenSpendModal = (source: string) => {
+    setEditingSource(source);
+    setSpendInputValue(adSpendMap[source]?.toString() || '0');
+    setIsSpendModalOpen(true);
+  };
 
-    setSavingSource(source);
+  const handleSaveSpend = async (sourceArg?: string) => {
+    const src = sourceArg || editingSource;
+    if (!src) return;
+
+    const rawVal = sourceArg ? (editingSpend[src] ?? String(adSpendMap[src] || 0)) : spendInputValue;
+    const amount = parseFloat(rawVal);
+    if (isNaN(amount) || amount < 0) {
+      toast.error('Please enter a valid non-negative number');
+      return;
+    }
+
+    if (sourceArg) setSavingSource(src);
+    else setIsSavingSpend(true);
+
     try {
-      const res = await saveAdSpendRecord(source, numVal, profile?.company_name || 'default_company');
-      setAdSpendMap(prev => ({ ...prev, [source]: numVal }));
-      if (res.mode === 'd1') {
-        toast.success(`Spend updated in Cloudflare D1 for ${source}`);
-      } else {
-        toast.info(`Spend updated locally for ${source}`);
-      }
+      const res = await saveAdSpendRecord(src, amount, profile?.company_name || 'default_company');
+      setAdSpendMap(prev => ({ ...prev, [src]: amount }));
+      setEditingSpend(prev => ({ ...prev, [src]: String(amount) }));
+      if (isSpendModalOpen) setIsSpendModalOpen(false);
+      toast.success(`Ad spend updated for ${src} (${res.mode === 'd1' ? 'Cloudflare D1' : 'Local'})`);
     } catch {
-      toast.error(`Failed to update spend for ${source}`);
+      toast.error('Failed to persist ad spend');
     } finally {
-      setSavingSource(null);
+      if (sourceArg) setSavingSource(null);
+      else setIsSavingSpend(false);
     }
   };
 
   // ─────────────────────────────────────────────────────────────
-  // DATA ATTRIBUTION COMPUTATION
+  // DATA ATTRIBUTION COMPUTATION (Pure Domain Engine Call)
   // ─────────────────────────────────────────────────────────────
   const computedMetrics = useMemo(() => {
-    const targetProperty = selectedPropertyId === 'All'
-      ? null
-      : properties.find(p => p.id === selectedPropertyId) || null;
-
-    // Helper: match lead to selected target property
-    const leadMatchesProperty = (l: Lead): boolean => {
-      if (!targetProperty) return true;
-
-      // 1. Explicit SiteVisit match
-      const hasDirectVisit = siteVisits.some(sv => sv.lead_id === l.id && sv.property_id === targetProperty.id);
-      if (hasDirectVisit) return true;
-
-      // 2. Notes match on property title or property code keywords
-      const notesLower = (l.notes || '').toLowerCase();
-      const titleLower = targetProperty.title.toLowerCase();
-      const codeLower = (targetProperty.property_code || '').toLowerCase();
-      
-      const titleKeywords = titleLower
-        .split(' ')
-        .filter(w => w.length > 3 && !['tower', 'towers', 'grand', 'residences', 'west', 'wing', 'skyline', 'duplex'].includes(w));
-      const matchesKeywords = titleKeywords.length > 0 && titleKeywords.every(kw => notesLower.includes(kw));
-
-      if (notesLower.includes(titleLower) || (codeLower && notesLower.includes(codeLower)) || matchesKeywords) {
-        return true;
-      }
-
-      // 3. Location & Property Type / Configuration match
-      const locMatches = Boolean(l.preferred_location && l.preferred_location.toLowerCase() === targetProperty.location.toLowerCase());
-      const typeMatches = Boolean(l.property_type && l.property_type.toLowerCase() === targetProperty.property_type.toLowerCase());
-      const configMatches = Boolean(l.configuration && l.configuration.toLowerCase() === targetProperty.configuration.toLowerCase());
-
-      return Boolean(locMatches && (typeMatches || configMatches));
-    };
-
-    // Filter leads by selected property
-    const filteredLeads = selectedPropertyId === 'All'
-      ? leads
-      : leads.filter(leadMatchesProperty);
-
-    const filteredLeadIds = new Set(filteredLeads.map(l => l.id));
-
-    // Filter site visits by selected property
-    const filteredVisits = selectedPropertyId === 'All'
-      ? siteVisits
-      : siteVisits.filter(sv => 
-          sv.property_id === selectedPropertyId || (sv.lead_id && filteredLeadIds.has(sv.lead_id))
-        );
-
-    // Detect unique lead sources for the active filter
-    const sourceSet = new Set<string>();
-    filteredLeads.forEach(l => {
-      if (l.lead_source_id && l.lead_source_id.trim()) {
-        sourceSet.add(l.lead_source_id.trim());
-      }
-    });
-
-    if (selectedPropertyId === 'All') {
-      Object.keys(adSpendMap).forEach(s => sourceSet.add(s));
-    }
-
-    const sourceList = Array.from(sourceSet);
-
-    // Map lead ID -> Lead object for fast lookup
-    const leadMap = new Map<string, Lead>();
-    filteredLeads.forEach(l => leadMap.set(l.id, l));
-
-    // Group site visits by lead's source
-    const visitCountBySource: Record<string, number> = {};
-    filteredVisits.forEach(sv => {
-      if (sv.lead_id) {
-        const lead = leadMap.get(sv.lead_id) || leads.find(l => l.id === sv.lead_id);
-        if (lead && lead.lead_source_id) {
-          const src = lead.lead_source_id.trim();
-          if (selectedPropertyId === 'All' || sourceSet.has(src)) {
-            visitCountBySource[src] = (visitCountBySource[src] || 0) + 1;
-          }
-        }
-      }
-    });
-
-    // Helper: match transaction to selected target property
-    const txMatchesProperty = (tx: DealTransaction): boolean => {
-      if (!targetProperty) return true;
-      const txTitleLower = (tx.property_title || '').toLowerCase();
-      const targetTitleLower = targetProperty.title.toLowerCase();
-      
-      const titleKeywords = targetTitleLower
-        .split(' ')
-        .filter(w => w.length > 3 && !['tower', 'towers', 'grand', 'residences', 'west', 'wing', 'skyline', 'duplex'].includes(w));
-      const matchesKeywords = titleKeywords.length > 0 && titleKeywords.every(kw => txTitleLower.includes(kw));
-
-      if (txTitleLower.includes(targetTitleLower) || matchesKeywords) return true;
-
-      // Or matches a client lead for this property
-      const normClient = normalizeName(tx.client_name);
-      return filteredLeads.some(l => normalizeName(l.client_name) === normClient);
-    };
-
-    // Filter transactions by selected property
-    const filteredTxs = selectedPropertyId === 'All'
-      ? transactions
-      : transactions.filter(txMatchesProperty);
-
-    // Match Transactions conservatively to Leads by exact normalized client name
-    const txBySource: Record<string, { count: number; revenue: number }> = {};
-    let totalUnattributedRevenue = 0;
-    let totalUnattributedDeals = 0;
-
-    // Filter closed/completed transactions
-    const completedTxs = filteredTxs.filter(t => 
-      t.booking_status === 'Completed' || 
-      ['Possession', 'Booking', 'Agreement'].includes(t.current_stage)
+    return computeAdPerformanceMetrics(
+      leads,
+      properties,
+      siteVisits,
+      transactions,
+      adSpendMap,
+      selectedPropertyId
     );
-
-    completedTxs.forEach(tx => {
-      const normTxClient = normalizeName(tx.client_name);
-      
-      // Find matching leads in filteredLeads
-      const matchedLeads = filteredLeads.filter(l => normalizeName(l.client_name) === normTxClient);
-
-      if (matchedLeads.length === 1 && matchedLeads[0].lead_source_id) {
-        // Unambiguous 1-to-1 match
-        const src = matchedLeads[0].lead_source_id.trim();
-        if (!txBySource[src]) txBySource[src] = { count: 0, revenue: 0 };
-        txBySource[src].count += 1;
-        txBySource[src].revenue += Number(tx.deal_value) || 0;
-      } else {
-        // Ambiguous or zero match -> Source Not Identified
-        totalUnattributedDeals += 1;
-        totalUnattributedRevenue += Number(tx.deal_value) || 0;
-      }
-    });
-
-    // Build metrics list for each source
-    const rows: SourceMetrics[] = sourceList.map(source => {
-      const category = categorizeSource(source);
-
-      // Property spend allocation
-      let spend = adSpendMap[source] ?? 0;
-      if (selectedPropertyId !== 'All') {
-        const totalLeadsForSource = leads.filter(l => l.lead_source_id === source).length;
-        const propertyLeadsForSource = filteredLeads.filter(l => l.lead_source_id === source).length;
-        if (totalLeadsForSource > 0) {
-          spend = (spend * propertyLeadsForSource) / totalLeadsForSource;
-        } else if (propertyLeadsForSource === 0) {
-          spend = 0;
-        }
-      }
-
-      const sourceLeads = filteredLeads.filter(l => l.lead_source_id === source);
-      const leadsCount = sourceLeads.length;
-
-      // Qualified leads: status Hot OR stage not 'New inquiry'
-      const qualifiedCount = sourceLeads.filter(l => 
-        l.status === 'Hot' || (l.stage_id && l.stage_id !== 'New inquiry')
-      ).length;
-
-      const visitsCount = visitCountBySource[source] || 0;
-      const txData = txBySource[source] || { count: 0, revenue: 0 };
-      const dealsCount = txData.count;
-      const revenue = txData.revenue;
-
-      // Financial calculations with zero denominator handling
-      const cpl = leadsCount > 0 ? spend / leadsCount : null;
-      const cac = dealsCount > 0 ? spend / dealsCount : null;
-      const roas = spend > 0 ? revenue / spend : null;
-      const roi = spend > 0 ? ((revenue - spend) / spend) * 100 : null;
-
-      return {
-        source,
-        category,
-        spend,
-        leadsCount,
-        qualifiedCount,
-        visitsCount,
-        dealsCount,
-        revenue,
-        cpl,
-        cac,
-        roas,
-        roi
-      };
-    });
-
-    return {
-      rows,
-      totalUnattributedRevenue,
-      totalUnattributedDeals
-    };
   }, [leads, properties, siteVisits, transactions, adSpendMap, selectedPropertyId]);
 
   // Filter rows by Category & Search Query

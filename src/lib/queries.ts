@@ -955,91 +955,30 @@ export const SEED_PROPERTIES: Property[] = [
   }
 ];
 
+import { loadEntity, saveEntity, saveEntityBatch, deleteEntity } from '@/lib/dataStore';
+
 export async function fetchLeads(profile: Profile | null): Promise<Lead[]> {
-  let dbLeads: Lead[] = [];
-  try {
-    const { data, error } = await supabase
-      .from('leads')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(200);
-    if (!error && data && Array.isArray(data) && data.length > 0) {
-      dbLeads = data as Lead[];
-    }
-  } catch {
-    // fallback
-  }
+  return loadEntity<Lead>('leads', SEED_LEADS);
+}
 
-  const existingIds = new Set(dbLeads.map((l: any) => l.id));
-  const missingSeeds = SEED_LEADS.filter(s => !existingIds.has(s.id));
-  let combined = [...dbLeads, ...missingSeeds];
+export async function saveLeadRecord(lead: Lead): Promise<void> {
+  await saveEntity('leads', lead);
+}
 
-  if (typeof window !== 'undefined') {
-    const local = localStorage.getItem('luxe-leads-store');
-    if (local) {
-      try {
-        const parsed = JSON.parse(local);
-        if (Array.isArray(parsed)) {
-          const currentIds = new Set(combined.map((l: any) => l.id));
-          const localMissing = parsed.filter((p: any) => !currentIds.has(p.id));
-          combined = [...combined, ...localMissing];
-        }
-      } catch (e) {
-        // ignore
-      }
-    }
-    localStorage.setItem('luxe-leads-store', JSON.stringify(combined));
-  }
-
-  return combined;
+export async function saveLeadsBatch(leads: Lead[]): Promise<void> {
+  await saveEntityBatch('leads', leads);
 }
 
 export async function fetchProperties(profile: Profile | null): Promise<Property[]> {
-  let dbProperties: Property[] = [];
-  try {
-    const { data, error } = await supabase
-      .from('properties')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(200);
-    if (!error && data && Array.isArray(data) && data.length > 0) {
-      dbProperties = data as Property[];
-    }
-  } catch {
-    // fallback
-  }
+  return loadEntity<Property>('properties', SEED_PROPERTIES);
+}
 
-  // Ensure all 12 landmark properties from SEED_PROPERTIES are always present
-  const existingIds = new Set(dbProperties.map((p: any) => p.id));
-  const existingCodes = new Set(dbProperties.map((p: any) => p.property_code));
-  const existingTitles = new Set(dbProperties.map((p: any) => (p.title || '').trim().toLowerCase()));
+export async function savePropertyRecord(property: Property): Promise<void> {
+  await saveEntity('properties', property);
+}
 
-  const missingSeeds = SEED_PROPERTIES.filter(s => 
-    !existingIds.has(s.id) && 
-    !existingCodes.has(s.property_code) &&
-    !existingTitles.has(s.title.trim().toLowerCase())
-  );
-
-  let combined = [...dbProperties, ...missingSeeds];
-
-  if (typeof window !== 'undefined') {
-    const local = localStorage.getItem('luxe-properties-store');
-    if (local) {
-      try {
-        const parsed = JSON.parse(local);
-        if (Array.isArray(parsed)) {
-          const currentIds = new Set(combined.map((p: any) => p.id));
-          const localMissing = parsed.filter((p: any) => !currentIds.has(p.id));
-          combined = [...combined, ...localMissing];
-        }
-      } catch (e) {
-        // ignore
-      }
-    }
-    localStorage.setItem('luxe-properties-store', JSON.stringify(combined));
-  }
-
-  return combined;
+export async function savePropertiesBatch(properties: Property[]): Promise<void> {
+  await saveEntityBatch('properties', properties);
 }
 
 export async function fetchSalesPeople(): Promise<SalesPersonProfile[]> {

@@ -769,31 +769,16 @@ export const SEED_DEVELOPER_UNITS: DeveloperUnit[] = [
   }
 ];
 
+import { loadEntity, saveEntityBatch, saveEntity } from '@/lib/dataStore';
+
 export async function fetchDeveloperUnits(): Promise<DeveloperUnit[]> {
-  if (typeof window !== 'undefined') {
-    const local = localStorage.getItem('luxe-inventory-units-store');
-    if (local) {
-      try {
-        const parsed = JSON.parse(local);
-        if (Array.isArray(parsed)) {
-          const existingIds = new Set(parsed.map((p: any) => p.id));
-          const missing = SEED_DEVELOPER_UNITS.filter(u => !existingIds.has(u.id));
-          if (missing.length > 0) {
-            const merged = [...parsed, ...missing];
-            localStorage.setItem('luxe-inventory-units-store', JSON.stringify(merged));
-            return merged;
-          }
-          return parsed;
-        }
-      } catch (e) {}
-    }
-    localStorage.setItem('luxe-inventory-units-store', JSON.stringify(SEED_DEVELOPER_UNITS));
-  }
-  return SEED_DEVELOPER_UNITS;
+  return loadEntity<DeveloperUnit>('inventory', SEED_DEVELOPER_UNITS);
 }
 
 export async function saveDeveloperUnits(units: DeveloperUnit[]): Promise<void> {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('luxe-inventory-units-store', JSON.stringify(units));
-  }
+  await saveEntityBatch('inventory', units);
+}
+
+export async function saveDeveloperUnit(unit: DeveloperUnit): Promise<void> {
+  await saveEntity('inventory', unit);
 }

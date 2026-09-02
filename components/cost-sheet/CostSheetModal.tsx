@@ -285,6 +285,43 @@ Generated via Luxe Realty ERP`;
                 {formatCurrency(totalAllInclusive)}
               </span>
             </div>
+
+            {/* MahaRERA Construction Payment Milestone Schedule */}
+            <div className="pt-2 space-y-2">
+              <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                MahaRERA Construction Payment Milestones
+              </h4>
+              <div className="border border-[#e8e7e4] rounded-xl overflow-hidden bg-white">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-[#fafaf8] border-b border-[#ebebeb] text-[9.5px] font-bold uppercase text-zinc-400">
+                    <tr>
+                      <th className="py-2 px-3">Stage / Milestone</th>
+                      <th className="py-2 px-3 text-center">% Share</th>
+                      <th className="py-2 px-3 text-right">Amount (₹)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#f5f5f3] text-[11px]">
+                    {[
+                      { name: 'Token Advance', pct: 10 },
+                      { name: 'Agreement Registration', pct: 10 },
+                      { name: 'Plinth Foundation', pct: 15 },
+                      { name: 'Slabs (Mid-Construction)', pct: 25 },
+                      { name: 'Brickwork & MEP', pct: 15 },
+                      { name: 'Flooring & Finishing', pct: 10 },
+                      { name: 'Possession & Handover', pct: 15 },
+                    ].map((m, idx) => (
+                      <tr key={idx} className="hover:bg-zinc-50/50">
+                        <td className="py-1.5 px-3 font-semibold text-zinc-800">{m.name}</td>
+                        <td className="py-1.5 px-3 text-center font-bold text-zinc-500">{m.pct}%</td>
+                        <td className="py-1.5 px-3 text-right font-extrabold text-zinc-900">
+                          {formatPriceShort(Math.round((agreementValue * m.pct) / 100))}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
 

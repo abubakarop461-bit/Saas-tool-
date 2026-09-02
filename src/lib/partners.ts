@@ -173,42 +173,28 @@ export const SEED_COMMISSIONS: CommissionEntry[] = [
   }
 ];
 
+import { loadEntity, saveEntityBatch, saveEntity } from '@/lib/dataStore';
+
 export async function fetchChannelPartners(): Promise<ChannelPartner[]> {
-  if (typeof window !== 'undefined') {
-    const local = localStorage.getItem('luxe-channel-partners-store');
-    if (local) {
-      try {
-        const parsed = JSON.parse(local);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch (e) {}
-    }
-    localStorage.setItem('luxe-channel-partners-store', JSON.stringify(SEED_CHANNEL_PARTNERS));
-  }
-  return SEED_CHANNEL_PARTNERS;
+  return loadEntity<ChannelPartner>('channel_partners', SEED_CHANNEL_PARTNERS);
 }
 
 export async function saveChannelPartners(data: ChannelPartner[]): Promise<void> {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('luxe-channel-partners-store', JSON.stringify(data));
-  }
+  await saveEntityBatch('channel_partners', data);
+}
+
+export async function saveChannelPartner(partner: ChannelPartner): Promise<void> {
+  await saveEntity('channel_partners', partner);
 }
 
 export async function fetchCommissions(): Promise<CommissionEntry[]> {
-  if (typeof window !== 'undefined') {
-    const local = localStorage.getItem('luxe-commissions-store');
-    if (local) {
-      try {
-        const parsed = JSON.parse(local);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch (e) {}
-    }
-    localStorage.setItem('luxe-commissions-store', JSON.stringify(SEED_COMMISSIONS));
-  }
-  return SEED_COMMISSIONS;
+  return loadEntity<CommissionEntry>('commissions', SEED_COMMISSIONS);
 }
 
 export async function saveCommissions(data: CommissionEntry[]): Promise<void> {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('luxe-commissions-store', JSON.stringify(data));
-  }
+  await saveEntityBatch('commissions', data);
+}
+
+export async function saveCommission(comm: CommissionEntry): Promise<void> {
+  await saveEntity('commissions', comm);
 }

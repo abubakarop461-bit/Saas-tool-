@@ -160,35 +160,16 @@ export const SEED_TRANSACTIONS: DealTransaction[] = [
   }
 ];
 
+import { loadEntity, saveEntityBatch, saveEntity } from '@/lib/dataStore';
+
 export async function fetchTransactions(): Promise<DealTransaction[]> {
-  try {
-    const { data, error } = await supabase
-      .from('transactions')
-      .select('*')
-      .order('created_at', { ascending: false });
-    if (!error && data && data.length > 0) return data as DealTransaction[];
-  } catch {
-    // fallback
-  }
-
-  if (typeof window !== 'undefined') {
-    const local = localStorage.getItem('luxe-transactions-store');
-    if (local) {
-      try {
-        const parsed = JSON.parse(local);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch {
-        // fallback
-      }
-    }
-    localStorage.setItem('luxe-transactions-store', JSON.stringify(SEED_TRANSACTIONS));
-  }
-
-  return SEED_TRANSACTIONS;
+  return loadEntity<DealTransaction>('transactions', SEED_TRANSACTIONS);
 }
 
 export async function saveTransactions(txs: DealTransaction[]): Promise<void> {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('luxe-transactions-store', JSON.stringify(txs));
-  }
+  await saveEntityBatch('transactions', txs);
+}
+
+export async function saveTransaction(tx: DealTransaction): Promise<void> {
+  await saveEntity('transactions', tx);
 }

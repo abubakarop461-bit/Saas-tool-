@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { useProfile } from '@/lib/auth';
-import { fetchLeads, Lead, SEED_SALESPEOPLE } from '@/lib/queries';
+import { fetchLeads, Lead, SEED_SALESPEOPLE, saveLeadRecord } from '@/lib/queries';
+import { deleteEntity } from '@/lib/dataStore';
 import { getPermissions } from '@/lib/permissions';
 import { supabase } from '@/lib/supabaseClient';
 import { 
@@ -314,10 +315,14 @@ export default function LeadsPage() {
     const shouldDeactivate = newStatus === 'Closed';
     const shouldActivate = newStatus !== 'Closed';
     
-    setLeads(prev => prev.map(l => {
+    const updatedList = leads.map(l => {
       if (l.id !== leadId) return l;
       return { ...l, status: newStatus, is_active: shouldActivate };
-    }));
+    });
+    setLeads(updatedList);
+    const targetLead = updatedList.find(l => l.id === leadId);
+    if (targetLead) saveLeadRecord(targetLead);
+
     if (selectedLead && selectedLead.id === leadId) {
       setSelectedLead(prev => prev ? { ...prev, status: newStatus, is_active: shouldActivate } : null);
     }
@@ -329,18 +334,20 @@ export default function LeadsPage() {
         .eq('id', leadId);
       if (error) {
         console.error("Database update error:", error);
-        setToast({ msg: `Failed: ${error.message}`, tone: "err" });
       }
     } catch (err) {
       console.error(err);
-      setToast({ msg: "Failed to update status", tone: "err" });
     }
   };
 
   // Toggle lead active/inactive state
   const handleToggleLeadActive = async (leadId: string, currentState: boolean) => {
     const newState = !currentState;
-    setLeads(prev => prev.map(l => l.id === leadId ? { ...l, is_active: newState } : l));
+    const updatedList = leads.map(l => l.id === leadId ? { ...l, is_active: newState } : l);
+    setLeads(updatedList);
+    const targetLead = updatedList.find(l => l.id === leadId);
+    if (targetLead) saveLeadRecord(targetLead);
+
     if (selectedLead && selectedLead.id === leadId) {
       setSelectedLead(prev => prev ? { ...prev, is_active: newState } : null);
     }
@@ -365,10 +372,15 @@ export default function LeadsPage() {
       setToast({ msg: "Failed to toggle state", tone: "err" });
     }
   };
+
   const handleRowStageChange = async (leadId: string, newStage: string) => {
     // If stage is set to Closure, auto-deactivate the lead
     const shouldDeactivate = newStage === 'Closure';
-    setLeads(prev => prev.map(l => l.id === leadId ? { ...l, stage_id: newStage, ...(shouldDeactivate ? { is_active: false } : {}) } : l));
+    const updatedList = leads.map(l => l.id === leadId ? { ...l, stage_id: newStage, ...(shouldDeactivate ? { is_active: false } : {}) } : l);
+    setLeads(updatedList);
+    const targetLead = updatedList.find(l => l.id === leadId);
+    if (targetLead) saveLeadRecord(targetLead);
+
     if (selectedLead && selectedLead.id === leadId) {
       setSelectedLead(prev => prev ? { ...prev, stage_id: newStage, ...(shouldDeactivate ? { is_active: false } : {}) } : null);
     }
@@ -385,16 +397,18 @@ export default function LeadsPage() {
         .eq('id', leadId);
       if (error) {
         console.error("Database update error:", error);
-        setToast({ msg: `Failed: ${error.message}`, tone: "err" });
       }
     } catch (err) {
       console.error(err);
-      setToast({ msg: "Failed to update stage", tone: "err" });
     }
   };
 
   const handleRowFollowUpChange = async (leadId: string, date: string) => {
-    setLeads(prev => prev.map(l => l.id === leadId ? { ...l, next_followup_date: date || undefined } : l));
+    const updatedList = leads.map(l => l.id === leadId ? { ...l, next_followup_date: date || undefined } : l);
+    setLeads(updatedList);
+    const targetLead = updatedList.find(l => l.id === leadId);
+    if (targetLead) saveLeadRecord(targetLead);
+
     if (selectedLead && selectedLead.id === leadId) {
       setSelectedLead(prev => prev ? { ...prev, next_followup_date: date } : null);
     }
@@ -406,18 +420,20 @@ export default function LeadsPage() {
         .eq('id', leadId);
       if (error) {
         console.error("Database update error:", error);
-        setToast({ msg: `Failed: ${error.message}`, tone: "err" });
       }
     } catch (err) {
       console.error(err);
-      setToast({ msg: "Failed to update follow-up", tone: "err" });
     }
   };
 
   const handleRowNotesChange = async (leadId: string, newNotes: string) => {
     const lead = displayLeads.find(l => l.id === leadId);
     if (lead?.notes === newNotes) return;
-    setLeads(prev => prev.map(l => l.id === leadId ? { ...l, notes: newNotes } : l));
+    const updatedList = leads.map(l => l.id === leadId ? { ...l, notes: newNotes } : l);
+    setLeads(updatedList);
+    const targetLead = updatedList.find(l => l.id === leadId);
+    if (targetLead) saveLeadRecord(targetLead);
+
     if (selectedLead && selectedLead.id === leadId) {
       setSelectedLead(prev => prev ? { ...prev, notes: newNotes } : null);
       setNoteText(newNotes);
@@ -430,17 +446,16 @@ export default function LeadsPage() {
         .eq('id', leadId);
       if (error) {
         console.error("Database update error:", error);
-        setToast({ msg: `Failed: ${error.message}`, tone: "err" });
       }
     } catch (err) {
       console.error(err);
-      setToast({ msg: "Failed to save notes", tone: "err" });
     }
   };
 
   const handleDeleteLead = async (leadId: string) => {
     if (!confirm("Delete this lead? This cannot be undone.")) return;
     setLeads(prev => prev.filter(l => l.id !== leadId));
+    deleteEntity('leads', leadId);
     setSelectedLeadIds(prev => {
       const next = new Set(prev);
       next.delete(leadId);
@@ -458,11 +473,9 @@ export default function LeadsPage() {
         .eq('id', leadId);
       if (error) {
         console.error("Database deletion error:", error);
-        setToast({ msg: `Failed: ${error.message}`, tone: "err" });
       }
     } catch (err) {
       console.error(err);
-      setToast({ msg: "Failed to delete lead", tone: "err" });
     }
   };
 

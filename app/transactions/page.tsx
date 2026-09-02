@@ -39,6 +39,7 @@ import {
   fetchTransactions,
   saveTransactions
 } from '@/lib/transactions';
+import type { CommissionEntry } from '@/lib/partners';
 
 export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<DealTransaction[]>(SEED_TRANSACTIONS);
@@ -160,6 +161,51 @@ export default function TransactionsPage() {
     saveTransactions(updatedAll);
     setSelectedTx(newTx);
     setIsNewModalOpen(false);
+
+    // ── INTERCALCULATION 1: Auto-accrue Channel Partner Commission ──
+    if (newPartner && newPartner !== 'Direct' && newPartner !== 'None') {
+      import('@/lib/partners').then(async ({ fetchChannelPartners, saveCommission }) => {
+        const partners = await fetchChannelPartners();
+        const matchedPartner = partners.find(p => 
+          p.firm_name.toLowerCase().includes(newPartner.toLowerCase()) ||
+          p.contact_person.toLowerCase().includes(newPartner.toLowerCase())
+        );
+        const rate = matchedPartner ? matchedPartner.commission_rate : 2.0;
+        const totalComm = Math.round((dealVal * rate) / 100);
+
+        const newComm: CommissionEntry = {
+          id: `comm-${Date.now()}`,
+          deal_id: newTx.id,
+          client_name: newClientName,
+          property_title: newPropertyTitle,
+          unit_number: newUnitNumber,
+          booking_value: dealVal,
+          commission_rate: rate,
+          total_commission: totalComm,
+          paid_amount: 0,
+          pending_amount: totalComm,
+          recipient_type: 'Channel Partner',
+          recipient_name: newPartner,
+          status: 'Pending Approval'
+        };
+        await saveCommission(newComm);
+      });
+    }
+
+    // ── INTERCALCULATION 2: Update Unit Inventory Status ──
+    import('@/lib/inventory').then(async ({ fetchDeveloperUnits, saveDeveloperUnits }) => {
+      const units = await fetchDeveloperUnits();
+      const matchIdx = units.findIndex(u => 
+        (u.unit_number && u.unit_number.toLowerCase() === newUnitNumber.toLowerCase()) ||
+        (u.project_title && u.project_title.toLowerCase().includes(newPropertyTitle.toLowerCase()))
+      );
+      if (matchIdx >= 0) {
+        units[matchIdx].status = 'Token';
+        units[matchIdx].buyer_name = newClientName;
+        units[matchIdx].agent_name = newAgent;
+        await saveDeveloperUnits(units);
+      }
+    });
   };
 
   const openCostSheetForDeal = (tx: DealTransaction) => {
