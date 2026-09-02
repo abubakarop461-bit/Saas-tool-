@@ -14,6 +14,7 @@ import {
   BadgePercent,
   UserCheck, 
   Calendar, 
+  Sparkles,
   Settings, 
   ShieldCheck 
 } from 'lucide-react';
@@ -35,6 +36,7 @@ export function SidebarNav({ onClose, className = '' }: { onClose?: () => void; 
     { title: 'Commissions', href: '/commissions', icon: BadgePercent },
     { title: 'Matchmaker', href: '/matchmaking', icon: UserCheck },
     { title: 'Site Visits', href: '/site-visits', icon: Calendar },
+    { title: 'Creative Studio', href: '/dashboard/creative-studio', icon: Sparkles },
     { title: 'Settings', href: '/settings', icon: Settings },
   ];
 

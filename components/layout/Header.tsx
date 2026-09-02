@@ -23,6 +23,7 @@ import {
   FileText,
   Building2,
   Tag,
+  Sparkles,
   Menu
 } from 'lucide-react';
 import { useProfile } from '@/lib/auth';
@@ -268,6 +269,7 @@ export function Header({ onToggleMenu }: { onToggleMenu?: () => void }) {
       { title: 'Sales Pipeline', href: '/pipeline', icon: TrendingUp, desc: 'Deal Kanban board & stages' },
       { title: 'Property Matchmaker', href: '/matchmaking', icon: UserCheck, desc: 'AI property-lead fit engine' },
       { title: 'Site Visits Calendar', href: '/site-visits', icon: Calendar, desc: 'Property viewing schedules' },
+      { title: 'Creative Studio', href: '/dashboard/creative-studio', icon: Sparkles, desc: 'AI property marketing copy generator' },
       { title: 'Settings & Administration', href: '/settings', icon: Settings, desc: 'User permissions & system config' },
     ];
     const filteredNavs = allNavs.filter(n => n.title.toLowerCase().includes(q) || n.desc.toLowerCase().includes(q));
