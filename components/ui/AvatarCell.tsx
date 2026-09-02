@@ -17,15 +17,29 @@ export function AvatarCell({ name, subtext, avatarBg }: AvatarCellProps) {
 
   const getBgClass = (n: string) => {
     if (avatarBg) return avatarBg;
+    const lower = n.toLowerCase();
+    if (lower.includes('sandesh')) return 'bg-[#eaf2fd] text-[#1d70d6] border border-[#d2e4fc]';
+    if (lower.includes('gaurav')) return 'bg-[#eaf8f4] text-[#0d9468] border border-[#c6eedf]';
+    if (lower.includes('sedhu')) return 'bg-[#fdf0f5] text-[#d63384] border border-[#facde1]';
+    if (lower.includes('vijay')) return 'bg-[#fff9e6] text-[#b87d00] border border-[#ffeaa8]';
+    if (lower.includes('tushar')) return 'bg-[#f4f0fd] text-[#6f42c1] border border-[#ddd0fa]';
+    if (lower.includes('anup')) return 'bg-[#eef2ff] text-[#4f46e5] border border-[#c7d2fe]';
+    if (lower.includes('prakash')) return 'bg-[#ecfdf5] text-[#059669] border border-[#a7f3d0]';
+    if (lower.includes('sneha')) return 'bg-[#fff7ed] text-[#c2410c] border border-[#ffedd5]';
+    if (lower.includes('raviraj')) return 'bg-[#fef2f2] text-[#dc2626] border border-[#fecaca]';
+    if (lower.includes('shivraj')) return 'bg-[#ecfeff] text-[#0891b2] border border-[#a5f3fc]';
+
     const colors = [
-      'bg-red-50 text-red-700 border border-red-100',
-      'bg-blue-50 text-blue-700 border border-blue-100',
-      'bg-emerald-50 text-emerald-700 border border-emerald-100',
-      'bg-amber-50 text-amber-700 border border-amber-100',
-      'bg-purple-50 text-purple-700 border border-purple-100',
-      'bg-pink-50 text-pink-700 border border-pink-100',
-      'bg-indigo-50 text-indigo-700 border border-indigo-100',
-      'bg-teal-50 text-teal-700 border border-teal-100',
+      'bg-[#eaf2fd] text-[#1d70d6] border border-[#d2e4fc]',
+      'bg-[#eaf8f4] text-[#0d9468] border border-[#c6eedf]',
+      'bg-[#fdf0f5] text-[#d63384] border border-[#facde1]',
+      'bg-[#fff9e6] text-[#b87d00] border border-[#ffeaa8]',
+      'bg-[#f4f0fd] text-[#6f42c1] border border-[#ddd0fa]',
+      'bg-[#eef2ff] text-[#4f46e5] border border-[#c7d2fe]',
+      'bg-[#ecfdf5] text-[#059669] border border-[#a7f3d0]',
+      'bg-[#fff7ed] text-[#c2410c] border border-[#ffedd5]',
+      'bg-[#fef2f2] text-[#dc2626] border border-[#fecaca]',
+      'bg-[#ecfeff] text-[#0891b2] border border-[#a5f3fc]',
     ];
     let hash = 0;
     for (let i = 0; i < n.length; i++) {
