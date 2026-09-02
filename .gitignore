@@ -3,6 +3,8 @@ node_modules
 data
 out
 .env
+.env*.local
+.env.local
 npm-debug.log
 .DS_Store
 .vercel

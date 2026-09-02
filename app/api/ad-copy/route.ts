@@ -111,39 +111,60 @@ Respond ONLY with a valid JSON object matching this exact schema:
   ]
 }`;
 
-    // Cloudflare Workers AI runtime check
-    // @ts-ignore
-    const aiBinding = (globalThis as any).process?.env?.AI || (globalThis as any).AI;
+    // NVIDIA AI API Integration (Server-Side Secret Only)
+    const nvidiaApiKey = process.env.NVIDIA_API_KEY || (globalThis as any).process?.env?.NVIDIA_API_KEY;
+    const nvidiaModel = process.env.NVIDIA_MODEL || 'nvidia/nemotron-3-super-120b-a12b';
 
-    if (aiBinding && typeof aiBinding.run === 'function') {
+    if (nvidiaApiKey) {
       try {
-        const aiResponse = await aiBinding.run('@cf/meta/llama-3.1-8b-instruct', {
-          messages: [
-            {
-              role: 'system',
-              content: 'You are an expert real estate copywriter. Output valid JSON only.'
-            },
-            {
-              role: 'user',
-              content: promptText
-            }
-          ]
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+        const response = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${nvidiaApiKey}`
+          },
+          body: JSON.stringify({
+            model: nvidiaModel,
+            messages: [
+              {
+                role: 'system',
+                content: 'You are an expert real estate copywriter. Output valid JSON only matching the exact schema requested.'
+              },
+              {
+                role: 'user',
+                content: promptText
+              }
+            ],
+            temperature: 0.2
+          }),
+          signal: controller.signal
         });
 
-        const rawContent = aiResponse?.response || aiResponse?.result?.response || '';
-        const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          const parsed = JSON.parse(jsonMatch[0]);
-          if (Array.isArray(parsed.variations) && parsed.variations.length >= 3) {
-            return NextResponse.json({
-              success: true,
-              variations: parsed.variations.slice(0, 3),
-              property: prop
-            });
+        clearTimeout(timeoutId);
+
+        if (response.ok) {
+          const resData = await response.json();
+          const rawContent = resData?.choices?.[0]?.message?.content || '';
+          const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            const parsed = JSON.parse(jsonMatch[0]);
+            if (Array.isArray(parsed.variations) && parsed.variations.length >= 3) {
+              return NextResponse.json({
+                success: true,
+                variations: parsed.variations.slice(0, 3),
+                property: prop,
+                modelUsed: nvidiaModel
+              });
+            }
           }
+        } else {
+          console.warn(`NVIDIA API response status: ${response.status} ${response.statusText}`);
         }
-      } catch (aiErr) {
-        console.warn('Workers AI execution warning, using local generator fallback:', aiErr);
+      } catch (nvidiaErr: any) {
+        console.warn('NVIDIA API execution error, using local property-grounded fallback:', nvidiaErr?.message || nvidiaErr);
       }
     }
 
