@@ -41,7 +41,8 @@ const localCache: Record<string, any[]> = {
     }
   ],
   settings: [],
-  ad_spend: []
+  ad_spend: [],
+  onboarding_profiles: []
 };
 
 /**

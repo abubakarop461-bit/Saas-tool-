@@ -8,6 +8,7 @@ import { Header } from './Header';
 import { RoleOverrideProvider } from '@/lib/role-context';
 import { supabase } from '@/lib/supabaseClient';
 import { PageTransitionLoader } from '@/components/ui/PageTransitionLoader';
+import { OnboardingGatewayModal } from '@/components/onboarding/OnboardingGatewayModal';
 import { X } from 'lucide-react';
 
 function AuthGate({ children }: { children: ReactNode }) {
@@ -73,6 +74,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <RoleOverrideProvider>
       <AuthGate>
         <PageTransitionLoader />
+        <OnboardingGatewayModal />
         <div className="h-screen w-screen bg-transparent flex flex-col font-sans overflow-hidden">
           <Header onToggleMenu={() => setIsMobileOpen(prev => !prev)} />
           
