@@ -25,6 +25,7 @@ import { formatCurrency, formatPriceShort } from '@/lib/formatters';
 import { supabase } from '@/lib/supabaseClient';
 import { useProfile } from '@/lib/auth';
 import { getPermissions } from '@/lib/permissions';
+import { fetchLeads, fetchProperties } from '@/lib/queries';
 
 interface Deal {
   id: string;
@@ -79,13 +80,22 @@ const STAGE_CONFIGS: Record<string, {
 const LEAD_SOURCES = ['99 acres', 'Magicbricks', 'Website', 'Instagram', 'Referral', 'Manual Entry'];
 const PROPERTY_PREFERENCES = ['Pristine Kyra', 'Power Heights', 'Vivencia Villa', 'NYATI Evoque', 'TBD'];
 
+const normalizeStage = (stageId: string | undefined | null): string => {
+  if (!stageId) return 'New inquiry';
+  const lower = stageId.toLowerCase();
+  if (lower.includes('site') || lower.includes('visit')) return 'Site visit';
+  if (lower.includes('follow')) return 'Follow up';
+  if (lower.includes('clos') || lower.includes('won') || lower.includes('book') || lower.includes('complete')) return 'Closure';
+  return 'New inquiry';
+};
+
 const mapLeadToDeal = (lead: any): Deal => {
   return {
     id: lead.id,
-    client_name: lead.client_name || 'Unnamed',
+    client_name: lead.client_name || 'Unnamed Client',
     property_preference: lead.preferred_location || lead.property_type || lead.configuration || 'Any',
-    budget: lead.budget_max || 0,
-    stage: lead.stage_id || 'New inquiry',
+    budget: lead.budget_max || lead.budget_min || 15000000,
+    stage: normalizeStage(lead.stage_id),
     notes: lead.notes || '',
     source: lead.lead_source_id || 'Direct Inquiry',
     lastActive: lead.created_at ? new Date(lead.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'Recently'
@@ -94,7 +104,7 @@ const mapLeadToDeal = (lead: any): Deal => {
 
 export default function PipelinePage() {
   const profile = useProfile();
-  const [deals, setDeads] = useState<Deal[]>([]);
+  const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'board' | 'list'>('board');
 
@@ -110,53 +120,39 @@ export default function PipelinePage() {
   const [siteVisitTime, setSiteVisitTime] = useState('02:00 PM');
   const [siteVisitNotes, setSiteVisitNotes] = useState('');
 
-  // Fetch real deals and properties from Supabase
+  // Fetch real deals and properties from queries layer
   useEffect(() => {
-    if (!profile) return;
     async function loadDeals() {
       setLoading(true);
       try {
-        let query = supabase
-          .from('leads')
-          .select('*')
-          .eq('is_active', true)
-          .order('created_at', { ascending: false });
+        const [leadsData, propsData] = await Promise.all([
+          fetchLeads(profile),
+          fetchProperties(profile)
+        ]);
 
         const perms = getPermissions(profile?.role);
+        let activeLeads = (leadsData || []).filter(l => l.is_active !== false);
         if (!perms.canViewAllPipeline && profile?.id) {
-          query = query.eq('assigned_to', profile.id);
+          activeLeads = activeLeads.filter(l => l.assigned_to === profile.id);
         }
 
-        const { data, error } = await query;
-        if (data) {
-          setRawLeadsList(data);
-          setDeads(data.map(mapLeadToDeal));
-          if (data.length > 0) {
-            setSelectedLeadId(data[0].id);
-            setClientName(data[0].client_name || '');
-            if (data[0].budget_max) setBudget(data[0].budget_max.toString());
-          }
-        } else {
-          setDeads([]);
+        setRawLeadsList(activeLeads);
+        setDeals(activeLeads.map(mapLeadToDeal));
+
+        if (activeLeads.length > 0) {
+          setSelectedLeadId(activeLeads[0].id);
+          setClientName(activeLeads[0].client_name || '');
+          if (activeLeads[0].budget_max) setBudget(activeLeads[0].budget_max.toString());
         }
 
-        // Fetch properties for site visit scheduling & new deal dropdown
-        const { data: propsData } = await supabase
-          .from('properties')
-          .select('id, title, location, price, configuration')
-          .eq('is_active', true)
-          .order('title');
-        if (propsData) {
+        if (propsData && propsData.length > 0) {
           setPropertiesList(propsData);
-          if (propsData.length > 0) {
-            setSiteVisitPropId(propsData[0].id);
-            setSelectedPropertyId(propsData[0].id);
-            setPropertyPref(propsData[0].title);
-          }
+          setSiteVisitPropId(propsData[0].id);
+          setSelectedPropertyId(propsData[0].id);
+          setPropertyPref(propsData[0].title);
         }
       } catch (err) {
-        console.error('Error loading deals:', err);
-        setDeads([]);
+        console.error('Error loading pipeline deals:', err);
       } finally {
         setLoading(false);
       }
@@ -224,7 +220,7 @@ export default function PipelinePage() {
       }
 
       // Optimistic update for other stages
-      setDeads(prev => prev.map(d => d.id === dealId ? { ...d, stage: targetStage, lastActive: 'Just now' } : d));
+      setDeals(prev => prev.map(d => d.id === dealId ? { ...d, stage: targetStage, lastActive: 'Just now' } : d));
       try {
         await supabase
           .from('leads')
@@ -244,7 +240,7 @@ export default function PipelinePage() {
     const targetId = siteVisitDeal.id;
 
     // Optimistic update
-    setDeads(prev => prev.map(d => d.id === targetId ? { ...d, stage: 'Site visit', lastActive: 'Just now' } : d));
+    setDeals(prev => prev.map(d => d.id === targetId ? { ...d, stage: 'Site visit', lastActive: 'Just now' } : d));
 
     try {
       await supabase.from('site_visits').insert({
@@ -298,7 +294,7 @@ export default function PipelinePage() {
     };
 
     // Optimistic update
-    setDeads(prev => prev.map(d => d.id === selectedDeal.id ? { 
+    setDeals(prev => prev.map(d => d.id === selectedDeal.id ? { 
       ...d, 
       client_name: clientName,
       budget: parseInt(budget) || 0,
@@ -343,7 +339,7 @@ export default function PipelinePage() {
         .select()
         .single();
       if (data) {
-        setDeads(prev => [mapLeadToDeal(data), ...prev]);
+        setDeals(prev => [mapLeadToDeal(data), ...prev]);
       }
     } catch (err) {
       console.error('Error adding deal:', err);
@@ -356,7 +352,7 @@ export default function PipelinePage() {
   const handleDeleteDeal = async (dealId: string) => {
     if (confirm("Are you sure you want to delete this deal from the pipeline?")) {
       // Optimistic update
-      setDeads(prev => prev.filter(d => d.id !== dealId));
+      setDeals(prev => prev.filter(d => d.id !== dealId));
       setIsEditModalOpen(false);
       try {
         await supabase
@@ -640,7 +636,7 @@ export default function PipelinePage() {
                             value={deal.stage}
                             onChange={async (e) => {
                               const newStage = e.target.value;
-                              setDeads(prev => prev.map(d => d.id === deal.id ? { ...d, stage: newStage, lastActive: 'Just now' } : d));
+                              setDeals(prev => prev.map(d => d.id === deal.id ? { ...d, stage: newStage, lastActive: 'Just now' } : d));
                               try {
                                 await supabase
                                   .from('leads')
