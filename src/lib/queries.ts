@@ -956,76 +956,90 @@ export const SEED_PROPERTIES: Property[] = [
 ];
 
 export async function fetchLeads(profile: Profile | null): Promise<Lead[]> {
+  let dbLeads: Lead[] = [];
   try {
     const { data, error } = await supabase
       .from('leads')
       .select('*')
       .order('created_at', { ascending: false })
       .limit(200);
-    if (!error && data && data.length > 0) return data as Lead[];
+    if (!error && data && Array.isArray(data) && data.length > 0) {
+      dbLeads = data as Lead[];
+    }
   } catch {
     // fallback
   }
+
+  const existingIds = new Set(dbLeads.map((l: any) => l.id));
+  const missingSeeds = SEED_LEADS.filter(s => !existingIds.has(s.id));
+  let combined = [...dbLeads, ...missingSeeds];
 
   if (typeof window !== 'undefined') {
     const local = localStorage.getItem('luxe-leads-store');
     if (local) {
       try {
         const parsed = JSON.parse(local);
-        if (Array.isArray(parsed) && parsed.length >= SEED_LEADS.length) {
-          return parsed;
-        } else if (Array.isArray(parsed)) {
-          // Merge newly added seed leads with user's local edits
-          const existingIds = new Set(parsed.map((p: any) => p.id));
-          const newSeeds = SEED_LEADS.filter(s => !existingIds.has(s.id));
-          const merged = [...parsed, ...newSeeds];
-          localStorage.setItem('luxe-leads-store', JSON.stringify(merged));
-          return merged;
+        if (Array.isArray(parsed)) {
+          const currentIds = new Set(combined.map((l: any) => l.id));
+          const localMissing = parsed.filter((p: any) => !currentIds.has(p.id));
+          combined = [...combined, ...localMissing];
         }
       } catch (e) {
-        // use default seed
+        // ignore
       }
     }
-    localStorage.setItem('luxe-leads-store', JSON.stringify(SEED_LEADS));
+    localStorage.setItem('luxe-leads-store', JSON.stringify(combined));
   }
 
-  return SEED_LEADS;
+  return combined;
 }
 
 export async function fetchProperties(profile: Profile | null): Promise<Property[]> {
+  let dbProperties: Property[] = [];
   try {
     const { data, error } = await supabase
       .from('properties')
       .select('*')
       .order('created_at', { ascending: false })
       .limit(200);
-    if (!error && data && data.length > 0) return data as Property[];
+    if (!error && data && Array.isArray(data) && data.length > 0) {
+      dbProperties = data as Property[];
+    }
   } catch {
     // fallback
   }
+
+  // Ensure all 12 landmark properties from SEED_PROPERTIES are always present
+  const existingIds = new Set(dbProperties.map((p: any) => p.id));
+  const existingCodes = new Set(dbProperties.map((p: any) => p.property_code));
+  const existingTitles = new Set(dbProperties.map((p: any) => (p.title || '').trim().toLowerCase()));
+
+  const missingSeeds = SEED_PROPERTIES.filter(s => 
+    !existingIds.has(s.id) && 
+    !existingCodes.has(s.property_code) &&
+    !existingTitles.has(s.title.trim().toLowerCase())
+  );
+
+  let combined = [...dbProperties, ...missingSeeds];
 
   if (typeof window !== 'undefined') {
     const local = localStorage.getItem('luxe-properties-store');
     if (local) {
       try {
         const parsed = JSON.parse(local);
-        if (Array.isArray(parsed) && parsed.length >= SEED_PROPERTIES.length) {
-          return parsed;
-        } else if (Array.isArray(parsed)) {
-          const existingIds = new Set(parsed.map((p: any) => p.id));
-          const newSeeds = SEED_PROPERTIES.filter(s => !existingIds.has(s.id));
-          const merged = [...parsed, ...newSeeds];
-          localStorage.setItem('luxe-properties-store', JSON.stringify(merged));
-          return merged;
+        if (Array.isArray(parsed)) {
+          const currentIds = new Set(combined.map((p: any) => p.id));
+          const localMissing = parsed.filter((p: any) => !currentIds.has(p.id));
+          combined = [...combined, ...localMissing];
         }
       } catch (e) {
-        // use default seed
+        // ignore
       }
     }
-    localStorage.setItem('luxe-properties-store', JSON.stringify(SEED_PROPERTIES));
+    localStorage.setItem('luxe-properties-store', JSON.stringify(combined));
   }
 
-  return SEED_PROPERTIES;
+  return combined;
 }
 
 export async function fetchSalesPeople(): Promise<SalesPersonProfile[]> {

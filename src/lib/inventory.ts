@@ -775,15 +775,15 @@ export async function fetchDeveloperUnits(): Promise<DeveloperUnit[]> {
     if (local) {
       try {
         const parsed = JSON.parse(local);
-        if (Array.isArray(parsed) && parsed.length >= SEED_DEVELOPER_UNITS.length) {
-          return parsed;
-        } else if (Array.isArray(parsed)) {
-          // Merge newly added seed units
+        if (Array.isArray(parsed)) {
           const existingIds = new Set(parsed.map((p: any) => p.id));
-          const newUnits = SEED_DEVELOPER_UNITS.filter(u => !existingIds.has(u.id));
-          const merged = [...parsed, ...newUnits];
-          localStorage.setItem('luxe-inventory-units-store', JSON.stringify(merged));
-          return merged;
+          const missing = SEED_DEVELOPER_UNITS.filter(u => !existingIds.has(u.id));
+          if (missing.length > 0) {
+            const merged = [...parsed, ...missing];
+            localStorage.setItem('luxe-inventory-units-store', JSON.stringify(merged));
+            return merged;
+          }
+          return parsed;
         }
       } catch (e) {}
     }
