@@ -8,7 +8,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { TagsInput } from '@/components/ui/tags-input';
 import { MediaPicker } from '@/components/ui/media-picker';
 import { IndianNumberInput } from '@/components/ui/indian-number-input';
-import { Building2, MapPin, User, ImageIcon, DollarSign, Trash2, ChevronLeft, ChevronDown, Loader2, Plus, X } from 'lucide-react';
+import { Building2, MapPin, User, ImageIcon, DollarSign, Trash2, ChevronLeft, ChevronDown, Loader2, Plus, X, Layers } from 'lucide-react';
 import { isResidentialType, BHK_CONFIG_OPTIONS, COMMERCIAL_CONFIG_OPTIONS, DEFAULT_PROPERTY_TYPES, fetchPropertyTypes, saveNewPropertyType, DEFAULT_CONFIG_OPTIONS, fetchConfigurationOptions, saveNewConfiguration, saveNewLocation } from '@/lib/propertyTypes';
 import { useProfile } from '@/lib/auth';
 import Link from 'next/link';
@@ -22,6 +22,7 @@ const SECTIONS = [
   { label: 'Basic Info', icon: Building2 },
   { label: 'Location', icon: MapPin },
   { label: 'Pricing & Area', icon: DollarSign },
+  { label: 'Unit Inventory', icon: Layers },
   { label: 'Ownership', icon: User },
   { label: 'Media', icon: ImageIcon },
 ];
@@ -158,6 +159,18 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
   const [alternateOwnerContacts, setAlternateOwnerContacts] = useState<string[]>(
     Array.isArray(initialValues.alternate_owner_contacts) ? initialValues.alternate_owner_contacts : []
   );
+
+  // Unit Inventory Management & Stacking Matrix state
+  const [towersList, setTowersList] = useState<string[]>(
+    initialValues.towers_list
+      ? String(initialValues.towers_list).split(',').map((s: string) => s.trim()).filter(Boolean)
+      : ['Tower A', 'Tower B']
+  );
+  const [newTowerInput, setNewTowerInput] = useState('');
+  const [totalFloors, setTotalFloors] = useState<number>(Number(initialValues.total_floors) || 14);
+  const [unitsPerFloor, setUnitsPerFloor] = useState<number>(Number(initialValues.units_per_floor) || 4);
+  const [possessionTimeline, setPossessionTimeline] = useState<string>(initialValues.possession_date || 'December 2026');
+  const [activePreviewTower, setActivePreviewTower] = useState<string>('Tower A');
 
   useEffect(() => {
     fetchPropertyTypes(supabase).then(types => {
@@ -606,6 +619,252 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
     </div>
   );
 
+  const renderUnitInventory = () => {
+    const totalProjectUnits = towersList.length * totalFloors * unitsPerFloor;
+    const towerPrefix = activePreviewTower.replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase() || 'T';
+
+    return (
+      <div className="space-y-6 text-left">
+        {/* Header Introduction Banner */}
+        <div className="p-4 bg-white border border-[#ebebeb] rounded-2xl shadow-xs space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-[#b8922e] uppercase tracking-widest font-mono">
+              Unit Stacking & Project Inventory Engine
+            </span>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#d4ad4d]/15 text-[#96751f] border border-[#d4ad4d]/30">
+              {totalProjectUnits} Projected Units
+            </span>
+          </div>
+          <h3 className="text-sm font-extrabold text-zinc-900">Configure Building Towers, Floors & Unit Distribution</h3>
+          <p className="text-[11px] text-zinc-500 leading-relaxed">
+            Specify the tower nomenclature, floor height, and density. The system will automatically project and generate the visual unit inventory matrix for this project.
+          </p>
+        </div>
+
+        {/* Configuration Controls */}
+        <div className="space-y-4">
+          {/* Towers Configuration */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <FieldLabel required>Project Towers & Wings</FieldLabel>
+              <span className="text-[10px] text-zinc-400 font-medium font-mono">{towersList.length} Towers configured</span>
+            </div>
+            
+            <div className="flex flex-wrap gap-2 items-center p-3 bg-[#fafaf8] border border-zinc-200/80 rounded-xl">
+              {towersList.map((t, idx) => (
+                <span 
+                  key={idx} 
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    activePreviewTower === t 
+                      ? 'bg-zinc-900 text-white shadow-xs' 
+                      : 'bg-white border border-zinc-200 text-zinc-800'
+                  }`}
+                >
+                  <Building2 className="h-3 w-3 text-[#d4ad4d]" />
+                  {t}
+                  {towersList.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = towersList.filter((_, i) => i !== idx);
+                        setTowersList(next);
+                        if (activePreviewTower === t) setActivePreviewTower(next[0] || 'Tower A');
+                      }}
+                      className="ml-1 text-zinc-400 hover:text-rose-500"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                </span>
+              ))}
+
+              {/* Add tower input */}
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="text"
+                  placeholder="e.g. Tower C, West Wing"
+                  value={newTowerInput}
+                  onChange={(e) => setNewTowerInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      const val = newTowerInput.trim();
+                      if (val && !towersList.includes(val)) {
+                        setTowersList(prev => [...prev, val]);
+                        setNewTowerInput('');
+                      }
+                    }
+                  }}
+                  className="h-8 px-2.5 bg-white border border-zinc-200 rounded-lg text-xs text-zinc-800 placeholder-zinc-400 focus:outline-none focus:border-[#d4ad4d]"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const val = newTowerInput.trim();
+                    if (val && !towersList.includes(val)) {
+                      setTowersList(prev => [...prev, val]);
+                      setNewTowerInput('');
+                    }
+                  }}
+                  className="h-8 px-3 bg-[#d4ad4d] hover:bg-[#b8922e] text-white rounded-lg text-xs font-bold transition-all shrink-0"
+                >
+                  + Add Tower
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Floors & Units per floor */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="space-y-1.5">
+              <FieldLabel required>Total Floors per Tower</FieldLabel>
+              <input
+                type="number"
+                min={1}
+                max={60}
+                value={totalFloors}
+                onChange={(e) => setTotalFloors(Math.max(1, Math.min(60, Number(e.target.value) || 1)))}
+                className={inputCls}
+                placeholder="e.g. 14"
+              />
+              <span className="text-[10px] text-zinc-400 block">Floors 1 through {totalFloors}</span>
+            </div>
+
+            <div className="space-y-1.5">
+              <FieldLabel required>Units per Floor</FieldLabel>
+              <input
+                type="number"
+                min={1}
+                max={12}
+                value={unitsPerFloor}
+                onChange={(e) => setUnitsPerFloor(Math.max(1, Math.min(12, Number(e.target.value) || 1)))}
+                className={inputCls}
+                placeholder="e.g. 4"
+              />
+              <span className="text-[10px] text-zinc-400 block">{unitsPerFloor} apartments per tier</span>
+            </div>
+
+            <div className="space-y-1.5">
+              <FieldLabel>Target Possession Date</FieldLabel>
+              <input
+                type="text"
+                value={possessionTimeline}
+                onChange={(e) => setPossessionTimeline(e.target.value)}
+                className={inputCls}
+                placeholder="e.g. December 2026"
+              />
+              <span className="text-[10px] text-zinc-400 block">Allotment timeline</span>
+            </div>
+          </div>
+
+          {/* Quick Metrics Calculation Bar */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3.5 bg-zinc-900 text-white rounded-xl shadow-xs">
+            <div>
+              <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest block font-mono">Towers</span>
+              <span className="text-base font-extrabold text-white">{towersList.length} Towers</span>
+            </div>
+            <div>
+              <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest block font-mono">Floors / Height</span>
+              <span className="text-base font-extrabold text-white">{totalFloors} Floors</span>
+            </div>
+            <div>
+              <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest block font-mono">Total Project Units</span>
+              <span className="text-base font-extrabold text-[#d4ad4d]">{totalProjectUnits} Units</span>
+            </div>
+            <div>
+              <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest block font-mono">Projected Value</span>
+              <span className="text-base font-extrabold text-emerald-400">
+                {previewPrice ? formatPrice(Number(previewPrice) * totalProjectUnits) : '₹' + (totalProjectUnits * 1.35).toFixed(1) + ' Cr'}
+              </span>
+            </div>
+          </div>
+
+          {/* Visual Interactive Building Stacking Matrix Projection */}
+          <div className="space-y-3 pt-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-xs font-extrabold text-zinc-900">Interactive Building Stacking Projection</h4>
+                <p className="text-[10px] text-zinc-400">Visual unit matrix preview that will project into the Unit Inventory page</p>
+              </div>
+
+              {/* Tower Switcher */}
+              <div className="flex items-center gap-1 bg-[#fafaf8] p-1 border border-zinc-200 rounded-lg">
+                {towersList.map((t, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setActivePreviewTower(t)}
+                    className={`px-2.5 py-1 rounded text-[10px] font-bold transition-all ${
+                      activePreviewTower === t 
+                        ? 'bg-zinc-900 text-white' 
+                        : 'text-zinc-600 hover:text-zinc-900'
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Stacking Grid (Floors descending) */}
+            <div className="border border-zinc-200 rounded-2xl bg-[#fafaf8] p-4 max-h-72 overflow-y-auto space-y-2">
+              {Array.from({ length: Math.min(totalFloors, 8) }).map((_, fIdx) => {
+                const floorNum = totalFloors - fIdx;
+                return (
+                  <div key={floorNum} className="flex items-center gap-2">
+                    <span className="w-16 text-[10px] font-mono font-bold text-zinc-500 shrink-0 text-right pr-2 border-r border-zinc-200">
+                      Floor {floorNum < 10 ? `0${floorNum}` : floorNum}
+                    </span>
+                    <div className="flex flex-wrap gap-2 flex-1">
+                      {Array.from({ length: unitsPerFloor }).map((_, uIdx) => {
+                        const unitNumStr = uIdx + 1 < 10 ? `0${uIdx + 1}` : `${uIdx + 1}`;
+                        const unitCode = `${towerPrefix}-${floorNum}${unitNumStr}`;
+                        const isToken = floorNum === 2 && uIdx === 0;
+                        const isBooked = floorNum === 1 && uIdx === 0;
+                        return (
+                          <div 
+                            key={uIdx}
+                            className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg border text-left min-w-[105px] ${
+                              isBooked 
+                                ? 'bg-zinc-100 border-zinc-300 text-zinc-500' 
+                                : isToken 
+                                  ? 'bg-amber-50 border-amber-200 text-amber-900' 
+                                  : 'bg-white border-zinc-200 text-zinc-800 shadow-2xs'
+                            }`}
+                          >
+                            <div>
+                              <span className="font-mono font-extrabold text-[11px] block">{unitCode}</span>
+                              <span className="text-[9px] text-zinc-400 block">{configuration[0] || '3 BHK'}</span>
+                            </div>
+                            <span className={`w-2 h-2 rounded-full ${
+                              isBooked ? 'bg-zinc-400' : isToken ? 'bg-amber-500' : 'bg-emerald-500'
+                            }`} />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+              {totalFloors > 8 && (
+                <div className="text-center text-[10px] font-mono font-bold text-zinc-400 py-1">
+                  ... and {totalFloors - 8} more lower tiers ({towerPrefix}-0101 to {towerPrefix}-0{(totalFloors - 8)}0{unitsPerFloor})
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Hidden inputs to pass along with Form submission */}
+        <input type="hidden" name="towers_list" value={towersList.join(', ')} />
+        <input type="hidden" name="total_floors" value={totalFloors} />
+        <input type="hidden" name="units_per_floor" value={unitsPerFloor} />
+        <input type="hidden" name="total_units" value={totalProjectUnits} />
+        <input type="hidden" name="possession_date" value={possessionTimeline} />
+      </div>
+    );
+  };
+
   const renderOwnership = () => (
     <div className="space-y-5">
       <div className="space-y-1.5">
@@ -849,8 +1108,9 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
             <div style={{ display: activeSection === 0 ? 'block' : 'none' }}>{renderBasicInfo()}</div>
             <div style={{ display: activeSection === 1 ? 'block' : 'none' }}>{renderLocation()}</div>
             <div style={{ display: activeSection === 2 ? 'block' : 'none' }}>{renderPricing()}</div>
-            <div style={{ display: activeSection === 3 ? 'block' : 'none' }}>{renderOwnership()}</div>
-            <div style={{ display: activeSection === 4 ? 'block' : 'none' }}>{renderMedia()}</div>
+            <div style={{ display: activeSection === 3 ? 'block' : 'none' }}>{renderUnitInventory()}</div>
+            <div style={{ display: activeSection === 4 ? 'block' : 'none' }}>{renderOwnership()}</div>
+            <div style={{ display: activeSection === 5 ? 'block' : 'none' }}>{renderMedia()}</div>
 
             {/* Bottom navigation bar */}
             <div className="mt-8 flex items-center justify-between pt-4 border-t border-[#ebebeb]">
@@ -905,6 +1165,14 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
           <div className="px-5 pt-6 pb-5 border-b border-zinc-100 space-y-4">
             <h3 className="text-[11px] font-black text-zinc-900 pb-2.5 uppercase tracking-wider flex items-baseline gap-2 border-b border-zinc-100">
               <span className="font-serif italic font-bold text-[#d4ad4d] text-sm">04.</span>
+              <span>Unit Inventory & Stacking</span>
+            </h3>
+            {renderUnitInventory()}
+          </div>
+
+          <div className="px-5 pt-6 pb-5 border-b border-zinc-100 space-y-4">
+            <h3 className="text-[11px] font-black text-zinc-900 pb-2.5 uppercase tracking-wider flex items-baseline gap-2 border-b border-zinc-100">
+              <span className="font-serif italic font-bold text-[#d4ad4d] text-sm">05.</span>
               <span>Ownership & Private Terms</span>
             </h3>
             {renderOwnership()}
@@ -912,7 +1180,7 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
 
           <div className="px-5 pt-6 pb-8 space-y-4">
             <h3 className="text-[11px] font-black text-zinc-900 pb-2.5 uppercase tracking-wider flex items-baseline gap-2 border-b border-zinc-100">
-              <span className="font-serif italic font-bold text-[#d4ad4d] text-sm">05.</span>
+              <span className="font-serif italic font-bold text-[#d4ad4d] text-sm">06.</span>
               <span>Media Uploads</span>
             </h3>
             {renderMedia()}

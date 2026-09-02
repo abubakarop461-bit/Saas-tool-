@@ -81,12 +81,29 @@ export async function createPropertyAction(prevState: any, formData: FormData) {
     if (imgError) console.error("Error inserting property images:", imgError);
   }
 
-  // Auto-add new locations to the locations table
-  if (data.location) {
-    const locations = String(data.location).split(',').map(l => l.trim()).filter(Boolean);
-    for (const loc of locations) {
-      await supabase.from('locations').upsert({ name: loc }, { onConflict: 'name' });
-    }
+  // Auto-generate / sync developer units for unit inventory matrix
+  try {
+    const towersRaw = String(formData.get('towers_list') || 'Tower A, Tower B');
+    const towers = towersRaw.split(',').map(t => t.trim()).filter(Boolean);
+    const totalFloors = Math.max(1, Number(formData.get('total_floors')) || 14);
+    const unitsPerFloor = Math.max(1, Number(formData.get('units_per_floor')) || 4);
+    const possessionDate = String(formData.get('possession_date') || 'December 2026');
+
+    const { syncPropertyInventoryUnits } = await import('@/lib/inventory');
+    await syncPropertyInventoryUnits({
+      property_id: inserted?.id || 'prop-' + Date.now(),
+      project_title: String(data.title || 'Landmark Project'),
+      towers: towers.length > 0 ? towers : ['Tower A'],
+      total_floors: totalFloors,
+      units_per_floor: unitsPerFloor,
+      configuration: String(data.configuration || '3 BHK'),
+      carpet_area: Number(data.carpet_area) || 1450,
+      built_up_area: Number(data.built_up_area) || 1900,
+      base_price: Number(data.price) || 13500000,
+      possession_date: possessionDate
+    });
+  } catch (err) {
+    console.error("Error generating inventory units for property:", err);
   }
 
   await supabase
@@ -159,6 +176,33 @@ export async function updatePropertyAction(prevState: any, formData: FormData) {
     }));
     const { error: imgError } = await supabase.from('property_images').insert(imgData);
     if (imgError) console.error("Error updating property images:", imgError);
+  }
+
+  // Auto-generate / sync developer units for unit inventory matrix
+  try {
+    const towersRaw = String(formData.get('towers_list') || '');
+    if (towersRaw) {
+      const towers = towersRaw.split(',').map(t => t.trim()).filter(Boolean);
+      const totalFloors = Math.max(1, Number(formData.get('total_floors')) || 14);
+      const unitsPerFloor = Math.max(1, Number(formData.get('units_per_floor')) || 4);
+      const possessionDate = String(formData.get('possession_date') || 'December 2026');
+
+      const { syncPropertyInventoryUnits } = await import('@/lib/inventory');
+      await syncPropertyInventoryUnits({
+        property_id: id,
+        project_title: String(data.title || 'Landmark Project'),
+        towers: towers.length > 0 ? towers : ['Tower A'],
+        total_floors: totalFloors,
+        units_per_floor: unitsPerFloor,
+        configuration: String(data.configuration || '3 BHK'),
+        carpet_area: Number(data.carpet_area) || 1450,
+        built_up_area: Number(data.built_up_area) || 1900,
+        base_price: Number(data.price) || 13500000,
+        possession_date: possessionDate
+      });
+    }
+  } catch (err) {
+    console.error("Error updating inventory units for property:", err);
   }
 
   // Auto-add new locations to the locations table

@@ -771,6 +771,86 @@ export const SEED_DEVELOPER_UNITS: DeveloperUnit[] = [
 
 import { loadEntity, saveEntityBatch, saveEntity } from '@/lib/dataStore';
 
+/**
+ * Procedurally project and generate developer units for any real estate project
+ */
+export function generateProjectUnits(params: {
+  property_id?: string;
+  project_title: string;
+  towers: string[];
+  total_floors: number;
+  units_per_floor: number;
+  configuration?: string;
+  carpet_area?: number;
+  built_up_area?: number;
+  base_price?: number;
+  possession_date?: string;
+}): DeveloperUnit[] {
+  const units: DeveloperUnit[] = [];
+  const towersList = params.towers.length > 0 ? params.towers : ['Tower A'];
+  const floorsCount = Math.max(1, Math.min(60, params.total_floors || 10));
+  const unitsPerFloor = Math.max(1, Math.min(12, params.units_per_floor || 4));
+
+  towersList.forEach(tower => {
+    const towerPrefix = tower.replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase() || 'T';
+    for (let floor = 1; floor <= floorsCount; floor++) {
+      for (let uIdx = 1; uIdx <= unitsPerFloor; uIdx++) {
+        const unitSuffix = uIdx < 10 ? `0${uIdx}` : `${uIdx}`;
+        const unitNumber = `${towerPrefix}-${floor}${unitSuffix}`;
+        const id = `u-${params.property_id || 'proj'}-${towerPrefix.toLowerCase()}-${floor}${unitSuffix}`;
+
+        units.push({
+          id,
+          property_id: params.property_id,
+          project_title: params.project_title,
+          tower,
+          floor,
+          unit_number: unitNumber,
+          configuration: params.configuration || '3 BHK',
+          carpet_area: params.carpet_area || 1450,
+          built_up_area: params.built_up_area || Math.round((params.carpet_area || 1450) * 1.3),
+          facing: uIdx % 2 === 0 ? 'Garden / Pool View' : 'City Skyline View',
+          base_price: params.base_price || 13500000,
+          floor_rise_rate: 50,
+          parking_charges: 500000,
+          amenities_charges: 300000,
+          other_charges: 150000,
+          gst_rate: 5.0,
+          stamp_duty_rate: 6.0,
+          registration_rate: 30000,
+          possession_date: params.possession_date || 'December 2026',
+          status: (floor === 1 && uIdx === 1) ? 'Booked' : (floor === 2 && uIdx === 1) ? 'Token' : 'Available'
+        });
+      }
+    }
+  });
+
+  return units;
+}
+
+export async function syncPropertyInventoryUnits(params: {
+  property_id?: string;
+  project_title: string;
+  towers: string[];
+  total_floors: number;
+  units_per_floor: number;
+  configuration?: string;
+  carpet_area?: number;
+  built_up_area?: number;
+  base_price?: number;
+  possession_date?: string;
+}): Promise<DeveloperUnit[]> {
+  const currentUnits = await fetchDeveloperUnits();
+  const newUnits = generateProjectUnits(params);
+
+  // Filter out existing units for this project to prevent duplicates, then merge new projected units
+  const otherUnits = currentUnits.filter(u => u.project_title.trim().toLowerCase() !== params.project_title.trim().toLowerCase());
+  const combined = [...otherUnits, ...newUnits];
+
+  await saveDeveloperUnits(combined);
+  return combined;
+}
+
 export async function fetchDeveloperUnits(): Promise<DeveloperUnit[]> {
   return loadEntity<DeveloperUnit>('inventory', SEED_DEVELOPER_UNITS);
 }
