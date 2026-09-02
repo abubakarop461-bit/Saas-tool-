@@ -65,29 +65,31 @@ export async function POST(req: Request) {
     if (prop.unit_no) facts.push(`Unit No: ${prop.unit_no}`);
     if (prop.description) facts.push(`Existing Description: ${prop.description}`);
 
-    const promptText = `You are a professional real estate marketing copywriter.
-Create marketing copy for the selected property.
+    const promptText = `You are an expert performance real estate copywriter operating strictly under the ad-creative skill (v2.8.2) methodology.
+Create high-converting, platform-tailored ad copy variations for the target property.
 
-STRICT FACTUAL RULE:
-Use ONLY the property facts supplied below.
-Never invent, infer, estimate, assume, or add property facts.
-Do NOT invent metro distance, sea view, mountain view, possession date, developer claims, amenities, investment returns, rental yield, floor number, parking, or pricing unless explicitly provided in the facts.
-If a fact is not supplied, do not mention it.
+STRICT AD-CREATIVE (v2.8.2) FACTUAL GROUNDING RULES:
+1. Use ONLY the authoritative property facts supplied below.
+2. Grounding Rule: Never invent, infer, estimate, assume, or add property facts, amenities, metro distances, views, possession dates, floor numbers, pricing discounts, rental yields, or developer claims.
+3. If a property fact is not explicitly supplied in the facts corpus, DO NOT mention it in any variation.
+4. Ground every variation in real property facts: Location, Configuration, Carpet Area, Price, Listing Type, and Description.
 
-PROPERTY FACTS:
+PROPERTY FACTS (Authoritative Source: Cloudflare D1):
 ${facts.join('\n')}
 
 TARGET PLATFORM: ${platform.toUpperCase()}
-PLATFORM STYLE: ${platformStyle}
+PLATFORM CREATIVE DIRECTION: ${platformStyle}
 
-Generate exactly 3 distinct variations.
-Target lengths:
+CREATIVE VARIATION REQUIREMENTS:
+Generate exactly 3 distinct ad copy variations representing 3 distinct messaging angles (e.g. Angle 1: Value & Price-Per-SqFt; Angle 2: Prime Location & Lifestyle; Angle 3: Exclusive Inventory & Layout).
+
+SPEC & LENGTH COMPLIANCE:
 - Headline: 8-12 words
 - Primary Ad Copy: 60-80 words
 - Short Description: 20-30 words
 - Call to Action: 4-8 words
 
-Respond ONLY with a valid JSON object matching this exact schema:
+Output ONLY a valid JSON object matching this exact schema:
 {
   "variations": [
     {
@@ -131,7 +133,7 @@ Respond ONLY with a valid JSON object matching this exact schema:
             messages: [
               {
                 role: 'system',
-                content: 'You are an expert real estate copywriter. Output valid JSON only matching the exact schema requested.'
+                content: 'You are an expert real estate performance copywriter operating under ad-creative skill (v2.8.2). Output valid JSON only.'
               },
               {
                 role: 'user',

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leads Database - Option 3: Modern Data Console Grid</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #fafafa; color: #18181b; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .gold-accent { color: #d4ad4d; }
+    .gold-bg { background-color: #d4ad4d; }
+    .sidebar-dark { background-color: #09090b; color: #f4f4f5; }
+    .card-clean { background-color: #ffffff; border: 1px solid #e4e4e7; }
+  </style>
+</head>
+<body class="h-screen flex overflow-hidden">
+
+  <!-- ERP Dark Sidebar Replica -->
+  <aside class="w-64 sidebar-dark flex flex-col justify-between p-4 border-r border-zinc-800 shrink-0 hidden md:flex">
+    <div class="space-y-6">
+      <div class="flex items-center gap-2 px-2">
+        <div class="h-8 w-8 rounded-lg gold-bg text-zinc-950 font-black flex items-center justify-center text-sm">LR</div>
+        <div>
+          <h2 class="font-extrabold text-sm text-white tracking-wider">LUXE REALTY</h2>
+          <p class="text-[10px] text-zinc-500 font-mono">ENTERPRISE ERP</p>
+        </div>
+      </div>
+      <nav class="space-y-1 text-xs font-semibold text-zinc-400">
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-900 hover:text-white">Dashboard</a>
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-zinc-900 text-white border-l-2 border-[#d4ad4d]">Leads</a>
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-900 hover:text-white">Properties</a>
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-900 hover:text-white">Unit Inventory</a>
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-900 hover:text-white">Creative Studio</a>
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-900 hover:text-white">Ad Performance</a>
+      </nav>
+    </div>
+    <div class="text-[10px] text-zinc-600 px-2 font-mono">v2.4 • Connected to D1</div>
+  </aside>
+
+  <!-- Main Workstation Layout -->
+  <div class="flex-1 flex flex-col h-screen overflow-hidden">
+    
+    <!-- Top Metric Strip -->
+    <header class="bg-white border-b border-zinc-200 px-6 py-3 flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-3">
+        <span class="px-2.5 py-0.5 rounded-full bg-zinc-900 text-white text-[10px] font-extrabold uppercase tracking-widest">Option 3 · Data Console Grid</span>
+        <h1 class="text-sm font-extrabold text-zinc-900">High-Density Prospect Table</h1>
+      </div>
+
+      <!-- Monochrome Metric Chips -->
+      <div class="flex items-center gap-2 text-[11px] font-bold">
+        <span class="px-2.5 py-1 bg-zinc-900 text-white rounded-lg border border-zinc-900">Total: 48</span>
+        <span class="px-2.5 py-1 bg-zinc-100 text-zinc-700 rounded-lg border border-zinc-200">Hot: 12</span>
+        <span class="px-2.5 py-1 bg-zinc-100 text-zinc-700 rounded-lg border border-zinc-200">Warm: 18</span>
+        <span class="px-2.5 py-1 bg-zinc-100 text-zinc-500 rounded-lg border border-zinc-200">Closed: 12</span>
+      </div>
+    </header>
+
+    <!-- Table & Drawer Grid -->
+    <div class="flex-1 grid grid-cols-12 overflow-hidden">
+      
+      <!-- Main High-Density Table (9 Cols) -->
+      <div class="col-span-9 bg-white overflow-y-auto border-r border-zinc-200">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-zinc-50 border-b border-zinc-200 text-zinc-500 font-bold uppercase text-[10px] sticky top-0">
+            <tr>
+              <th class="p-3">Client Name</th>
+              <th class="p-3">Phone & Email</th>
+              <th class="p-3">Source</th>
+              <th class="p-3">Location</th>
+              <th class="p-3">Budget Max</th>
+              <th class="p-3">Stage</th>
+              <th class="p-3 text-right">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-zinc-100 font-medium">
+            <tr class="hover:bg-zinc-50 cursor-pointer bg-zinc-50/80 font-bold border-l-4 border-l-[#d4ad4d]">
+              <td class="p-3 text-zinc-900 font-extrabold">Rajesh Sharma</td>
+              <td class="p-3 text-zinc-600">+91 98220 12345</td>
+              <td class="p-3"><span class="px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-700 text-[10px] font-mono">99ACRES</span></td>
+              <td class="p-3 text-zinc-800">Kalyani Nagar</td>
+              <td class="p-3 font-extrabold text-[#b4882d]">₹1.50 Cr</td>
+              <td class="p-3 text-zinc-700">Site Visit</td>
+              <td class="p-3 text-right"><span class="px-2 py-0.5 rounded bg-zinc-950 text-white text-[10px] font-bold">HOT</span></td>
+            </tr>
+
+            <tr class="hover:bg-zinc-50 cursor-pointer">
+              <td class="p-3 text-zinc-900 font-extrabold">Priya Deshmukh</td>
+              <td class="p-3 text-zinc-600">+91 97654 88901</td>
+              <td class="p-3"><span class="px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-700 text-[10px] font-mono">WEBSITE</span></td>
+              <td class="p-3 text-zinc-800">Baner</td>
+              <td class="p-3 font-extrabold text-[#b4882d]">₹95 L</td>
+              <td class="p-3 text-zinc-700">Follow up</td>
+              <td class="p-3 text-right"><span class="px-2 py-0.5 rounded bg-zinc-100 text-zinc-800 border border-zinc-300 text-[10px] font-bold">WARM</span></td>
+            </tr>
+
+            <tr class="hover:bg-zinc-50 cursor-pointer">
+              <td class="p-3 text-zinc-900 font-extrabold">Amitabh Malhotra</td>
+              <td class="p-3 text-zinc-600">+91 98900 11223</td>
+              <td class="p-3"><span class="px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-700 text-[10px] font-mono">REFERRAL</span></td>
+              <td class="p-3 text-zinc-800">Vimannagar</td>
+              <td class="p-3 font-extrabold text-[#b4882d]">₹2.50 Cr</td>
+              <td class="p-3 text-zinc-700">Closure</td>
+              <td class="p-3 text-right"><span class="px-2 py-0.5 rounded bg-zinc-950 text-white text-[10px] font-bold">HOT</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Quick Lead Action Drawer (3 Cols) -->
+      <div class="col-span-3 bg-zinc-50 p-4 space-y-3 overflow-y-auto">
+        <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Selected Prospect</span>
+
+        <div class="bg-white p-3.5 rounded-xl border border-zinc-200 space-y-2 text-xs">
+          <div class="flex justify-between items-center border-b border-zinc-100 pb-2">
+            <span class="font-extrabold text-zinc-900 text-sm">Rajesh Sharma</span>
+            <span class="px-2 py-0.5 rounded bg-zinc-950 text-white text-[10px] font-bold">HOT</span>
+          </div>
+          <p class="text-[11px] text-zinc-600 font-medium">3 BHK Apartment • Kalyani Nagar</p>
+          <p class="text-xs font-extrabold text-[#b4882d]">Budget: ₹1.50 Cr</p>
+        </div>
+
+        <button class="w-full py-2.5 rounded-xl bg-zinc-950 text-white font-bold text-xs uppercase tracking-wider">
+          Export WhatsApp Summary
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+</body>
+</html>

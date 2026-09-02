@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Creative Studio - Dark Cyber-Gold AI Command Center</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #09090b; color: #f4f4f5; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .gold-gradient { background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%); }
+    .gold-glow { box-shadow: 0 0 25px -5px rgba(245, 158, 11, 0.25); }
+    .glass-card { background: rgba(18, 18, 22, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    .glass-input { background: rgba(24, 24, 30, 0.9); border: 1px solid rgba(255, 255, 255, 0.12); }
+  </style>
+</head>
+<body class="min-h-screen p-6 md:p-10 flex flex-col justify-between">
+
+  <!-- Header -->
+  <header class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-8 border-b border-zinc-800">
+    <div class="space-y-1">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-bold uppercase tracking-widest">
+        <svg class="w-3.5 h-3.5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        NVIDIA Nemotron 3 Super Powered
+      </div>
+      <h1 class="text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
+        Creative Studio <span class="text-xs px-2.5 py-0.5 rounded bg-zinc-800 text-zinc-400 font-mono">Option 1 · Dark Cyber-Gold</span>
+      </h1>
+      <p class="text-sm text-zinc-400">Generate high-converting property ad copy with zero-hallucination factual AI.</p>
+    </div>
+    
+    <div class="flex items-center gap-3">
+      <button class="px-4 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs font-semibold hover:border-amber-500/50 transition">History (12)</button>
+      <button class="px-5 py-2.5 rounded-lg gold-gradient text-zinc-950 text-xs font-bold hover:brightness-110 transition gold-glow flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+        New Campaign
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Grid -->
+  <main class="grid grid-cols-1 lg:grid-cols-12 gap-8 my-8 flex-1">
+    
+    <!-- Control Panel -->
+    <section class="lg:col-span-5 space-y-6">
+      
+      <!-- Property Drawer -->
+      <div class="glass-card rounded-2xl p-6 space-y-4">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase text-amber-500 tracking-wider">Step 1 · Target Inventory</span>
+          <span class="text-xs text-zinc-400 font-mono">8 Active Units</span>
+        </div>
+        
+        <div class="space-y-2">
+          <label class="text-xs text-zinc-400 font-medium">Select Property</label>
+          <div class="w-full p-3.5 rounded-xl glass-input flex items-center justify-between text-sm font-bold text-white cursor-pointer hover:border-amber-500/40 transition">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold text-xs">P1</div>
+              <div>
+                <p class="font-bold">Luxe Azure Palms - Tower A</p>
+                <p class="text-xs text-zinc-400 font-normal">Kalyani Nagar, Pune • 3 BHK (1680 sq.ft.)</p>
+              </div>
+            </div>
+            <span class="text-xs font-extrabold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded">₹1.35 Cr</span>
+          </div>
+        </div>
+
+        <!-- Property Quick Facts Shield -->
+        <div class="p-4 rounded-xl bg-zinc-900/90 border border-zinc-800 space-y-2 text-xs">
+          <div class="flex justify-between text-zinc-400">
+            <span>Listing Type: <strong class="text-zinc-200">Exclusive Mandate</strong></span>
+            <span>Unit Code: <strong class="text-amber-400 font-mono">A-1204</strong></span>
+          </div>
+          <p class="text-zinc-300 italic text-[11px] border-t border-zinc-800/80 pt-2">
+            "Panoramic riverfront views, Italian marble flooring, modular German kitchen."
+          </p>
+        </div>
+      </div>
+
+      <!-- Platform Tuner -->
+      <div class="glass-card rounded-2xl p-6 space-y-4">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase text-amber-500 tracking-wider">Step 2 · Channel Strategy</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <button class="p-3 rounded-xl border border-amber-500 bg-amber-500/10 text-amber-300 text-xs font-bold flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-amber-400"></span> Facebook Ad
+          </button>
+          <button class="p-3 rounded-xl border border-zinc-800 bg-zinc-900/50 text-zinc-400 text-xs font-semibold hover:border-zinc-700">
+            Instagram Story
+          </button>
+          <button class="p-3 rounded-xl border border-zinc-800 bg-zinc-900/50 text-zinc-400 text-xs font-semibold hover:border-zinc-700">
+            WhatsApp Direct
+          </button>
+          <button class="p-3 rounded-xl border border-zinc-800 bg-zinc-900/50 text-zinc-400 text-xs font-semibold hover:border-zinc-700">
+            Portal Listing
+          </button>
+        </div>
+
+        <button class="w-full py-3.5 rounded-xl gold-gradient text-zinc-950 font-extrabold text-sm gold-glow hover:brightness-110 transition flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L5.6 15.11a2 2 0 01-1.397-1.397l-.477-2.387a6 6 0 00.517-3.86l.158-.318a6 6 0 01.517-3.86L4.89 3.6a2 2 0 011.397-1.397l2.387-.477a6 6 0 003.86-.517l.318-.158a6 6 0 013.86-.517l2.387.477a2 2 0 011.397 1.397l.477 2.387a6 6 0 00-.517 3.86l-.158.318a6 6 0 01-.517 3.86l.477 2.387a2 2 0 01-1.397 1.397z"/></svg>
+          Generate Ad Variations (NVIDIA)
+        </button>
+      </div>
+
+    </section>
+
+    <!-- Canvas Output -->
+    <section class="lg:col-span-7 space-y-4">
+      <div class="flex items-center justify-between px-2">
+        <h2 class="text-sm font-bold uppercase tracking-wider text-zinc-300">Generated Ad Variations (3)</h2>
+        <span class="text-xs text-amber-400 font-mono">Grounding Score: 100% Fact Checked</span>
+      </div>
+
+      <!-- Variations Cards Stack -->
+      <div class="space-y-4">
+        
+        <!-- Card 1 -->
+        <div class="glass-card rounded-2xl p-6 space-y-4 border-l-4 border-l-amber-500 hover:border-zinc-700 transition">
+          <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+            <span class="text-xs font-bold text-amber-400 uppercase tracking-widest">Variation 1 · High Impact</span>
+            <button class="text-xs text-zinc-400 hover:text-white flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800">
+              <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+              Copy Full Copy
+            </button>
+          </div>
+
+          <div class="space-y-2">
+            <span class="text-[10px] text-zinc-500 uppercase font-mono tracking-wider">Headline</span>
+            <p class="text-base font-bold text-white">Discover Elevated Living at Luxe Azure Palms - Tower A in Kalyani Nagar</p>
+          </div>
+
+          <div class="space-y-2">
+            <span class="text-[10px] text-zinc-500 uppercase font-mono tracking-wider">Primary Ad Copy</span>
+            <p class="text-xs text-zinc-300 leading-relaxed bg-zinc-950/60 p-3.5 rounded-xl border border-zinc-800/80">
+              Step into timeless elegance with this spacious 3 BHK Apartment situated in the prime enclave of Kalyani Nagar. Spanning 1680 sq.ft. of meticulously planned layout, this home offers refined living tailored for modern families. Available at ₹1.35 Cr.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 pt-2">
+            <div class="space-y-1">
+              <span class="text-[10px] text-zinc-500 uppercase font-mono tracking-wider">Short Description</span>
+              <p class="text-xs text-zinc-400">Exclusive 3 BHK Apartment in Kalyani Nagar spanning 1680 sq.ft. for ₹1.35 Cr.</p>
+            </div>
+            <div class="space-y-1">
+              <span class="text-[10px] text-zinc-500 uppercase font-mono tracking-wider">Call to Action</span>
+              <p class="text-xs font-bold text-amber-400">Schedule Your Private Site Tour →</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="pt-6 border-t border-zinc-800 text-xs text-zinc-500 flex justify-between items-center">
+    <span>Option 1 · Dark Cyber-Gold AI Studio</span>
+    <span>Huashu Design System 2026</span>
+  </footer>
+
+</body>
+</html>

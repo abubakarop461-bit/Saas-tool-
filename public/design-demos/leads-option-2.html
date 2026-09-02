@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leads Database - Option 2: Premium Editorial Stacker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #fafafa; color: #18181b; }
+    .serif { font-family: 'Newsreader', Georgia, serif; }
+    .gold-accent { color: #d4ad4d; }
+    .gold-bg { background-color: #d4ad4d; }
+    .sidebar-dark { background-color: #09090b; color: #f4f4f5; }
+    .paper-card { background-color: #ffffff; border: 1px solid #e4e4e7; }
+  </style>
+</head>
+<body class="h-screen flex overflow-hidden">
+
+  <!-- ERP Dark Sidebar Replica -->
+  <aside class="w-64 sidebar-dark flex flex-col justify-between p-4 border-r border-zinc-800 shrink-0 hidden md:flex">
+    <div class="space-y-6">
+      <div class="flex items-center gap-2 px-2">
+        <div class="h-8 w-8 rounded-lg gold-bg text-zinc-950 font-black flex items-center justify-center text-sm">LR</div>
+        <div>
+          <h2 class="font-extrabold text-sm text-white tracking-wider">LUXE REALTY</h2>
+          <p class="text-[10px] text-zinc-500 font-mono">ENTERPRISE ERP</p>
+        </div>
+      </div>
+      <nav class="space-y-1 text-xs font-semibold text-zinc-400">
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-900 hover:text-white">Dashboard</a>
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-zinc-900 text-white border-l-2 border-[#d4ad4d]">Leads</a>
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-900 hover:text-white">Properties</a>
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-900 hover:text-white">Unit Inventory</a>
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-900 hover:text-white">Creative Studio</a>
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-900 hover:text-white">Ad Performance</a>
+      </nav>
+    </div>
+    <div class="text-[10px] text-zinc-600 px-2 font-mono">v2.4 • Connected to D1</div>
+  </aside>
+
+  <!-- Main Canvas -->
+  <div class="flex-1 flex flex-col h-screen overflow-hidden">
+    
+    <!-- Top Editorial Header Bar -->
+    <header class="bg-zinc-950 text-white p-4 border-b border-zinc-850 flex flex-wrap items-center justify-between gap-4 shrink-0">
+      <div class="flex items-center gap-3">
+        <span class="px-2.5 py-0.5 rounded-full bg-[#d4ad4d]/20 text-[#d4ad4d] text-[10px] font-extrabold uppercase tracking-widest">Option 2 · Premium Editorial</span>
+        <h1 class="text-sm serif italic text-zinc-200">Architectural Prospect Pipeline</h1>
+      </div>
+
+      <div class="flex items-center gap-3 text-xs">
+        <div class="flex items-center gap-2 text-[11px] font-mono text-zinc-400">
+          <span class="px-2 py-1 bg-zinc-900 text-zinc-300 rounded border border-zinc-800">Total: 48</span>
+          <span class="px-2 py-1 bg-zinc-900 text-zinc-300 rounded border border-zinc-800">Hot: 12</span>
+          <span class="px-2 py-1 bg-zinc-900 text-zinc-300 rounded border border-zinc-800">Closed: 12</span>
+        </div>
+        <button class="px-4 py-1.5 rounded-lg bg-[#d4ad4d] text-zinc-950 font-extrabold text-xs">+ New Lead</button>
+      </div>
+    </header>
+
+    <!-- Stage Stack Viewport (Single Screen) -->
+    <div class="flex-1 p-6 space-y-4 overflow-y-auto">
+      
+      <div class="flex items-center justify-between border-b border-zinc-200 pb-3">
+        <span class="text-xs font-bold text-zinc-900 uppercase tracking-widest">Lead Stages Matrix</span>
+        <span class="text-xs text-zinc-500 font-medium italic">Click cards to trigger instant WhatsApp summary</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- Stage 1: New Enquiries -->
+        <div class="paper-card rounded-2xl p-5 space-y-4">
+          <div class="flex justify-between items-center border-b border-zinc-200 pb-2">
+            <span class="text-xs font-bold text-zinc-900 uppercase tracking-widest">Stage 1 · New Enquiries</span>
+            <span class="text-xs font-mono text-zinc-400">14 Leads</span>
+          </div>
+
+          <div class="space-y-3 text-xs">
+            <div class="p-3.5 rounded-xl bg-white border border-zinc-200 hover:border-zinc-900 transition cursor-pointer">
+              <div class="flex justify-between items-start">
+                <div>
+                  <span class="font-extrabold text-zinc-900 text-sm">Rajesh Sharma</span>
+                  <p class="text-[11px] text-zinc-500">Kalyani Nagar • 3 BHK</p>
+                </div>
+                <span class="px-2 py-0.5 rounded bg-zinc-900 text-white text-[9px] font-bold">HOT</span>
+              </div>
+              <div class="mt-2 pt-2 border-t border-zinc-100 flex justify-between text-[10px] font-bold text-zinc-600">
+                <span>Budget: ₹1.5 Cr</span>
+                <span class="text-[#b4882d]">Contact Now →</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stage 2: Site Visits Scheduled -->
+        <div class="paper-card rounded-2xl p-5 space-y-4">
+          <div class="flex justify-between items-center border-b border-zinc-200 pb-2">
+            <span class="text-xs font-bold text-zinc-900 uppercase tracking-widest">Stage 2 · Site Visits</span>
+            <span class="text-xs font-mono text-zinc-400">18 Leads</span>
+          </div>
+
+          <div class="space-y-3 text-xs">
+            <div class="p-3.5 rounded-xl bg-white border border-zinc-200 hover:border-zinc-900 transition cursor-pointer">
+              <div class="flex justify-between items-start">
+                <div>
+                  <span class="font-extrabold text-zinc-900 text-sm">Priya Deshmukh</span>
+                  <p class="text-[11px] text-zinc-500">Baner • 2 BHK</p>
+                </div>
+                <span class="px-2 py-0.5 rounded bg-zinc-100 text-zinc-800 text-[9px] font-bold border border-zinc-300">WARM</span>
+              </div>
+              <div class="mt-2 pt-2 border-t border-zinc-100 flex justify-between text-[10px] font-bold text-zinc-600">
+                <span>Budget: ₹95 L</span>
+                <span class="text-zinc-900">Visit: Tomorrow →</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stage 3: Negotiation & Closure -->
+        <div class="paper-card rounded-2xl p-5 space-y-4">
+          <div class="flex justify-between items-center border-b border-zinc-200 pb-2">
+            <span class="text-xs font-bold text-zinc-900 uppercase tracking-widest">Stage 3 · Closure</span>
+            <span class="text-xs font-mono text-zinc-400">16 Leads</span>
+          </div>
+
+          <div class="space-y-3 text-xs">
+            <div class="p-3.5 rounded-xl bg-white border border-zinc-200 hover:border-zinc-900 transition cursor-pointer">
+              <div class="flex justify-between items-start">
+                <div>
+                  <span class="font-extrabold text-zinc-900 text-sm">Amitabh Malhotra</span>
+                  <p class="text-[11px] text-zinc-500">Vimannagar • 4.5 BHK</p>
+                </div>
+                <span class="px-2 py-0.5 rounded bg-zinc-900 text-white text-[9px] font-bold">HOT</span>
+              </div>
+              <div class="mt-2 pt-2 border-t border-zinc-100 flex justify-between text-[10px] font-bold text-zinc-600">
+                <span>Budget: ₹2.5 Cr</span>
+                <span class="text-[#b4882d]">Token Pending →</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</body>
+</html>
