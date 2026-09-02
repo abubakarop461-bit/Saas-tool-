@@ -154,12 +154,55 @@ export default function AdPerformancePage() {
   // DATA ATTRIBUTION COMPUTATION
   // ─────────────────────────────────────────────────────────────
   const computedMetrics = useMemo(() => {
-    // Filter leads by property if selected
+    const targetProperty = selectedPropertyId === 'All'
+      ? null
+      : properties.find(p => p.id === selectedPropertyId) || null;
+
+    // Helper: match lead to selected target property
+    const leadMatchesProperty = (l: Lead): boolean => {
+      if (!targetProperty) return true;
+
+      // 1. Explicit SiteVisit match
+      const hasDirectVisit = siteVisits.some(sv => sv.lead_id === l.id && sv.property_id === targetProperty.id);
+      if (hasDirectVisit) return true;
+
+      // 2. Notes match on property title or property code keywords
+      const notesLower = (l.notes || '').toLowerCase();
+      const titleLower = targetProperty.title.toLowerCase();
+      const codeLower = (targetProperty.property_code || '').toLowerCase();
+      
+      const titleKeywords = titleLower
+        .split(' ')
+        .filter(w => w.length > 3 && !['tower', 'towers', 'grand', 'residences', 'west', 'wing', 'skyline', 'duplex'].includes(w));
+      const matchesKeywords = titleKeywords.length > 0 && titleKeywords.every(kw => notesLower.includes(kw));
+
+      if (notesLower.includes(titleLower) || (codeLower && notesLower.includes(codeLower)) || matchesKeywords) {
+        return true;
+      }
+
+      // 3. Location & Property Type / Configuration match
+      const locMatches = Boolean(l.preferred_location && l.preferred_location.toLowerCase() === targetProperty.location.toLowerCase());
+      const typeMatches = Boolean(l.property_type && l.property_type.toLowerCase() === targetProperty.property_type.toLowerCase());
+      const configMatches = Boolean(l.configuration && l.configuration.toLowerCase() === targetProperty.configuration.toLowerCase());
+
+      return Boolean(locMatches && (typeMatches || configMatches));
+    };
+
+    // Filter leads by selected property
     const filteredLeads = selectedPropertyId === 'All'
       ? leads
-      : leads.filter(l => l.preferred_location || l.property_type); // properties query match
+      : leads.filter(leadMatchesProperty);
 
-    // 1. Detect all unique lead sources
+    const filteredLeadIds = new Set(filteredLeads.map(l => l.id));
+
+    // Filter site visits by selected property
+    const filteredVisits = selectedPropertyId === 'All'
+      ? siteVisits
+      : siteVisits.filter(sv => 
+          sv.property_id === selectedPropertyId || (sv.lead_id && filteredLeadIds.has(sv.lead_id))
+        );
+
+    // Detect unique lead sources for the active filter
     const sourceSet = new Set<string>();
     filteredLeads.forEach(l => {
       if (l.lead_source_id && l.lead_source_id.trim()) {
@@ -167,8 +210,9 @@ export default function AdPerformancePage() {
       }
     });
 
-    // Also add any sources present in adSpendMap
-    Object.keys(adSpendMap).forEach(s => sourceSet.add(s));
+    if (selectedPropertyId === 'All') {
+      Object.keys(adSpendMap).forEach(s => sourceSet.add(s));
+    }
 
     const sourceList = Array.from(sourceSet);
 
@@ -178,15 +222,40 @@ export default function AdPerformancePage() {
 
     // Group site visits by lead's source
     const visitCountBySource: Record<string, number> = {};
-    siteVisits.forEach(sv => {
+    filteredVisits.forEach(sv => {
       if (sv.lead_id) {
-        const lead = leadMap.get(sv.lead_id);
+        const lead = leadMap.get(sv.lead_id) || leads.find(l => l.id === sv.lead_id);
         if (lead && lead.lead_source_id) {
           const src = lead.lead_source_id.trim();
-          visitCountBySource[src] = (visitCountBySource[src] || 0) + 1;
+          if (selectedPropertyId === 'All' || sourceSet.has(src)) {
+            visitCountBySource[src] = (visitCountBySource[src] || 0) + 1;
+          }
         }
       }
     });
+
+    // Helper: match transaction to selected target property
+    const txMatchesProperty = (tx: DealTransaction): boolean => {
+      if (!targetProperty) return true;
+      const txTitleLower = (tx.property_title || '').toLowerCase();
+      const targetTitleLower = targetProperty.title.toLowerCase();
+      
+      const titleKeywords = targetTitleLower
+        .split(' ')
+        .filter(w => w.length > 3 && !['tower', 'towers', 'grand', 'residences', 'west', 'wing', 'skyline', 'duplex'].includes(w));
+      const matchesKeywords = titleKeywords.length > 0 && titleKeywords.every(kw => txTitleLower.includes(kw));
+
+      if (txTitleLower.includes(targetTitleLower) || matchesKeywords) return true;
+
+      // Or matches a client lead for this property
+      const normClient = normalizeName(tx.client_name);
+      return filteredLeads.some(l => normalizeName(l.client_name) === normClient);
+    };
+
+    // Filter transactions by selected property
+    const filteredTxs = selectedPropertyId === 'All'
+      ? transactions
+      : transactions.filter(txMatchesProperty);
 
     // Match Transactions conservatively to Leads by exact normalized client name
     const txBySource: Record<string, { count: number; revenue: number }> = {};
@@ -194,7 +263,7 @@ export default function AdPerformancePage() {
     let totalUnattributedDeals = 0;
 
     // Filter closed/completed transactions
-    const completedTxs = transactions.filter(t => 
+    const completedTxs = filteredTxs.filter(t => 
       t.booking_status === 'Completed' || 
       ['Possession', 'Booking', 'Agreement'].includes(t.current_stage)
     );
@@ -202,7 +271,7 @@ export default function AdPerformancePage() {
     completedTxs.forEach(tx => {
       const normTxClient = normalizeName(tx.client_name);
       
-      // Find matching leads
+      // Find matching leads in filteredLeads
       const matchedLeads = filteredLeads.filter(l => normalizeName(l.client_name) === normTxClient);
 
       if (matchedLeads.length === 1 && matchedLeads[0].lead_source_id) {
@@ -212,7 +281,7 @@ export default function AdPerformancePage() {
         txBySource[src].count += 1;
         txBySource[src].revenue += Number(tx.deal_value) || 0;
       } else {
-        // Ambigous or zero match -> Source Not Identified
+        // Ambiguous or zero match -> Source Not Identified
         totalUnattributedDeals += 1;
         totalUnattributedRevenue += Number(tx.deal_value) || 0;
       }
@@ -221,7 +290,18 @@ export default function AdPerformancePage() {
     // Build metrics list for each source
     const rows: SourceMetrics[] = sourceList.map(source => {
       const category = categorizeSource(source);
-      const spend = adSpendMap[source] ?? 0;
+
+      // Property spend allocation
+      let spend = adSpendMap[source] ?? 0;
+      if (selectedPropertyId !== 'All') {
+        const totalLeadsForSource = leads.filter(l => l.lead_source_id === source).length;
+        const propertyLeadsForSource = filteredLeads.filter(l => l.lead_source_id === source).length;
+        if (totalLeadsForSource > 0) {
+          spend = (spend * propertyLeadsForSource) / totalLeadsForSource;
+        } else if (propertyLeadsForSource === 0) {
+          spend = 0;
+        }
+      }
 
       const sourceLeads = filteredLeads.filter(l => l.lead_source_id === source);
       const leadsCount = sourceLeads.length;
@@ -263,7 +343,7 @@ export default function AdPerformancePage() {
       totalUnattributedRevenue,
       totalUnattributedDeals
     };
-  }, [leads, siteVisits, transactions, adSpendMap, selectedPropertyId]);
+  }, [leads, properties, siteVisits, transactions, adSpendMap, selectedPropertyId]);
 
   // Filter rows by Category & Search Query
   const filteredRows = useMemo(() => {
