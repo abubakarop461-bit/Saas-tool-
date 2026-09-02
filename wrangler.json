@@ -13,12 +13,6 @@
       "database_id": "806d1c52-424d-43bf-8ffb-8e7b12ea9344"
     }
   ],
-  "r2_buckets": [
-    {
-      "binding": "STORAGE",
-      "bucket_name": "saas-tool-storage"
-    }
-  ],
   "ai": {
     "binding": "AI"
   }
