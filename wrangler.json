@@ -10,7 +10,7 @@
     {
       "binding": "DB",
       "database_name": "saas-tool-db",
-      "database_id": "local-saas-tool-db"
+      "database_id": "806d1c52-424d-43bf-8ffb-8e7b12ea9344"
     }
   ],
   "r2_buckets": [
