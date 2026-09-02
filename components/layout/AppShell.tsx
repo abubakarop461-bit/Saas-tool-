@@ -26,18 +26,18 @@ function AuthGate({ children }: { children: ReactNode }) {
       <div className="fixed inset-0 z-[999] flex items-center justify-center bg-[#fafaf8]">
         <div className="text-center space-y-6 flex flex-col items-center justify-center">
           
-          {/* Animated Gold Ring Spinner with Monogram */}
+          {/* Animated Gold Ring Spinner with Logo */}
           <div className="relative flex items-center justify-center w-16 h-16">
             <div className="absolute inset-0 rounded-full border-[3px] border-[#d4ad4d]/10" />
             <div className="absolute inset-0 rounded-full border-[3px] border-t-[#d4ad4d] border-r-transparent border-b-transparent border-l-transparent animate-spin duration-1000" />
-            <div className="w-11 h-11 rounded-full bg-[#d4ad4d] text-white flex items-center justify-center font-extrabold text-xs shadow-[0_4px_16px_rgba(212,173,77,0.3)]">
-              LR
+            <div className="w-12 h-12 rounded-full bg-white border border-zinc-200 flex items-center justify-center p-1.5 shadow-[0_4px_16px_rgba(212,173,77,0.2)]">
+              <img src="/oglogo.png" alt="Outgrow Logo" className="h-full w-auto object-contain" />
             </div>
           </div>
 
           <div className="space-y-1">
             <h2 className="text-[11px] font-black text-zinc-900 uppercase tracking-[0.25em]" style={{ letterSpacing: '0.25em' }}>
-              Luxe Realty
+              Outgrow
             </h2>
             <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest animate-pulse">
               Authenticating Session

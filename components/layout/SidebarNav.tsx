@@ -53,9 +53,9 @@ export function SidebarNav({ onClose, className = '' }: { onClose?: () => void; 
         <div className="px-1 pt-1 pb-2 flex items-center justify-center">
           <Link href="/dashboard" className="block group">
             <img 
-              src="/luxe-logo.png" 
-              alt="Luxe Realty Logo" 
-              className="h-13 w-auto object-contain transition-transform group-hover:scale-105" 
+              src="/oglogo.png" 
+              alt="Outgrow Logo" 
+              className="h-12 w-auto object-contain transition-transform group-hover:scale-105" 
             />
           </Link>
         </div>
