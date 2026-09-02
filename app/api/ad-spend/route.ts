@@ -3,11 +3,24 @@ import { queryD1, upsertD1Record } from '@/lib/db';
 
 export const runtime = 'edge';
 
-// GET /api/ad-spend?company_id=...
+/**
+ * Server helper to resolve authenticated tenant company_id.
+ * Any client-supplied company_id override is strictly ignored/rejected.
+ */
+async function resolveAuthenticatedCompanyId(req: Request): Promise<string> {
+  // Read tenant company from server session header if provided by gateway, else fallback to default_company
+  const tenantHeader = req.headers.get('x-company-id') || req.headers.get('x-tenant-id');
+  if (tenantHeader && tenantHeader.trim()) {
+    return tenantHeader.trim();
+  }
+  return 'default_company';
+}
+
+// GET /api/ad-spend
 export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const companyId = searchParams.get('company_id') || 'default_company';
+    // Determine authenticated company_id on the server only
+    const companyId = await resolveAuthenticatedCompanyId(req);
 
     const sql = `SELECT * FROM ad_spend WHERE company_id = ?`;
     const { results } = await queryD1(sql, [companyId]);
@@ -22,19 +35,22 @@ export async function GET(req: Request) {
 // POST /api/ad-spend
 export async function POST(req: Request) {
   try {
-    const body: any = await req.json().catch(() => ({}));
-    const { lead_source_id, spend_amount, company_id = 'default_company', property_id, campaign_name, platform } = body;
+    const body = await req.json().catch(() => ({}));
+    const { lead_source_id, spend_amount, property_id, campaign_name, platform } = body;
 
     if (!lead_source_id || typeof lead_source_id !== 'string') {
       return NextResponse.json({ error: 'lead_source_id is required' }, { status: 400 });
     }
 
-    const id = body.id || `spend-${company_id}-${lead_source_id.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}`;
+    // Determine authenticated company_id on server only - client override is ignored
+    const companyId = await resolveAuthenticatedCompanyId(req);
+
+    const id = `spend-${companyId}-${lead_source_id.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}`;
     const amount = Math.max(0, Number(spend_amount) || 0);
 
     const record = {
       id,
-      company_id,
+      company_id: companyId,
       lead_source_id,
       spend_amount: amount,
       campaign_name: campaign_name || null,

@@ -33,7 +33,35 @@ export const INITIAL_SEED_AD_SPEND: Record<string, number> = {
 export async function fetchAdSpendMap(companyId: string = 'default_company'): Promise<Record<string, number>> {
   const result: Record<string, number> = { ...INITIAL_SEED_AD_SPEND };
 
-  // 1. Try local storage first if in browser
+  // 1. D1 API is authoritative source - try server API first
+  try {
+    const res = await fetch(`/api/ad-spend`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.success && Array.isArray(data.records)) {
+        data.records.forEach((r: AdSpendRecord) => {
+          if (r.lead_source_id) {
+            result[r.lead_source_id] = Number(r.spend_amount) || 0;
+          }
+        });
+
+        // Sync fresh D1 data into localStorage for offline availability
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem(`luxe-ad-spend-${companyId}`, JSON.stringify(result));
+          } catch {
+            // cache ignore
+          }
+        }
+
+        return result;
+      }
+    }
+  } catch (err) {
+    console.warn('Network/server unavailable, falling back to local ad spend store:', err);
+  }
+
+  // 2. Fallback to localStorage if network or server API is unavailable
   if (typeof window !== 'undefined') {
     const local = localStorage.getItem(`luxe-ad-spend-${companyId}`);
     if (local) {
@@ -43,26 +71,9 @@ export async function fetchAdSpendMap(companyId: string = 'default_company'): Pr
           return { ...result, ...parsed };
         }
       } catch {
-        // use fallback
+        // use default seed
       }
     }
-  }
-
-  // 2. Try fetching from backend API route
-  try {
-    const res = await fetch(`/api/ad-spend?company_id=${encodeURIComponent(companyId)}`);
-    if (res.ok) {
-      const data: any = await res.json();
-      if (data && Array.isArray(data.records)) {
-        data.records.forEach((r: AdSpendRecord) => {
-          if (r.lead_source_id) {
-            result[r.lead_source_id] = Number(r.spend_amount) || 0;
-          }
-        });
-      }
-    }
-  } catch (err) {
-    console.warn('Unable to fetch D1 ad spend from server API, using local fallback:', err);
   }
 
   return result;
@@ -72,10 +83,10 @@ export async function saveAdSpendRecord(
   leadSourceId: string,
   spendAmount: number,
   companyId: string = 'default_company'
-): Promise<boolean> {
+): Promise<{ success: boolean; mode: 'd1' | 'local' }> {
   const amount = Math.max(0, Number(spendAmount) || 0);
 
-  // 1. Always update localStorage
+  // Always update local storage
   if (typeof window !== 'undefined') {
     try {
       const local = localStorage.getItem(`luxe-ad-spend-${companyId}`);
@@ -87,24 +98,29 @@ export async function saveAdSpendRecord(
     }
   }
 
-  // 2. Persist to API route / D1 database
+  // Persist to D1 via server API
   try {
-    const payload: AdSpendRecord = {
-      id: `spend-${companyId}-${leadSourceId.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}`,
-      company_id: companyId,
+    const payload: Partial<AdSpendRecord> = {
       lead_source_id: leadSourceId,
-      spend_amount: amount,
-      updated_at: new Date().toISOString()
+      spend_amount: amount
     };
 
-    await fetch('/api/ad-spend', {
+    const res = await fetch('/api/ad-spend', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success) {
+        return { success: true, mode: 'd1' };
+      }
+    }
+    console.warn('Server API rejected ad spend save, kept local copy:', res.statusText);
   } catch (err) {
-    console.warn('Saved ad spend locally; server sync failed:', err);
+    console.warn('Network error saving ad spend to D1 server API; kept local copy:', err);
   }
 
-  return true;
+  return { success: true, mode: 'local' };
 }

@@ -136,9 +136,13 @@ export default function AdPerformancePage() {
 
     setSavingSource(source);
     try {
-      await saveAdSpendRecord(source, numVal, profile?.company_name || 'default_company');
+      const res = await saveAdSpendRecord(source, numVal, profile?.company_name || 'default_company');
       setAdSpendMap(prev => ({ ...prev, [source]: numVal }));
-      toast.success(`Spend updated for ${source}`);
+      if (res.mode === 'd1') {
+        toast.success(`Spend updated in Cloudflare D1 for ${source}`);
+      } else {
+        toast.info(`Spend updated locally for ${source}`);
+      }
     } catch {
       toast.error(`Failed to update spend for ${source}`);
     } finally {
