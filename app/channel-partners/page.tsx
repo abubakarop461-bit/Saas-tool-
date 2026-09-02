@@ -25,8 +25,7 @@ import {
   TrendingUp, 
   AlertTriangle, 
   LayoutGrid, 
-  Rows3, 
-  Columns2 
+  Rows3 
 } from 'lucide-react';
 import { formatCurrency, formatPriceShort } from '@/lib/formatters';
 import { InlineStatsBar } from '@/components/ui/InlineStatsBar';
@@ -45,8 +44,8 @@ import {
 export type { ChannelPartner, CommissionEntry };
 
 export default function ChannelPartnersAndCommissionsPage() {
-  // Layout arrangement: 'stacked' (one below the other 100% width) | 'side-by-side' (50/50 split) | 'partners' | 'commissions'
-  const [layoutMode, setLayoutMode] = useState<'stacked' | 'side-by-side' | 'partners' | 'commissions'>('stacked');
+  // Layout arrangement: 'all' | 'partners' | 'commissions'
+  const [layoutMode, setLayoutMode] = useState<'all' | 'partners' | 'commissions'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [partnerTierFilter, setPartnerTierFilter] = useState('All');
   const [commissionStatusFilter, setCommissionStatusFilter] = useState('All');
@@ -244,39 +243,30 @@ export default function ChannelPartnersAndCommissionsPage() {
           {/* Header Actions */}
           <div className="flex flex-wrap items-center gap-2 shrink-0">
             
-            {/* Layout Arranger (Stacked below vs 50/50 side-by-side) */}
+            {/* View Filter (All, Partners, Commissions) */}
             <div className="dc-seg">
               <button
                 type="button"
-                onClick={() => setLayoutMode('stacked')}
-                className={`dc-seg-btn flex items-center gap-1 ${layoutMode === 'stacked' ? 'on' : ''}`}
-                title="Stack tables vertically (100% full width)"
+                onClick={() => setLayoutMode('all')}
+                className={`dc-seg-btn flex items-center gap-1 ${layoutMode === 'all' ? 'on' : ''}`}
+                title="Show all sections"
               >
                 <Rows3 className="h-3.5 w-3.5" />
-                <span>Stacked</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setLayoutMode('side-by-side')}
-                className={`dc-seg-btn flex items-center gap-1 ${layoutMode === 'side-by-side' ? 'on' : ''}`}
-                title="50% / 50% split view"
-              >
-                <Columns2 className="h-3.5 w-3.5" />
-                <span>50 / 50</span>
+                <span>All</span>
               </button>
               <button
                 type="button"
                 onClick={() => setLayoutMode('partners')}
                 className={`dc-seg-btn ${layoutMode === 'partners' ? 'on' : ''}`}
               >
-                Partners Only
+                Partners
               </button>
               <button
                 type="button"
                 onClick={() => setLayoutMode('commissions')}
                 className={`dc-seg-btn ${layoutMode === 'commissions' ? 'on' : ''}`}
               >
-                Commissions Only
+                Commissions
               </button>
             </div>
 
@@ -346,16 +336,12 @@ export default function ChannelPartnersAndCommissionsPage() {
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════════
-          LAYOUT CONTAINER (STACKED VERTICALLY OR 50/50 SIDE-BY-SIDE)
+          LAYOUT CONTAINER (ALL OR FILTERED SECTION)
          ══════════════════════════════════════════════════════════════════════ */}
-      <div className={
-        layoutMode === 'side-by-side' 
-          ? 'grid grid-cols-1 xl:grid-cols-2 gap-6' 
-          : 'space-y-6'
-      }>
+      <div className="space-y-6">
 
         {/* ── SECTION 1: CHANNEL PARTNER DIRECTORY TABLE ── */}
-        {(layoutMode === 'stacked' || layoutMode === 'side-by-side' || layoutMode === 'partners') && (
+        {(layoutMode === 'all' || layoutMode === 'partners') && (
           <div className="overflow-hidden bg-white border border-[#e8e7e4] rounded-2xl shadow-sm flex flex-col">
             
             {/* Section Header */}
@@ -535,7 +521,7 @@ export default function ChannelPartnersAndCommissionsPage() {
         )}
 
         {/* ── SECTION 2: COMMISSION DISBURSEMENTS & PAYOUTS LEDGER (100% WIDTH BELOW) ── */}
-        {(layoutMode === 'stacked' || layoutMode === 'side-by-side' || layoutMode === 'commissions') && (
+        {(layoutMode === 'all' || layoutMode === 'commissions') && (
           <div className="overflow-hidden bg-white border border-[#e8e7e4] rounded-2xl shadow-sm flex flex-col">
             
             {/* Section Header */}
