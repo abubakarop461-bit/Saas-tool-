@@ -1013,14 +1013,12 @@ Notes: ${l.notes || 'None'}`;
                       />
                     </button>
                   </th>
-                  <th>Name & Contact</th>
-                  <th>Source</th>
-                  <th>Config</th>
-                  <th>Location</th>
-                  <th>Assigned To</th>
-                  <th>Status</th>
-                  <th style={{ minWidth: '135px' }} className="whitespace-nowrap">Stage</th>
-                  <th style={{ width: '80px' }}>Actions</th>
+                  <th>NAME & CONTACT</th>
+                  <th>SOURCE</th>
+                  <th>CONFIG</th>
+                  <th>LOCATION</th>
+                  <th>ASSIGNED TO</th>
+                  <th>STATUS</th>
                 </tr>
               </thead>
               <tbody>
@@ -1028,7 +1026,7 @@ Notes: ${l.notes || 'None'}`;
                   <tr 
                     key={lead.id} 
                     onClick={() => handleOpenLead(lead)} 
-                    className="cursor-pointer group/row"
+                    className="cursor-pointer group/row hover:bg-[#fafaf7] transition-colors"
                   >
                     {/* Checkbox */}
                     <td className="text-center" onClick={(e) => e.stopPropagation()}>
@@ -1056,25 +1054,35 @@ Notes: ${l.notes || 'None'}`;
 
                     {/* Source */}
                     <td>
-                      <span className={`dc-badge ${getSourceStyle(lead.lead_source_id)}`}>
-                        {lead.lead_source_id || '—'}
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[9.5px] font-extrabold uppercase tracking-wider ${
+                        (lead.lead_source_id || '').toLowerCase().includes('referral')
+                          ? 'bg-[#f3eefc] text-[#6f42c1] border border-[#d6c7f5]'
+                          : (lead.lead_source_id || '').toLowerCase().includes('magic')
+                          ? 'bg-[#fdeeed] text-[#d93829] border border-[#f8c6c2]'
+                          : (lead.lead_source_id || '').toLowerCase().includes('website')
+                          ? 'bg-[#ebf3fe] text-[#0d6efd] border border-[#b6d4fe]'
+                          : (lead.lead_source_id || '').toLowerCase().includes('instagram')
+                          ? 'bg-[#fceef5] text-[#d63384] border border-[#f7c6df]'
+                          : 'bg-[#eaf8f0] text-[#1b8754] border border-[#c3e6cb]'
+                      }`}>
+                        {(lead.lead_source_id || '99ACRES').toUpperCase()}
                       </span>
                     </td>
 
                     {/* Config */}
-                    <td className="font-semibold text-zinc-900 text-xs">
+                    <td className="font-semibold text-zinc-700 text-xs">
                       {lead.configuration || '—'}
                     </td>
 
                     {/* Location */}
-                    <td className="text-zinc-500 font-medium text-xs max-w-[150px] truncate">
+                    <td className="text-zinc-600 font-normal text-xs max-w-[170px] truncate">
                       {lead.preferred_location || '—'}
                     </td>
 
                     {/* Assigned To */}
                     <td onClick={(e) => e.stopPropagation()}>
                       {perms.canViewAllLeads ? (
-                        <div className="relative">
+                        <div className="relative inline-flex items-center group/assign">
                           <select
                             aria-label="Assign executive"
                             value={lead.assigned_to || ""}
@@ -1090,16 +1098,17 @@ Notes: ${l.notes || 'None'}`;
                                 console.error('Error updating assignee:', err);
                               }
                             }}
-                            className="bg-transparent hover:bg-zinc-50 border border-transparent hover:border-zinc-200 rounded-md px-1.5 py-0.5 text-xs text-zinc-700 font-semibold transition-all focus:outline-none focus:border-[#d4ad4d] cursor-pointer"
+                            className="bg-transparent hover:bg-zinc-50 border border-transparent hover:border-zinc-200 rounded-md pr-5 pl-1 py-0.5 text-xs text-zinc-800 font-medium transition-all focus:outline-none focus:border-[#d4ad4d] cursor-pointer appearance-none"
                           >
                             <option value="">Unassigned</option>
                             {salesExecutives.map(exec => (
                               <option key={exec.id} value={exec.id}>{exec.full_name}</option>
                             ))}
                           </select>
+                          <ChevronDown className="h-3 w-3 text-zinc-400 absolute right-1 pointer-events-none group-hover/assign:text-zinc-700 transition-colors" />
                         </div>
                       ) : (
-                        <span className="px-1.5 py-0.5 rounded bg-zinc-50 border border-zinc-200 text-[10px] font-semibold text-zinc-600 inline-block w-36 truncate text-center">
+                        <span className="px-1.5 py-0.5 rounded bg-zinc-50 border border-zinc-200 text-xs font-medium text-zinc-700 inline-block w-36 truncate text-left">
                           {salesExecutives.find(x => x.id === lead.assigned_to)?.full_name || 'Unassigned'}
                         </span>
                       )}
@@ -1107,72 +1116,26 @@ Notes: ${l.notes || 'None'}`;
 
                     {/* Status Dropdown */}
                     <td onClick={(e) => e.stopPropagation()}>
-                      <div className="relative group/status">
+                      <div className="relative inline-block group/status">
                         <select
                           aria-label="Lead status"
                           value={lead.status || "Hot"}
                           onChange={(e) => handleRowStatusChange(lead.id, e.target.value)}
                           className={cx(
-                            "cursor-pointer rounded-md border border-transparent px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider outline-none transition-all focus:ring-1 focus:ring-[#d4ad4d]/40 appearance-none text-left",
-                            getStatusStyle(lead.status || "Hot")
+                            "cursor-pointer rounded border px-2.5 py-0.5 text-[9.5px] font-black uppercase tracking-wider outline-none transition-all focus:ring-1 focus:ring-[#d4ad4d]/40 appearance-none text-center",
+                            (lead.status || '').toLowerCase() === 'warm'
+                              ? 'bg-[#fff8e6] border-[#ffe099] text-[#b87d00]'
+                              : (lead.status || '').toLowerCase() === 'closed'
+                              ? 'bg-[#eaf8f0] border-[#c3e6cb] text-[#1b8754]'
+                              : (lead.status || '').toLowerCase() === 'cold'
+                              ? 'bg-[#eff6ff] border-[#bfdbfe] text-[#1d4ed8]'
+                              : 'bg-[#fef0f0] border-[#fcc2c3] text-[#e03131]'
                           )}
                         >
-                          {['Hot', 'Warm', 'No answer', 'Not reachable', 'Switched off', 'Closed'].map((s) => (
-                            <option key={s} value={s}>{s}</option>
+                          {['Hot', 'Warm', 'Closed', 'Cold', 'No answer', 'Not reachable', 'Switched off'].map((s) => (
+                            <option key={s} value={s}>{s.toUpperCase()}</option>
                           ))}
                         </select>
-                      </div>
-                    </td>
-
-                    {/* Stage Dropdown — Full-width styled badge select */}
-                    <td onClick={(e) => e.stopPropagation()} className="min-w-[135px] whitespace-nowrap">
-                      <div className="relative inline-block w-full">
-                        <select
-                          aria-label="Lead stage"
-                          value={lead.stage_id || "New inquiry"}
-                          onChange={(e) => handleRowStageChange(lead.id, e.target.value)}
-                          className={cx(
-                            "cursor-pointer rounded-md border px-2 py-1 text-[10px] font-bold tracking-wider outline-none transition-all focus:ring-1 focus:ring-[#d4ad4d]/40 appearance-none text-left w-full whitespace-nowrap",
-                            getStageStyle(lead.stage_id || "New inquiry")
-                          )}
-                        >
-                          {['New inquiry', 'Site visit', 'Follow up', 'Closure'].map((stg) => (
-                            <option key={stg} value={stg}>{stg}</option>
-                          ))}
-                        </select>
-                      </div>
-                    </td>
-
-                    {/* Actions — gold View → text + icon share */}
-                    <td onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleOpenLead(lead)}
-                          className="text-[10.5px] font-bold text-[#d4ad4d] hover:text-[#b8922e] transition-colors whitespace-nowrap"
-                        >
-                          View →
-                        </button>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <button className="p-1 rounded text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors">
-                              <Share2 className="h-3 w-3" />
-                            </button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-48 bg-white border border-zinc-200 rounded-xl shadow-lg p-1 z-30">
-                            <DropdownMenuItem onClick={() => copyToClipboard(generateShareText(lead), "Lead details copied!")} className="flex items-center gap-2 cursor-pointer text-xs font-bold text-zinc-700 hover:text-zinc-900 px-2 py-1.5 rounded-lg hover:bg-zinc-50">
-                              <Copy className="h-3.5 w-3.5 text-zinc-400" />
-                              Copy details
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => shareWhatsApp(lead)} className="flex items-center gap-2 cursor-pointer text-xs font-bold text-zinc-700 hover:text-zinc-900 px-2 py-1.5 rounded-lg hover:bg-zinc-50">
-                              <MessageSquare className="h-3.5 w-3.5 text-emerald-500" />
-                              WhatsApp
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => shareEmail(lead)} className="flex items-center gap-2 cursor-pointer text-xs font-bold text-zinc-700 hover:text-zinc-900 px-2 py-1.5 rounded-lg hover:bg-zinc-50">
-                              <Mail className="h-3.5 w-3.5 text-zinc-400" />
-                              Email
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
                       </div>
                     </td>
                   </tr>

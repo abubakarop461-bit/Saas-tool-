@@ -12,9 +12,10 @@
 /* ── DIRECTION C: Editorial Porcelain ── */
 .dc-stats-inline {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
-  gap: 20px;
-  padding: 12px 24px 14px;
+  gap: 24px;
+  padding: 11px 24px 11px;
   border-bottom: 1px solid #ebebeb;
   background: #fafaf8;
 }
@@ -25,13 +26,14 @@
   gap: 6px;
   font-size: 11px;
   font-weight: 600;
-  color: #777570;
+  color: #8c8980;
 }
 
 .dc-stat-num {
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 800;
   color: #1a1a1a;
+  letter-spacing: -0.2px;
 }
 
 .dc-stat-dot {
@@ -44,7 +46,7 @@
 .dc-toolbar {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   padding: 10px 24px;
   border-bottom: 1px solid #e8e7e4;
   background: #fafaf8;
@@ -55,7 +57,7 @@
   position: relative;
   flex: 1;
   min-width: 180px;
-  max-width: 280px;
+  max-width: 260px;
 }
 
 .dc-search {
@@ -66,7 +68,11 @@
   border-radius: 8px;
   font-size: 12px;
   color: #1a1a1a;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+
+.dc-search::placeholder {
+  color: #a1a1aa;
 }
 
 .dc-btn {
@@ -82,8 +88,8 @@
   white-space: nowrap;
   background: #ffffff;
   border: 1px solid #dcdad5;
-  color: #55534e;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  color: #4b4844;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
   transition: all 0.15s ease-in-out;
 }
 
@@ -98,7 +104,7 @@
   border-color: #c39c3c;
   color: #ffffff;
   font-weight: 700;
-  box-shadow: 0 2px 6px rgba(212, 173, 77, 0.25);
+  box-shadow: 0 1px 4px rgba(212, 173, 77, 0.25);
 }
 
 .dc-btn.gold:hover {
@@ -148,44 +154,33 @@
 
 .dc-table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
+  border-collapse: collapse;
   font-size: 12px;
 }
 
 .dc-table thead tr {
-  background: #f7f6f2;
+  background: #fafaf8;
 }
 
 .dc-table th {
-  padding: 10px 16px;
+  padding: 10px 18px;
   text-align: left;
   font-size: 10px;
   font-weight: 700;
   color: #8c8980;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  border-bottom: 1px solid #e8e7e4;
-  border-right: 1px solid #e8e7e4;
+  border-bottom: 1px solid #ebebeb;
   white-space: nowrap;
-}
-
-.dc-table th:last-child {
-  border-right: none;
 }
 
 .dc-table td {
-  padding: 10px 16px;
-  border-bottom: 1px solid #efeee9;
-  border-right: 1px solid #efeee9;
-  color: #3a3935;
+  padding: 12px 18px;
+  border-bottom: 1px solid #f0f0ed;
+  color: #27272a;
   font-weight: 500;
   vertical-align: middle;
   white-space: nowrap;
-}
-
-.dc-table td:last-child {
-  border-right: none;
 }
 
 .dc-table tbody tr:hover td {
@@ -196,12 +191,12 @@
 .dc-name-cell {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .dc-avatar {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 8px;
   display: inline-flex;
   align-items: center;
@@ -209,6 +204,7 @@
   font-size: 11px;
   font-weight: 800;
   flex-shrink: 0;
+  letter-spacing: -0.2px;
 }
 
 /* Custom Badges */
@@ -218,29 +214,29 @@
   justify-content: center;
   padding: 2px 8px;
   border-radius: 6px;
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 9.5px;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.03em;
   border: 1px solid transparent;
 }
 
 .dc-hot {
-  background: #fff1f2;
-  color: #e11d48;
-  border-color: #ffe4e6;
+  background: #fef0f0;
+  color: #e03131;
+  border-color: #fcc2c3;
 }
 
 .dc-warm {
-  background: #fef3c7;
-  color: #d97706;
-  border-color: #fde68a;
+  background: #fff8e6;
+  color: #b87d00;
+  border-color: #ffe099;
 }
 
 .dc-cold {
   background: #eff6ff;
-  color: #2563eb;
-  border-color: #dbeafe;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
 }
 
 .dc-badge-status {
@@ -250,9 +246,9 @@
 }
 
 .dc-badge-active {
-  background: #ecfdf5;
-  color: #059669;
-  border-color: #a7f3d0;
+  background: #eaf8f0;
+  color: #1b8754;
+  border-color: #c3e6cb;
 }
 
 .dc-badge-inactive {
