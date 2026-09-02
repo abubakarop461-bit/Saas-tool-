@@ -86,7 +86,7 @@ export const STATUS_COLORS: Record<UnitStatus, {
 };
 
 export default function UnitInventoryPage() {
-  const [selectedProject, setSelectedProject] = useState('Panchshil Silverwoods');
+  const [selectedProject, setSelectedProject] = useState('Luxe Azure Palms - Tower A');
   const [selectedTower, setSelectedTower] = useState('Tower A');
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [configFilter, setConfigFilter] = useState<string>('All');
@@ -105,27 +105,55 @@ export default function UnitInventoryPage() {
     loadUnits();
   }, []);
 
-  // Distinct floors sorted descending
-  const floors = useMemo(() => {
-    const set = new Set(units.map(u => u.floor));
-    return Array.from(set).sort((a, b) => b - a);
+  // Distinct projects available
+  const availableProjects = useMemo(() => {
+    const list = Array.from(new Set(units.map(u => u.project_title)));
+    return list.length > 0 ? list : ['Luxe Azure Palms - Tower A'];
   }, [units]);
 
-  // Aggregate stats
+  // Distinct towers for current project
+  const availableTowers = useMemo(() => {
+    const projectUnits = units.filter(u => u.project_title === selectedProject);
+    const towers = Array.from(new Set(projectUnits.map(u => u.tower)));
+    return towers.length > 0 ? towers : ['Tower A'];
+  }, [units, selectedProject]);
+
+  // Auto-adjust selected tower when project changes
+  useEffect(() => {
+    if (!availableTowers.includes(selectedTower)) {
+      setSelectedTower(availableTowers[0] || 'Tower A');
+    }
+  }, [selectedProject, availableTowers, selectedTower]);
+
+  // Distinct BHK configs for current project & tower
+  const availableConfigs = useMemo(() => {
+    const projectUnits = units.filter(u => u.project_title === selectedProject && u.tower === selectedTower);
+    return Array.from(new Set(projectUnits.map(u => u.configuration)));
+  }, [units, selectedProject, selectedTower]);
+
+  // Distinct floors for current project & tower sorted descending
+  const floors = useMemo(() => {
+    const projectUnits = units.filter(u => u.project_title === selectedProject && u.tower === selectedTower);
+    const set = new Set(projectUnits.map(u => u.floor));
+    return Array.from(set).sort((a, b) => b - a);
+  }, [units, selectedProject, selectedTower]);
+
+  // Aggregate stats for currently selected project
   const stats = useMemo(() => {
-    const total = units.length;
-    const available = units.filter(u => u.status === 'Available').length;
-    const hold = units.filter(u => u.status === 'Hold').length;
-    const token = units.filter(u => u.status === 'Token').length;
-    const neg = units.filter(u => u.status === 'Negotiation').length;
-    const booked = units.filter(u => u.status === 'Booked').length;
-    const sold = units.filter(u => u.status === 'Sold').length;
+    const projectUnits = units.filter(u => u.project_title === selectedProject);
+    const total = projectUnits.length;
+    const available = projectUnits.filter(u => u.status === 'Available').length;
+    const hold = projectUnits.filter(u => u.status === 'Hold').length;
+    const token = projectUnits.filter(u => u.status === 'Token').length;
+    const neg = projectUnits.filter(u => u.status === 'Negotiation').length;
+    const booked = projectUnits.filter(u => u.status === 'Booked').length;
+    const sold = projectUnits.filter(u => u.status === 'Sold').length;
     return { total, available, hold, token, neg, booked, sold };
-  }, [units]);
+  }, [units, selectedProject]);
 
   const inlineStats = useMemo(() => [
-    { label: 'Total Units', count: stats.total, colorClass: 'bg-zinc-400' },
-    { label: 'Available Units', count: stats.available, colorClass: 'bg-emerald-500' },
+    { label: 'Project Units', count: stats.total, colorClass: 'bg-zinc-400' },
+    { label: 'Available', count: stats.available, colorClass: 'bg-emerald-500' },
     { label: 'On Hold', count: stats.hold, colorClass: 'bg-amber-500' },
     { label: 'Token / EOI', count: stats.token, colorClass: 'bg-blue-500' },
     { label: 'Negotiations', count: stats.neg, colorClass: 'bg-orange-500' },
@@ -135,6 +163,7 @@ export default function UnitInventoryPage() {
   // Filtered unit matrix
   const filteredUnits = useMemo(() => {
     return units.filter(u => {
+      const matchesProject = u.project_title === selectedProject;
       const matchesTower = u.tower === selectedTower;
       const matchesStatus = statusFilter === 'All' || u.status === statusFilter;
       const matchesConfig = configFilter === 'All' || u.configuration === configFilter;
@@ -143,9 +172,9 @@ export default function UnitInventoryPage() {
         u.configuration.toLowerCase().includes(searchQuery.toLowerCase()) ||
         u.facing.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (u.buyer_name || '').toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesTower && matchesStatus && matchesConfig && matchesSearch;
+      return matchesProject && matchesTower && matchesStatus && matchesConfig && matchesSearch;
     });
-  }, [units, selectedTower, statusFilter, configFilter, searchQuery]);
+  }, [units, selectedProject, selectedTower, statusFilter, configFilter, searchQuery]);
 
   const handleUpdateUnitStatus = (unitId: string, newStatus: UnitStatus) => {
     const updated = units.map(u => u.id === unitId ? { ...u, status: newStatus } : u);
@@ -189,19 +218,19 @@ export default function UnitInventoryPage() {
                 Unit-Level Building Matrix
               </h1>
               <span className="bg-zinc-900 text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-full">
-                {units.length} Units Matrix
+                {units.length} Units Total
               </span>
             </div>
             <p className="text-[11px] text-zinc-400 font-medium mt-0.5">
-              Multi-Unit Developer ERP · Hierarchy: Project ➔ Tower ➔ Floor ➔ Color-Coded Unit Status
+              Live Property Inventory ERP · Select property from Properties catalog to inspect Tower ➔ Floor ➔ Color-Coded Unit Status
             </p>
           </div>
 
-          {/* Header Controls: Project & Tower Selector */}
-          <div className="flex items-center gap-2 shrink-0">
+          {/* Header Controls: Tower Selector & Cost Sheet */}
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
             {/* Tower Segment Control */}
             <div className="dc-seg">
-              {['Tower A', 'Tower B', 'Sky Villas'].map((t) => (
+              {availableTowers.map((t) => (
                 <button
                   key={t}
                   type="button"
@@ -231,6 +260,22 @@ export default function UnitInventoryPage() {
 
         {/* Porcelain Unified Toolbar */}
         <div className="dc-toolbar">
+          
+          {/* Property / Project Selector Dropdown */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider hidden sm:inline">Project:</span>
+            <select
+              aria-label="Select Landmark Property"
+              value={selectedProject}
+              onChange={(e) => setSelectedProject(e.target.value)}
+              className="dc-btn font-extrabold text-zinc-900 border-[#d4ad4d]/40 bg-[#fffdfa] cursor-pointer max-w-[260px] truncate"
+            >
+              {availableProjects.map((p) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
+          </div>
+
           <div className="dc-search-container">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-400" />
             <input 
@@ -264,8 +309,9 @@ export default function UnitInventoryPage() {
             className="dc-btn font-semibold cursor-pointer"
           >
             <option value="All">All BHK Layouts</option>
-            <option value="3 BHK">3 BHK</option>
-            <option value="4.5 BHK">4.5 BHK</option>
+            {availableConfigs.map(c => (
+              <option key={c} value={c}>{c}</option>
+            ))}
           </select>
         </div>
 
