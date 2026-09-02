@@ -254,7 +254,7 @@ export default function TransactionsPage() {
           <table className="dc-table">
             <thead>
               <tr>
-                <th>Client Details & Contact</th>
+                <th className="pl-6">Client Details & Contact</th>
                 <th>Property Project & Layout</th>
                 <th className="text-center">Unit #</th>
                 <th className="text-right">Deal Value</th>
@@ -263,13 +263,13 @@ export default function TransactionsPage() {
                 <th>Sales Agent</th>
                 <th>Channel Partner</th>
                 <th>Booking Status</th>
-                <th style={{ width: '80px' }} className="text-center">Actions</th>
+                <th style={{ width: '90px' }} className="text-center pr-6">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredTransactions.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="px-4 py-12 text-center text-xs font-semibold text-zinc-400">
+                  <td colSpan={10} className="px-6 py-12 text-center text-xs font-semibold text-zinc-400">
                     No transactions match the selected filters
                   </td>
                 </tr>
@@ -280,41 +280,51 @@ export default function TransactionsPage() {
                   return (
                     <tr 
                       key={tx.id} 
-                      className={`cursor-pointer group hover:bg-[#fafaf7] ${isSelected ? 'bg-[#fffdf5]' : ''}`}
+                      className={`cursor-pointer group hover:bg-[#fafaf7] transition-colors ${isSelected ? 'bg-[#fffdf5]' : ''}`}
                       onClick={() => setSelectedTx(tx)}
                     >
-                      <td>
-                        <div className="flex flex-col">
-                          <span className="font-extrabold text-zinc-900 text-xs group-hover:text-[#b8922e] transition-colors">
-                            {tx.client_name}
-                          </span>
-                          <span className="text-[10.5px] text-zinc-500 font-medium">
-                            {tx.client_phone} {tx.client_email ? `• ${tx.client_email}` : ''}
-                          </span>
+                      <td className="pl-6 py-3.5">
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 rounded-lg bg-[#fafaf8] border border-[#e8e7e4] text-zinc-700 flex items-center justify-center font-extrabold text-[11px] shrink-0 shadow-xs">
+                            {tx.client_name.slice(0, 2).toUpperCase()}
+                          </div>
+                          <div className="flex flex-col min-w-0">
+                            <span className="font-extrabold text-zinc-900 text-xs group-hover:text-[#b8922e] transition-colors truncate">
+                              {tx.client_name}
+                            </span>
+                            <span className="text-[11px] text-zinc-600 font-medium mt-0.5">
+                              {tx.client_phone}
+                            </span>
+                            {tx.client_email && (
+                              <span className="text-[10px] text-zinc-400 font-normal truncate mt-0.5">
+                                {tx.client_email}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </td>
-                      <td>
+                      <td className="py-3.5">
                         <div className="flex flex-col">
-                          <span className="font-bold text-zinc-800 text-xs">
+                          <span className="font-bold text-zinc-900 text-xs">
                             {tx.property_title}
                           </span>
-                          <span className="text-[10.5px] text-zinc-500 font-medium">
+                          <span className="text-[11px] text-zinc-500 font-medium mt-0.5">
                             {tx.configuration} • Tower {tx.tower}
                           </span>
                         </div>
                       </td>
-                      <td className="text-center">
+                      <td className="text-center py-3.5">
                         <span className="inline-flex items-center px-2 py-0.5 rounded bg-zinc-100 text-[10.5px] font-extrabold text-zinc-800 uppercase">
                           {tx.unit_number}
                         </span>
                       </td>
-                      <td className="text-right font-black text-zinc-900 text-xs">
+                      <td className="text-right font-black text-zinc-900 text-xs py-3.5">
                         {formatPriceShort(tx.deal_value)}
                       </td>
-                      <td className="text-right font-bold text-emerald-700 text-xs">
+                      <td className="text-right font-bold text-emerald-700 text-xs py-3.5">
                         {formatPriceShort(tx.token_amount)}
                       </td>
-                      <td>
+                      <td className="py-3.5">
                         <div className="flex flex-col gap-1 min-w-[130px]">
                           <div className="flex items-center justify-between">
                             <span className="dc-badge dc-hot">
@@ -332,22 +342,22 @@ export default function TransactionsPage() {
                           </div>
                         </div>
                       </td>
-                      <td>
+                      <td className="py-3.5">
                         <span className="text-xs text-zinc-700 font-semibold truncate block max-w-[120px]">
                           {tx.sales_agent}
                         </span>
                       </td>
-                      <td>
+                      <td className="py-3.5">
                         <span className="text-xs text-zinc-700 font-semibold truncate block max-w-[120px]">
                           {tx.channel_partner}
                         </span>
                       </td>
-                      <td>
+                      <td className="py-3.5">
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-extrabold">
                           {tx.booking_status}
                         </span>
                       </td>
-                      <td className="text-center" onClick={(e) => e.stopPropagation()}>
+                      <td className="text-center py-3.5 pr-6" onClick={(e) => e.stopPropagation()}>
                         <button
                           type="button"
                           onClick={() => setSelectedTx(tx)}
@@ -365,7 +375,7 @@ export default function TransactionsPage() {
         </div>
 
         {/* Footer Summary */}
-        <div className="px-6 py-3 bg-[#fafaf8] border-t border-[#ebebeb] flex flex-wrap items-center justify-between gap-4 text-xs font-bold text-zinc-500">
+        <div className="px-7 py-3.5 bg-[#fafaf8] border-t border-[#ebebeb] flex flex-wrap items-center justify-between gap-4 text-xs font-bold text-zinc-500">
           <span>Showing {filteredTransactions.length} of {transactions.length} commercial transactions</span>
           <div className="flex items-center gap-4">
             <span>Total Value: <strong className="text-zinc-900">{formatCurrency(totalPipelineValue)}</strong></span>
@@ -390,12 +400,15 @@ export default function TransactionsPage() {
                   <FileText className="h-4 w-4" />
                 </div>
                 <div>
-                  <h3 className="text-[13px] font-extrabold text-zinc-900 tracking-tight">
+                  <h3 className="text-[13.5px] font-extrabold text-zinc-900 tracking-tight">
                     Deal Inspection: {selectedTx.client_name}
                   </h3>
-                  <p className="text-[10.5px] text-zinc-400 font-medium">
-                    {selectedTx.client_phone} • {selectedTx.client_email || 'No email registered'}
-                  </p>
+                  <div className="flex flex-col text-[11px] text-zinc-500 font-medium mt-0.5">
+                    <span>{selectedTx.client_phone}</span>
+                    {selectedTx.client_email && (
+                      <span className="text-zinc-400 font-normal text-[10px]">{selectedTx.client_email}</span>
+                    )}
+                  </div>
                 </div>
               </div>
 

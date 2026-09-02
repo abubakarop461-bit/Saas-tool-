@@ -52,7 +52,7 @@ export async function fetchAdSpendMap(companyId: string = 'default_company'): Pr
   try {
     const res = await fetch(`/api/ad-spend?company_id=${encodeURIComponent(companyId)}`);
     if (res.ok) {
-      const data = await res.json();
+      const data: any = await res.json();
       if (data && Array.isArray(data.records)) {
         data.records.forEach((r: AdSpendRecord) => {
           if (r.lead_source_id) {
