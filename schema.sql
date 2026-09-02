@@ -143,3 +143,19 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   details TEXT,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS ad_spend (
+  id TEXT PRIMARY KEY,
+  company_id TEXT DEFAULT 'default_company',
+  lead_source_id TEXT NOT NULL,
+  campaign_name TEXT,
+  property_id TEXT,
+  platform TEXT,
+  spend_amount REAL NOT NULL DEFAULT 0,
+  period_start TEXT,
+  period_end TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_ad_spend_source ON ad_spend(company_id, lead_source_id);

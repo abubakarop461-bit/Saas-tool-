@@ -69,7 +69,8 @@ const localCache: Record<string, any[]> = {
       is_active: 1
     }
   ],
-  settings: []
+  settings: [],
+  ad_spend: []
 };
 
 /**

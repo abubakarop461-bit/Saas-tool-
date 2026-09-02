@@ -141,6 +141,8 @@ export function canAccessRoute(role: string | undefined | null, route: string): 
     '/commissions': 'canViewPipeline',
     '/matchmaking': 'canViewMatchmaking',
     '/site-visits': 'canViewCalendar',
+    '/dashboard/creative-studio': 'canViewDashboard',
+    '/dashboard/ad-performance': 'canViewReporting',
     '/reporting': 'canViewReporting',
     '/settings': 'canViewSettings',
     '/users': 'canManageUsers',
