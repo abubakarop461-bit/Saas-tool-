@@ -21,7 +21,7 @@ const PLATFORM_STYLES: Record<string, string> = {
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json().catch(() => ({}));
+    const body: any = await req.json().catch(() => ({}));
     const { propertyId, platform = 'facebook' } = body;
 
     if (!propertyId || typeof propertyId !== 'string') {

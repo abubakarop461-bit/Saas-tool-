@@ -684,6 +684,16 @@ Notes: ${l.notes || 'None'}`;
     }
   };
 
+  const getStageStyle = (stage: string | undefined | null) => {
+    switch(stage) {
+      case 'New inquiry': return 'bg-violet-50 text-violet-700 border-violet-200';
+      case 'Site visit': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'Follow up': return 'bg-amber-50 text-amber-700 border-amber-200';
+      case 'Closure': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      default: return 'bg-zinc-50 text-zinc-700 border-zinc-200';
+    }
+  };
+
   const statusTabs = ['All', 'Hot', 'Warm', 'No answer', 'Not reachable', 'Switched off', 'Closed'];
 
   const inlineStats = useMemo(() => [
@@ -1009,7 +1019,7 @@ Notes: ${l.notes || 'None'}`;
                   <th>Location</th>
                   <th>Assigned To</th>
                   <th>Status</th>
-                  <th>Stage</th>
+                  <th style={{ minWidth: '135px' }} className="whitespace-nowrap">Stage</th>
                   <th style={{ width: '80px' }}>Actions</th>
                 </tr>
               </thead>
@@ -1114,19 +1124,17 @@ Notes: ${l.notes || 'None'}`;
                       </div>
                     </td>
 
-                    {/* Stage — plain text label, becomes select on hover/click */}
-                    <td onClick={(e) => e.stopPropagation()} className="group/stage">
-                      <div className="relative">
-                        {/* Visible label */}
-                        <span className="text-[9.5px] font-semibold text-zinc-400 group-hover/stage:opacity-0 transition-opacity pointer-events-none absolute inset-0 flex items-center">
-                          {lead.stage_id || 'New inquiry'}
-                        </span>
-                        {/* Hover-reveal select */}
+                    {/* Stage Dropdown — Full-width styled badge select */}
+                    <td onClick={(e) => e.stopPropagation()} className="min-w-[135px] whitespace-nowrap">
+                      <div className="relative inline-block w-full">
                         <select
                           aria-label="Lead stage"
                           value={lead.stage_id || "New inquiry"}
                           onChange={(e) => handleRowStageChange(lead.id, e.target.value)}
-                          className="opacity-0 group-hover/stage:opacity-100 bg-white border border-zinc-200 rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-zinc-700 transition-all focus:outline-none focus:border-[#d4ad4d] cursor-pointer w-full"
+                          className={cx(
+                            "cursor-pointer rounded-md border px-2 py-1 text-[10px] font-bold tracking-wider outline-none transition-all focus:ring-1 focus:ring-[#d4ad4d]/40 appearance-none text-left w-full whitespace-nowrap",
+                            getStageStyle(lead.stage_id || "New inquiry")
+                          )}
                         >
                           {['New inquiry', 'Site visit', 'Follow up', 'Closure'].map((stg) => (
                             <option key={stg} value={stg}>{stg}</option>
