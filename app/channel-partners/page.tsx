@@ -391,7 +391,7 @@ export default function ChannelPartnersAndCommissionsPage() {
               <table className="dc-table">
                 <thead>
                   <tr>
-                    <th>Partner Firm & Contact</th>
+                    <th className="pl-6">Partner Firm & Contact</th>
                     <th>RERA Number</th>
                     <th>Tier & Rate</th>
                     <th className="text-center">Active Leads</th>
@@ -400,13 +400,13 @@ export default function ChannelPartnersAndCommissionsPage() {
                     <th className="text-right">Delivered Revenue</th>
                     <th className="text-right">Accrued Commission</th>
                     <th className="text-right">Paid Commission</th>
-                    <th style={{ width: '80px' }} className="text-center">Action</th>
+                    <th style={{ width: '80px' }} className="text-center pr-6">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredPartners.length === 0 ? (
                     <tr>
-                      <td colSpan={10} className="px-4 py-12 text-center text-xs font-semibold text-zinc-400">
+                      <td colSpan={10} className="px-6 py-12 text-center text-xs font-semibold text-zinc-400">
                         No channel partners match the current filters
                       </td>
                     </tr>
@@ -414,51 +414,61 @@ export default function ChannelPartnersAndCommissionsPage() {
                     filteredPartners.map((partner) => (
                       <tr 
                         key={partner.id} 
-                        className={`cursor-pointer group hover:bg-[#fafaf7] ${selectedPartner?.id === partner.id ? 'bg-[#fffdf5]' : ''}`}
+                        className={`cursor-pointer group hover:bg-[#fafaf7] transition-colors ${selectedPartner?.id === partner.id ? 'bg-[#fffdf5]' : ''}`}
                         onClick={() => setSelectedPartner(selectedPartner?.id === partner.id ? null : partner)}
                       >
-                        <td>
-                          <div className="flex flex-col">
-                            <span className="font-extrabold text-zinc-900 text-xs group-hover:text-[#b8922e] transition-colors">
-                              {partner.firm_name}
-                            </span>
-                            <span className="text-[10.5px] text-zinc-500 font-medium">
-                              {partner.contact_person} • {partner.phone}
-                            </span>
+                        <td className="pl-6 py-3.5">
+                          <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-lg bg-[#fafaf8] border border-[#e8e7e4] text-zinc-700 flex items-center justify-center font-extrabold text-[11px] shrink-0 shadow-xs">
+                              {partner.firm_name.slice(0, 2).toUpperCase()}
+                            </div>
+                            <div className="flex flex-col min-w-0">
+                              <span className="font-extrabold text-zinc-900 text-xs group-hover:text-[#b8922e] transition-colors truncate">
+                                {partner.firm_name}
+                              </span>
+                              <span className="text-[11px] text-zinc-600 font-medium mt-0.5">
+                                {partner.contact_person} • {partner.phone}
+                              </span>
+                              {partner.email && (
+                                <span className="text-[10px] text-zinc-400 font-normal truncate mt-0.5">
+                                  {partner.email}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </td>
-                        <td>
+                        <td className="py-3.5">
                           <span className="inline-flex items-center gap-1 font-semibold text-zinc-700 text-xs">
                             <ShieldCheck className="h-3 w-3 text-emerald-500 shrink-0" />
                             {partner.rera_number}
                           </span>
                         </td>
-                        <td>
+                        <td className="py-3.5">
                           <span className={`dc-badge ${getTierBadgeClass(partner.tier)}`}>
                             {partner.tier} ({partner.commission_rate}%)
                           </span>
                         </td>
-                        <td className="text-center font-bold text-zinc-700 text-xs">
+                        <td className="text-center font-bold text-zinc-700 text-xs py-3.5">
                           {partner.active_leads}
                         </td>
-                        <td className="text-center font-bold text-zinc-700 text-xs">
+                        <td className="text-center font-bold text-zinc-700 text-xs py-3.5">
                           {partner.site_visits}
                         </td>
-                        <td className="text-center">
+                        <td className="text-center py-3.5">
                           <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-900 text-[10.5px] font-extrabold">
                             {partner.bookings}
                           </span>
                         </td>
-                        <td className="text-right font-black text-zinc-900 text-xs">
+                        <td className="text-right font-black text-zinc-900 text-xs py-3.5">
                           {formatPriceShort(partner.delivered_revenue)}
                         </td>
-                        <td className="text-right font-black text-[#b8922e] text-xs">
+                        <td className="text-right font-black text-[#b8922e] text-xs py-3.5">
                           {formatPriceShort(partner.accrued_commission)}
                         </td>
-                        <td className="text-right font-extrabold text-emerald-700 text-xs">
+                        <td className="text-right font-extrabold text-emerald-700 text-xs py-3.5">
                           {formatPriceShort(partner.paid_commission)}
                         </td>
-                        <td className="text-center" onClick={(e) => e.stopPropagation()}>
+                        <td className="text-center pr-6 py-3.5" onClick={(e) => e.stopPropagation()}>
                           <button
                             type="button"
                             onClick={() => setSelectedPartner(selectedPartner?.id === partner.id ? null : partner)}
@@ -560,7 +570,7 @@ export default function ChannelPartnersAndCommissionsPage() {
               <table className="dc-table">
                 <thead>
                   <tr>
-                    <th>Beneficiary & Recipient</th>
+                    <th className="pl-6">Beneficiary & Recipient</th>
                     <th>Client Name & Property</th>
                     <th>Unit</th>
                     <th className="text-right">Booking Value</th>
@@ -570,70 +580,78 @@ export default function ChannelPartnersAndCommissionsPage() {
                     <th className="text-right">Pending Balance</th>
                     <th>Status</th>
                     <th>Last Payout</th>
-                    <th style={{ width: '90px' }} className="text-center">Action</th>
+                    <th style={{ width: '90px' }} className="text-center pr-6">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredCommissions.length === 0 ? (
                     <tr>
-                      <td colSpan={11} className="px-4 py-12 text-center text-xs font-semibold text-zinc-400">
+                      <td colSpan={11} className="px-6 py-12 text-center text-xs font-semibold text-zinc-400">
                         No commission records found matching current criteria
                       </td>
                     </tr>
                   ) : (
                     filteredCommissions.map((comm) => (
                       <tr key={comm.id} className="hover:bg-[#fafaf7] transition-colors">
-                        <td>
-                          <div className="flex flex-col">
-                            <span className="font-extrabold text-zinc-900 text-xs">
-                              {comm.recipient_name}
-                            </span>
-                            <span className="text-[10px] text-zinc-400 font-semibold uppercase tracking-wider">
-                              {comm.recipient_type}
-                            </span>
+                        <td className="pl-6 py-3.5">
+                          <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-lg bg-[#fafaf8] border border-[#e8e7e4] text-zinc-700 flex items-center justify-center font-extrabold text-[11px] shrink-0 shadow-xs">
+                              {comm.recipient_name.slice(0, 2).toUpperCase()}
+                            </div>
+                            <div className="flex flex-col min-w-0">
+                              <span className="font-extrabold text-zinc-900 text-xs truncate">
+                                {comm.recipient_name}
+                              </span>
+                              <span className="text-[10px] text-zinc-400 font-semibold uppercase tracking-wider mt-0.5">
+                                {comm.recipient_type}
+                              </span>
+                            </div>
                           </div>
                         </td>
-                        <td>
-                          <div className="flex flex-col">
-                            <span className="font-bold text-zinc-800 text-xs">
-                              {comm.client_name}
-                            </span>
-                            <span className="text-[10.5px] text-zinc-500 font-medium">
-                              {comm.property_title}
-                            </span>
+                        <td className="py-3.5">
+                          <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-lg bg-[#fafaf8] border border-[#e8e7e4] text-zinc-700 flex items-center justify-center font-extrabold text-[11px] shrink-0 shadow-xs">
+                              {comm.client_name.slice(0, 2).toUpperCase()}
+                            </div>
+                            <div className="flex flex-col min-w-0">
+                              <span className="font-bold text-zinc-900 text-xs truncate">
+                                {comm.client_name}
+                              </span>
+                              <span className="text-[11px] text-zinc-500 font-medium mt-0.5">
+                                {comm.property_title}
+                              </span>
+                            </div>
                           </div>
                         </td>
-                        <td>
+                        <td className="py-3.5">
                           <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-zinc-100 text-[10.5px] font-extrabold text-zinc-800 uppercase">
                             {comm.unit_number}
                           </span>
                         </td>
-                        <td className="text-right font-extrabold text-zinc-900 text-xs">
+                        <td className="text-right font-extrabold text-zinc-900 text-xs py-3.5">
                           {formatPriceShort(comm.booking_value)}
                         </td>
-                        <td className="text-center font-bold text-zinc-700 text-xs">
+                        <td className="text-center font-bold text-zinc-700 text-xs py-3.5">
                           {comm.commission_rate}%
                         </td>
-                        <td className="text-right font-black text-zinc-900 text-xs">
+                        <td className="text-right font-black text-zinc-900 text-xs py-3.5">
                           {formatPriceShort(comm.total_commission)}
                         </td>
-                        <td className="text-right font-extrabold text-emerald-700 text-xs">
+                        <td className="text-right font-extrabold text-emerald-700 text-xs py-3.5">
                           {formatPriceShort(comm.paid_amount)}
                         </td>
-                        <td className="text-right font-black text-amber-700 text-xs">
+                        <td className="text-right font-black text-amber-700 text-xs py-3.5">
                           {formatPriceShort(comm.pending_amount)}
                         </td>
-                        <td>
+                        <td className="py-3.5">
                           <span className={`dc-badge ${getCommissionStatusBadgeClass(comm.status)}`}>
                             {comm.status}
                           </span>
                         </td>
-                        <td>
-                          <span className="text-[11px] text-zinc-500 font-medium">
-                            {comm.last_payout_date || '—'}
-                          </span>
+                        <td className="text-xs font-semibold text-zinc-500 py-3.5">
+                          {comm.last_payout_date ? new Date(comm.last_payout_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
                         </td>
-                        <td className="text-center">
+                        <td className="text-center pr-6 py-3.5">
                           <button
                             type="button"
                             onClick={() => {
