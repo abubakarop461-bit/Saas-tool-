@@ -1,4 +1,4 @@
-// src/lib/db.ts - Cloudflare D1 Database Client & Fallback Layer
+import { SEED_PROPERTIES } from '@/lib/queries';
 
 export interface D1Database {
   prepare: (query: string) => {
@@ -54,34 +54,7 @@ const localCache: Record<string, any[]> = {
       created_at: new Date().toISOString()
     }
   ],
-  properties: [
-    {
-      id: 'prop-1',
-      title: 'Verdant Towers Luxury 3BHK',
-      property_code: 'VT-301',
-      location: 'Kalyani Nagar',
-      property_type: 'Apartment',
-      configuration: '3 BHK',
-      carpet_area: 1850,
-      price: 21000000,
-      listing_type: 'Outright',
-      status_id: 'Available',
-      created_at: new Date().toISOString()
-    },
-    {
-      id: 'prop-2',
-      title: 'Imperial Heights Sky Suite',
-      property_code: 'IH-1402',
-      location: 'Koregaon Park',
-      property_type: 'Penthouse',
-      configuration: '4 BHK',
-      carpet_area: 3200,
-      price: 42000000,
-      listing_type: 'Outright',
-      status_id: 'Available',
-      created_at: new Date().toISOString()
-    }
-  ],
+  properties: SEED_PROPERTIES,
   site_visits: [],
   transactions: [],
   channel_partners: [],
@@ -121,7 +94,11 @@ export async function queryD1<T = any>(
   const lower = sql.toLowerCase().trim();
   for (const table of Object.keys(localCache)) {
     if (lower.includes(`from ${table}`) || lower.includes(`into ${table}`)) {
-      return { results: (localCache[table] as T[]) || [], success: true };
+      let items = (localCache[table] as any[]) || [];
+      if (lower.includes('where id =') && params.length > 0) {
+        items = items.filter((r: any) => r.id === params[0]);
+      }
+      return { results: (items as T[]) || [], success: true };
     }
   }
 
@@ -136,8 +113,25 @@ export async function getD1Record<T = any>(
   id: string,
   env?: CloudflareEnv
 ): Promise<T | null> {
-  const { results } = await queryD1<T>(`SELECT * FROM ${table} WHERE id = ? LIMIT 1`, [id], env);
-  return results[0] || localCache[table]?.find((r: any) => r.id === id) || null;
+  try {
+    if (env?.DB) {
+      const stmt = env.DB.prepare(`SELECT * FROM ${table} WHERE id = ? LIMIT 1`).bind(id);
+      const { results } = await stmt.all<T>();
+      if (results && results.length > 0) return results[0];
+    }
+  } catch (err) {
+    console.warn(`D1 query error for ${table} id ${id}:`, err);
+  }
+
+  const cached = localCache[table]?.find((r: any) => r.id === id);
+  if (cached) return cached as T;
+
+  if (table === 'properties') {
+    const seedMatch = SEED_PROPERTIES.find((p) => p.id === id);
+    if (seedMatch) return seedMatch as unknown as T;
+  }
+
+  return null;
 }
 
 /**

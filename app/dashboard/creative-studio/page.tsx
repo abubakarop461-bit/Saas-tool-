@@ -109,6 +109,11 @@ export default function CreativeStudioPage() {
     return properties.find(p => p.id === selectedPropertyId) || null;
   }, [properties, selectedPropertyId]);
 
+  // Clear previous variations when property or platform selection changes
+  useEffect(() => {
+    setVariations([]);
+  }, [selectedPropertyId, selectedPlatform]);
+
   // Filtered properties for dropdown search
   const filteredProperties = useMemo(() => {
     if (!propertySearchQuery.trim()) return properties;
