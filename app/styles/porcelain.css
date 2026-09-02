@@ -14,8 +14,8 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 16px;
-  padding: 8px 18px;
+  gap: 22px;
+  padding: 11px 24px;
   border-bottom: 1px solid #ebebeb;
   background: #fafaf8;
 }
@@ -23,22 +23,22 @@
 .dc-stat {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 10px;
+  gap: 6px;
+  font-size: 10.5px;
   font-weight: 600;
   color: #8c8980;
 }
 
 .dc-stat-num {
-  font-size: 12.5px;
+  font-size: 13.5px;
   font-weight: 800;
   color: #1a1a1a;
   letter-spacing: -0.2px;
 }
 
 .dc-stat-dot {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -46,8 +46,8 @@
 .dc-toolbar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 18px;
+  gap: 10px;
+  padding: 10px 24px;
   border-bottom: 1px solid #e8e7e4;
   background: #fafaf8;
   flex-wrap: wrap;
@@ -56,17 +56,17 @@
 .dc-search-container {
   position: relative;
   flex: 1;
-  min-width: 150px;
-  max-width: 220px;
+  min-width: 170px;
+  max-width: 250px;
 }
 
 .dc-search {
   width: 100%;
-  padding: 5px 8px 5px 28px;
+  padding: 6px 10px 6px 32px;
   background: #ffffff;
   border: 1px solid #dcdad5;
-  border-radius: 6px;
-  font-size: 11px;
+  border-radius: 7px;
+  font-size: 11.5px;
   color: #1a1a1a;
   box-shadow: 0 1px 2px rgba(0,0,0,0.02);
 }
@@ -79,10 +79,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  padding: 5px 10px;
-  border-radius: 6px;
-  font-size: 11px;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 7px;
+  font-size: 11.5px;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -115,7 +115,7 @@
 
 .dc-divider {
   width: 1px;
-  height: 16px;
+  height: 18px;
   background: #e8e7e4;
   flex-shrink: 0;
 }
@@ -123,14 +123,14 @@
 .dc-seg {
   display: flex;
   background: #efeee9;
-  border-radius: 6px;
+  border-radius: 7px;
   padding: 2px;
   gap: 2px;
 }
 
 .dc-seg-btn {
-  padding: 3px 8px;
-  border-radius: 4px;
+  padding: 3.5px 9px;
+  border-radius: 5px;
   font-size: 10.5px;
   font-weight: 700;
   cursor: pointer;
@@ -156,7 +156,7 @@
 .dc-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 11.5px;
+  font-size: 12px;
 }
 
 .dc-table thead tr {
@@ -164,19 +164,19 @@
 }
 
 .dc-table th {
-  padding: 8px 10px;
+  padding: 10px 14px;
   text-align: left;
   font-size: 9.5px;
   font-weight: 700;
   color: #8c8980;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   border-bottom: 1px solid #ebebeb;
   white-space: nowrap;
 }
 
 .dc-table td {
-  padding: 8px 10px;
+  padding: 10px 14px;
   border-bottom: 1px solid #f0f0ed;
   color: #27272a;
   font-weight: 500;
@@ -192,17 +192,17 @@
 .dc-name-cell {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .dc-avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  border-radius: 7px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 800;
   flex-shrink: 0;
   letter-spacing: -0.2px;
@@ -213,9 +213,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 1.5px 6px;
-  border-radius: 4px;
-  font-size: 9px;
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-size: 9.5px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.03em;

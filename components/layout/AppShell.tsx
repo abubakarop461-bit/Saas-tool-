@@ -74,10 +74,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="h-screen w-screen bg-transparent flex flex-col font-sans overflow-hidden">
           <Header onToggleMenu={() => setIsMobileOpen(prev => !prev)} />
           
-          <div className="flex-1 flex w-full px-3 py-3 md:px-4 md:py-4 gap-3 md:gap-4 overflow-hidden relative">
+          <div className="flex-1 flex w-full px-4 py-4 md:px-6 md:py-6 gap-4 md:gap-6 overflow-hidden relative">
             
             {/* Desktop Sidebar Navigation (Hidden on Mobile) */}
-            <aside className="w-56 shrink-0 bg-zinc-950 border border-zinc-850 rounded-[14px] p-3.5 hidden lg:flex flex-col justify-between shadow-md text-left">
+            <aside className="w-64 shrink-0 bg-zinc-950 border border-zinc-850 rounded-[16px] p-4 md:p-5 hidden lg:flex flex-col justify-between shadow-md text-left">
               <SidebarNav />
             </aside>
 

@@ -1072,12 +1072,12 @@ Notes: ${l.notes || 'None'}`;
                     </td>
 
                     {/* Config */}
-                    <td className="font-semibold text-zinc-700 text-[11px]">
+                    <td className="font-semibold text-zinc-700 text-xs">
                       {lead.configuration || '—'}
                     </td>
 
                     {/* Location */}
-                    <td className="text-zinc-600 font-normal text-[11px] max-w-[140px] truncate">
+                    <td className="text-zinc-600 font-normal text-xs max-w-[150px] truncate">
                       {lead.preferred_location || '—'}
                     </td>
 
@@ -1100,17 +1100,17 @@ Notes: ${l.notes || 'None'}`;
                                 console.error('Error updating assignee:', err);
                               }
                             }}
-                            className="bg-transparent hover:bg-zinc-50 border border-transparent hover:border-zinc-200 rounded pr-4 pl-1 py-0.5 text-[11px] text-zinc-800 font-medium transition-all focus:outline-none focus:border-[#d4ad4d] cursor-pointer appearance-none"
+                            className="bg-transparent hover:bg-zinc-50 border border-transparent hover:border-zinc-200 rounded pr-4 pl-1 py-0.5 text-xs text-zinc-800 font-medium transition-all focus:outline-none focus:border-[#d4ad4d] cursor-pointer appearance-none"
                           >
                             <option value="">Unassigned</option>
                             {salesExecutives.map(exec => (
                               <option key={exec.id} value={exec.id}>{exec.full_name}</option>
                             ))}
                           </select>
-                          <ChevronDown className="h-2.5 w-2.5 text-zinc-400 absolute right-0.5 pointer-events-none group-hover/assign:text-zinc-700 transition-colors" />
+                          <ChevronDown className="h-3 w-3 text-zinc-400 absolute right-0.5 pointer-events-none group-hover/assign:text-zinc-700 transition-colors" />
                         </div>
                       ) : (
-                        <span className="px-1 py-0.5 rounded bg-zinc-50 border border-zinc-200 text-[10.5px] font-medium text-zinc-700 inline-block w-28 truncate text-left">
+                        <span className="px-1.5 py-0.5 rounded bg-zinc-50 border border-zinc-200 text-xs font-medium text-zinc-700 inline-block w-32 truncate text-left">
                           {salesExecutives.find(x => x.id === lead.assigned_to)?.full_name || 'Unassigned'}
                         </span>
                       )}
@@ -1124,7 +1124,7 @@ Notes: ${l.notes || 'None'}`;
                           value={lead.status || "Hot"}
                           onChange={(e) => handleRowStatusChange(lead.id, e.target.value)}
                           className={cx(
-                            "cursor-pointer rounded border px-2 py-0.5 text-[9px] font-black uppercase tracking-wider outline-none transition-all focus:ring-1 focus:ring-[#d4ad4d]/40 appearance-none text-center",
+                            "cursor-pointer rounded border px-2.5 py-0.5 text-[9.5px] font-black uppercase tracking-wider outline-none transition-all focus:ring-1 focus:ring-[#d4ad4d]/40 appearance-none text-center",
                             (lead.status || '').toLowerCase() === 'warm'
                               ? 'bg-[#fff8e6] border-[#ffe099] text-[#b87d00]'
                               : (lead.status || '').toLowerCase() === 'closed'
@@ -1149,7 +1149,7 @@ Notes: ${l.notes || 'None'}`;
                           value={lead.stage_id || "New inquiry"}
                           onChange={(e) => handleRowStageChange(lead.id, e.target.value)}
                           className={cx(
-                            "cursor-pointer rounded border px-2 py-0.5 text-[9px] font-bold tracking-tight outline-none transition-all focus:ring-1 focus:ring-[#d4ad4d]/40 appearance-none text-left whitespace-nowrap",
+                            "cursor-pointer rounded border px-2 py-0.5 text-[9.5px] font-bold tracking-tight outline-none transition-all focus:ring-1 focus:ring-[#d4ad4d]/40 appearance-none text-left whitespace-nowrap",
                             getStageStyle(lead.stage_id || "New inquiry")
                           )}
                         >
@@ -1162,30 +1162,30 @@ Notes: ${l.notes || 'None'}`;
 
                     {/* Actions — gold View → text + icon share */}
                     <td onClick={(e) => e.stopPropagation()} className="text-center">
-                      <div className="flex items-center justify-center gap-1.5">
+                      <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => handleOpenLead(lead)}
-                          className="text-[9.5px] font-bold text-[#d4ad4d] hover:text-[#b8922e] transition-colors whitespace-nowrap"
+                          className="text-[10px] font-bold text-[#d4ad4d] hover:text-[#b8922e] transition-colors whitespace-nowrap"
                         >
                           View →
                         </button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <button className="p-0.5 rounded text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors">
+                            <button className="p-1 rounded text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors">
                               <Share2 className="h-3 w-3" />
                             </button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-40 bg-white border border-zinc-200 rounded-lg shadow-lg p-1 z-30">
-                            <DropdownMenuItem onClick={() => copyToClipboard(generateShareText(lead), "Lead details copied!")} className="flex items-center gap-1.5 cursor-pointer text-[11px] font-semibold text-zinc-700 hover:text-zinc-900 px-2 py-1 rounded hover:bg-zinc-50">
-                              <Copy className="h-3 w-3 text-zinc-400" />
+                          <DropdownMenuContent align="end" className="w-44 bg-white border border-zinc-200 rounded-lg shadow-lg p-1 z-30">
+                            <DropdownMenuItem onClick={() => copyToClipboard(generateShareText(lead), "Lead details copied!")} className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-zinc-700 hover:text-zinc-900 px-2 py-1.5 rounded hover:bg-zinc-50">
+                              <Copy className="h-3.5 w-3.5 text-zinc-400" />
                               Copy details
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => shareWhatsApp(lead)} className="flex items-center gap-1.5 cursor-pointer text-[11px] font-semibold text-zinc-700 hover:text-zinc-900 px-2 py-1 rounded hover:bg-zinc-50">
-                              <MessageSquare className="h-3 w-3 text-emerald-500" />
+                            <DropdownMenuItem onClick={() => shareWhatsApp(lead)} className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-zinc-700 hover:text-zinc-900 px-2 py-1.5 rounded hover:bg-zinc-50">
+                              <MessageSquare className="h-3.5 w-3.5 text-emerald-500" />
                               WhatsApp
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => shareEmail(lead)} className="flex items-center gap-1.5 cursor-pointer text-[11px] font-semibold text-zinc-700 hover:text-zinc-900 px-2 py-1 rounded hover:bg-zinc-50">
-                              <Mail className="h-3 w-3 text-zinc-400" />
+                            <DropdownMenuItem onClick={() => shareEmail(lead)} className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-zinc-700 hover:text-zinc-900 px-2 py-1.5 rounded hover:bg-zinc-50">
+                              <Mail className="h-3.5 w-3.5 text-zinc-400" />
                               Email
                             </DropdownMenuItem>
                           </DropdownMenuContent>

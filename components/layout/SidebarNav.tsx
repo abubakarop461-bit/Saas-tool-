@@ -46,21 +46,21 @@ export function SidebarNav({ onClose, className = '' }: { onClose?: () => void; 
 
   return (
     <div className={`flex flex-col justify-between h-full w-full text-left ${className}`}>
-      <div className="space-y-3">
+      <div className="space-y-4">
         
         {/* Prominent Brand Logo */}
-        <div className="px-1 pt-0.5 pb-1 flex items-center justify-center">
+        <div className="px-1 pt-1 pb-2 flex items-center justify-center">
           <Link href="/dashboard" className="block group">
             <img 
               src="/luxe-logo.png" 
               alt="Luxe Realty Logo" 
-              className="h-10 w-auto object-contain transition-transform group-hover:scale-105" 
+              className="h-13 w-auto object-contain transition-transform group-hover:scale-105" 
             />
           </Link>
         </div>
 
         {/* Navigation Items */}
-        <nav className="space-y-0.5">
+        <nav className="space-y-1">
           {filteredNavItems.map((item) => {
             const isActive = pathname === item.href || (pathname !== '/' && item.href !== '/' && pathname.startsWith(item.href));
             const Icon = item.icon;
@@ -69,13 +69,13 @@ export function SidebarNav({ onClose, className = '' }: { onClose?: () => void; 
                 key={item.title}
                 href={item.href}
                 onClick={onClose}
-                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-[7px] text-[11px] font-semibold transition-all ${
+                className={`flex items-center gap-3 px-3 py-2 rounded-[8px] text-[11.5px] font-semibold transition-all ${
                   isActive
                     ? 'bg-zinc-900 text-[#d4ad4d] border-l-2 border-[#d4ad4d] rounded-l-none font-bold'
-                    : 'text-zinc-400 hover:text-white hover:bg-zinc-900/80'
+                    : 'text-zinc-400 hover:text-white hover:bg-zinc-900/90'
                 }`}
               >
-                <Icon className={`h-3.5 w-3.5 shrink-0 ${isActive ? 'text-[#d4ad4d]' : 'text-zinc-500'}`} />
+                <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-[#d4ad4d]' : 'text-zinc-500'}`} />
                 <span className="truncate">{item.title}</span>
               </Link>
             );
@@ -84,10 +84,10 @@ export function SidebarNav({ onClose, className = '' }: { onClose?: () => void; 
       </div>
 
       {/* User Status Card */}
-      <div className="space-y-2 pt-2">
-        <div className="p-2.5 bg-zinc-900/90 border border-zinc-800 rounded-[8px] space-y-0.5">
-          <p className="text-[11px] font-bold text-white truncate">{profile?.full_name || 'Active User'}</p>
-          <p className="text-[8.5px] font-bold text-[#d4ad4d] uppercase tracking-wider">{profile?.role || 'Sales Executive'}</p>
+      <div className="space-y-2.5 pt-2">
+        <div className="p-3 bg-zinc-900/90 border border-zinc-800/80 rounded-[10px] space-y-0.5">
+          <p className="text-xs font-bold text-white truncate">{profile?.full_name || 'Active User'}</p>
+          <p className="text-[9px] font-bold text-[#d4ad4d] uppercase tracking-wider">{profile?.role || 'Sales Executive'}</p>
         </div>
 
         {/* Powered by Outgrow Logo Footer */}
@@ -96,7 +96,7 @@ export function SidebarNav({ onClose, className = '' }: { onClose?: () => void; 
             href="https://www.letsoutgrow.com/" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-1.5 text-[9px] font-bold text-zinc-500 hover:text-white transition-colors group"
+            className="inline-flex items-center justify-center gap-1.5 text-[9.5px] font-bold text-zinc-500 hover:text-white transition-colors group"
           >
             <span className="text-zinc-500 font-medium">Powered by</span>
             <img 
