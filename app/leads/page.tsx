@@ -183,9 +183,14 @@ export default function LeadsPage() {
       supabase
         .from('profiles')
         .select('id, full_name, role')
-        .eq('role', 'SalesPerson')
         .then(({ data }: any) => {
-          setSalesExecutives(data && data.length > 0 ? data : SEED_SALESPEOPLE);
+          const list = data && data.length > 0 ? [...data] : [];
+          SEED_SALESPEOPLE.forEach(s => {
+            if (!list.some(item => item.id === s.id || item.full_name.toLowerCase() === s.full_name.toLowerCase())) {
+              list.push(s);
+            }
+          });
+          setSalesExecutives(list);
         })
         .catch(() => {
           setSalesExecutives(SEED_SALESPEOPLE);
@@ -310,6 +315,27 @@ export default function LeadsPage() {
   }
 
   // Inline DB updates
+  const handleRowAssigneeChange = async (leadId: string, newAssignee: string) => {
+    const updatedList = leads.map(l => l.id === leadId ? { ...l, assigned_to: newAssignee || undefined } : l);
+    setLeads(updatedList);
+    const targetLead = updatedList.find(l => l.id === leadId);
+    if (targetLead) saveLeadRecord(targetLead);
+
+    if (selectedLead && selectedLead.id === leadId) {
+      setSelectedLead(prev => prev ? { ...prev, assigned_to: newAssignee || undefined } : null);
+    }
+    setToast({ msg: newAssignee ? "Lead assigned to executive." : "Lead marked unassigned.", tone: "ok" });
+    try {
+      const { error } = await supabase
+        .from('leads')
+        .update({ assigned_to: newAssignee || null })
+        .eq('id', leadId);
+      if (error) console.error("Error updating assignee:", error);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const handleRowStatusChange = async (leadId: string, newStatus: string) => {
     // If status is "Closed", auto-move to Inactive. Otherwise, ensure it's Active.
     const shouldDeactivate = newStatus === 'Closed';
@@ -1106,55 +1132,34 @@ Notes: ${l.notes || 'None'}`;
                       {/* Assigned To (Owner) */}
                       <td onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center">
-                          {perms.canViewAllLeads ? (
-                            <div className="relative inline-flex items-center group/assign">
-                              <select
-                                aria-label="Assign executive"
-                                value={lead.assigned_to || ""}
-                                onChange={async (e) => {
-                                  const newAssignee = e.target.value;
-                                  setLeads(prev => prev.map(l => l.id === lead.id ? { ...l, assigned_to: newAssignee || undefined } : l));
-                                  try {
-                                    await supabase
-                                      .from('leads')
-                                      .update({ assigned_to: newAssignee || null })
-                                      .eq('id', lead.id);
-                                  } catch (err) {
-                                    console.error('Error updating assignee:', err);
-                                  }
-                                }}
-                                className={cx(
-                                  "rounded pr-4 pl-2 py-0.5 text-xs font-medium transition-all focus:outline-none cursor-pointer appearance-none",
-                                  isUnassigned && !isContacted
-                                    ? "border border-[#f59e0b] bg-[#fffdf0] text-amber-900 font-semibold ring-1 ring-amber-400/40"
-                                    : isUnassigned
-                                    ? "border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
-                                    : "border border-transparent bg-transparent hover:bg-zinc-50 hover:border-zinc-200 text-zinc-800 focus:border-[#d4ad4d]"
-                                )}
-                              >
-                                <option value="">Unassigned</option>
-                                {salesExecutives.map(exec => (
-                                  <option key={exec.id} value={exec.id}>{exec.full_name}</option>
-                                ))}
-                              </select>
-                              <ChevronDown className="h-3 w-3 text-zinc-400 absolute right-1 pointer-events-none group-hover/assign:text-zinc-700 transition-colors" />
-                            </div>
-                          ) : (
-                            <span className={cx(
-                              "px-1.5 py-0.5 rounded text-xs font-medium inline-block w-32 truncate text-left",
-                              isUnassigned && !isContacted
-                                ? "border border-[#f59e0b] bg-[#fffdf0] text-amber-900 font-semibold ring-1 ring-amber-400/40"
-                                : "bg-zinc-50 border border-zinc-200 text-zinc-700"
-                            )}>
-                              {salesExecutives.find(x => x.id === lead.assigned_to)?.full_name || 'Unassigned'}
-                            </span>
-                          )}
+                          <div className="relative inline-flex items-center group/assign">
+                            <select
+                              aria-label="Assign executive"
+                              value={lead.assigned_to || ""}
+                              onChange={(e) => handleRowAssigneeChange(lead.id, e.target.value)}
+                              className={cx(
+                                "rounded pr-4 pl-2 py-0.5 text-xs font-medium transition-all focus:outline-none cursor-pointer appearance-none",
+                                isUnassigned && !isContacted
+                                  ? "border border-[#f59e0b] bg-[#fffdf0] text-amber-900 font-semibold ring-1 ring-amber-400/40"
+                                  : isUnassigned
+                                  ? "border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
+                                  : "border border-transparent bg-transparent hover:bg-zinc-50 hover:border-zinc-200 text-zinc-800 focus:border-[#d4ad4d]"
+                              )}
+                            >
+                              <option value="">Unassigned</option>
+                              {salesExecutives.map(exec => (
+                                <option key={exec.id} value={exec.id}>{exec.full_name}</option>
+                              ))}
+                            </select>
+                            <ChevronDown className="h-3 w-3 text-zinc-400 absolute right-1 pointer-events-none group-hover/assign:text-zinc-700 transition-colors" />
+                          </div>
 
                           {/* Exclamation indicator on Owner ONLY when Unassigned AND NOT Contacted */}
                           {isUnassigned && !isContacted && (
                             <div className="relative inline-flex items-center ml-1.5 group/alert-owner shrink-0">
                               <span 
                                 title="Lead is unassigned: Please assign an executive"
+                                onClick={() => handleOpenLead(lead)}
                                 className="inline-flex items-center justify-center h-4 w-4 rounded-full bg-[#f59e0b] text-white text-[10px] font-black shadow-xs ring-4 ring-amber-100 animate-pulse cursor-pointer"
                               >
                                 !
@@ -1218,11 +1223,26 @@ Notes: ${l.notes || 'None'}`;
                             </select>
                           </div>
 
+                          {/* Follow-up Date input / picker for all rows */}
+                          <input
+                            type="date"
+                            aria-label="Next follow up date"
+                            value={lead.next_followup_date ? String(lead.next_followup_date).slice(0, 10) : ''}
+                            onChange={(e) => handleRowFollowUpChange(lead.id, e.target.value)}
+                            className={cx(
+                              "h-6 px-1.5 rounded text-[10px] font-bold transition-all focus:outline-none cursor-pointer",
+                              lead.next_followup_date 
+                                ? "border border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 focus:border-[#d4ad4d]"
+                                : "border border-dashed border-zinc-300 bg-transparent text-zinc-400 hover:border-zinc-400"
+                            )}
+                          />
+
                           {/* Exclamation indicator on Followup when Contacted AND Follow-up date missing */}
-                          {isContacted && isFollowupMissing ? (
+                          {isContacted && isFollowupMissing && (
                             <div className="relative inline-flex items-center group/alert-fu shrink-0">
                               <span 
                                 title="Lead is contacted: Please set follow-up date"
+                                onClick={() => handleOpenLead(lead)}
                                 className="inline-flex items-center justify-center h-4 w-4 rounded-full bg-[#f59e0b] text-white text-[10px] font-black shadow-xs ring-4 ring-amber-100 animate-pulse cursor-pointer"
                               >
                                 !
@@ -1234,12 +1254,6 @@ Notes: ${l.notes || 'None'}`;
                                 <div className="w-1.5 h-1.5 bg-zinc-900 rotate-45 -mt-1" />
                               </div>
                             </div>
-                          ) : lead.next_followup_date ? (
-                            <span className="text-[10px] font-bold text-zinc-600 whitespace-nowrap ml-0.5">
-                              {new Date(lead.next_followup_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                            </span>
-                          ) : (
-                            <span className="text-zinc-400 text-xs font-medium">—</span>
                           )}
                         </div>
                       </td>

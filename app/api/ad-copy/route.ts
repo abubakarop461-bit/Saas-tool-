@@ -146,7 +146,7 @@ Respond ONLY with a valid JSON object matching this exact schema:
         clearTimeout(timeoutId);
 
         if (response.ok) {
-          const resData = await response.json();
+          const resData: any = await response.json();
           const rawContent = resData?.choices?.[0]?.message?.content || '';
           const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
           if (jsonMatch) {
