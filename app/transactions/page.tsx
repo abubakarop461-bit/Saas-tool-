@@ -48,11 +48,11 @@ export default function TransactionsPage() {
   useEffect(() => {
     async function loadTx() {
       const data = await fetchTransactions();
+      setTransactions(data || []);
       if (data && data.length > 0) {
-        setTransactions(data);
-        if (!selectedTx || !data.some(t => t.id === selectedTx.id)) {
-          setSelectedTx(data[0]);
-        }
+        setSelectedTx(prev => (!prev || !data.some(t => t.id === prev.id)) ? data[0] : prev);
+      } else {
+        setSelectedTx(null);
       }
     }
     loadTx();

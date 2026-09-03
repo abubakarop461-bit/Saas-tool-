@@ -1019,7 +1019,26 @@ export async function saveLeadsBatch(leads: Lead[]): Promise<void> {
 }
 
 export async function fetchProperties(profile: Profile | null): Promise<Property[]> {
-  return loadEntity<Property>('properties', SEED_PROPERTIES);
+  const data = await loadEntity<Property>('properties', SEED_PROPERTIES);
+  
+  // Ensure default booked properties from SEED_PROPERTIES are synced
+  const bookedSeedIds = new Set(['prop-008', 'prop-011', 'prop-013']);
+  let modified = false;
+  const updated = data.map(p => {
+    if (bookedSeedIds.has(p.id) && p.status_id !== 'Booked') {
+      modified = true;
+      return { ...p, status_id: 'Booked' };
+    }
+    return p;
+  });
+
+  if (modified && typeof window !== 'undefined') {
+    try {
+      localStorage.setItem('luxe-store-properties', JSON.stringify(updated));
+    } catch {}
+  }
+
+  return updated;
 }
 
 export async function savePropertyRecord(property: Property): Promise<void> {
