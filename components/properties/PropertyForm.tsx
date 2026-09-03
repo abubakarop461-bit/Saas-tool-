@@ -4,6 +4,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { createPropertyAction, updatePropertyAction, deletePropertyAction } from '@/app/properties/actions';
+import { saveEntity } from '@/lib/dataStore';
+import { syncPropertyInventoryUnits } from '@/lib/inventory';
 import { supabase } from '@/lib/supabaseClient';
 import { TagsInput } from '@/components/ui/tags-input';
 import { MediaPicker } from '@/components/ui/media-picker';
@@ -317,6 +319,9 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
   useEffect(() => {
     if (state?.success) {
       toast.success(isEdit ? 'Property updated successfully' : 'Property saved successfully');
+      if (state.data) {
+        saveEntity('properties', state.data);
+      }
       if (locations.length > 0) {
         locations.forEach(loc => {
           supabase.from('locations').upsert({ name: loc }, { onConflict: 'name' });
@@ -327,7 +332,7 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
     } else if (state?.error) {
       toast.error(state.error);
     }
-  }, [state]);
+  }, [state, isEdit, router, locations]);
 
   const handlePropertyTypeChange = (value: string) => {
     setPreviewType(value);
@@ -386,6 +391,69 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     if (!validateRequiredFields()) {
       e.preventDefault();
+      return;
+    }
+
+    const fd = new FormData(e.currentTarget);
+    const priceNum = Number(previewPrice) || 13500000;
+    const carpetNum = Number(carpetArea) || 1680;
+    const builtUpNum = Number(builtUpArea) || 2150;
+    const isStandalone = listingNature === 'standalone';
+
+    const propRecord: any = {
+      id: initialValues.id || `prop-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      title: previewTitle.trim(),
+      property_code: propertyCode || `PRP-${Date.now().toString(36).toUpperCase()}`,
+      location: locations.join(', '),
+      address: String(fd.get('address') || ''),
+      property_type: previewType,
+      configuration: configuration.join(', '),
+      carpet_area: carpetNum,
+      built_up_area: builtUpNum,
+      price: priceNum,
+      status_id: initialValues.status_id || 'Available',
+      listing_type: String(fd.get('listing_type') || 'Sale'),
+      listing_nature: listingNature,
+      source_type: String(fd.get('source_type') || 'Direct'),
+      owner_name: String(fd.get('owner_name') || ''),
+      owner_contact: String(fd.get('owner_contact') || ''),
+      alternate_owner_contacts: alternateOwnerContacts.filter(Boolean),
+      unit_no: isStandalone ? standaloneUnitNo : String(fd.get('unit_no') || ''),
+      floor_number: isStandalone ? standaloneFloorNumber : 1,
+      total_floors: isStandalone ? standaloneTotalFloors : totalFloors,
+      facing: isStandalone ? standaloneFacing : 'East Facing',
+      furnishing: isStandalone ? standaloneFurnishing : 'Unfurnished',
+      parking: isStandalone ? standaloneParking : '1 Covered Parking Slot',
+      possession_status: isStandalone ? standalonePossession : possessionTimeline,
+      maintenance: isStandalone ? standaloneMaintenance : '5000',
+      brokerage: String(fd.get('brokerage') || '2%'),
+      description: String(fd.get('description') || ''),
+      internal_notes: String(fd.get('internal_notes') || ''),
+      is_active: true,
+      created_at: initialValues.created_at || new Date().toISOString()
+    };
+
+    saveEntity('properties', propRecord);
+
+    try {
+      syncPropertyInventoryUnits({
+        property_id: propRecord.id,
+        project_title: propRecord.title,
+        is_standalone: isStandalone,
+        unit_number: propRecord.unit_no,
+        floor_number: propRecord.floor_number,
+        facing: propRecord.facing,
+        towers: isStandalone ? ['Standalone Unit'] : towersList,
+        total_floors: isStandalone ? 1 : totalFloors,
+        units_per_floor: isStandalone ? 1 : unitsPerFloor,
+        configuration: propRecord.configuration,
+        carpet_area: propRecord.carpet_area,
+        built_up_area: propRecord.built_up_area,
+        base_price: propRecord.price,
+        possession_date: propRecord.possession_status
+      });
+    } catch {
+      // ignore
     }
   };
 

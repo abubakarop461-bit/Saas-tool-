@@ -84,22 +84,28 @@ export default function PropertyInventoryPage() {
   }, [properties]); // Re-fetch when properties change
 
 
-  // Fetch properties on load
+  // Fetch properties immediately on mount and on window focus/storage update
+  const loadData = () => {
+    fetchProperties(profile)
+      .then(data => {
+        setProperties(data || []);
+      })
+      .catch((err) => {
+        console.error('Error loading properties:', err);
+      })
+      .finally(() => setLoading(false));
+  };
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchProperties(profile)
-        .then(data => {
-          setProperties(data || []);
-        })
-        .catch((err) => {
-          console.error(err);
-          setProperties([]);
-        })
-        .finally(() => setLoading(false));
-    }, 500);
+    loadData();
 
-    return () => clearTimeout(timer);
+    const handleUpdate = () => loadData();
+    window.addEventListener('focus', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    return () => {
+      window.removeEventListener('focus', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
   }, [profile]);
 
   const displayProperties = properties;
