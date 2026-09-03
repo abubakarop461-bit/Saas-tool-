@@ -137,3 +137,26 @@ export async function upsertD1Record(
   }
   return true;
 }
+
+/**
+ * Delete record by ID from Cloudflare D1 and cache
+ */
+export async function deleteD1Record(
+  table: string,
+  id: string,
+  env?: CloudflareEnv
+): Promise<boolean> {
+  try {
+    if (env?.DB) {
+      await env.DB.prepare(`DELETE FROM ${table} WHERE id = ?`).bind(id).run();
+      return true;
+    }
+  } catch (err) {
+    console.warn(`Error deleting from D1 table ${table}:`, err);
+  }
+
+  if (localCache[table]) {
+    localCache[table] = localCache[table].filter((r: any) => r.id !== id);
+  }
+  return true;
+}

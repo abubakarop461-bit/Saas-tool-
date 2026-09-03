@@ -3,7 +3,7 @@ import { useActionState } from 'react';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { createPropertyAction, updatePropertyAction } from '@/app/properties/actions';
+import { createPropertyAction, updatePropertyAction, deletePropertyAction } from '@/app/properties/actions';
 import { supabase } from '@/lib/supabaseClient';
 import { TagsInput } from '@/components/ui/tags-input';
 import { MediaPicker } from '@/components/ui/media-picker';
@@ -341,11 +341,19 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
     if (!confirm('Are you sure you want to delete this property? This cannot be undone.')) return;
     setDeleting(true);
     try {
-      const { error } = await supabase.from('properties').delete().eq('id', initialValues.id);
-      if (!error) { router.push('/properties'); router.refresh(); }
-      else alert('Failed to delete: ' + error.message);
-    } catch { alert('Error deleting property'); }
-    finally { setDeleting(false); }
+      const res = await deletePropertyAction(initialValues.id);
+      if (res.success) {
+        toast.success('Property deleted successfully');
+        router.push('/properties');
+        router.refresh();
+      } else {
+        toast.error(res.error || 'Failed to delete property');
+      }
+    } catch {
+      toast.error('Error deleting property');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   function formatPrice(v: string | number) {
