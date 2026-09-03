@@ -962,7 +962,13 @@ export function generateProjectUnits(params: {
   const unitsPerFloor = Math.max(1, Math.min(12, params.units_per_floor || 4));
 
   towersList.forEach(tower => {
-    const towerPrefix = tower.replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase() || 'T';
+    const parts = tower.trim().split(/\s+/);
+    let towerPrefix = 'T';
+    if (parts.length >= 2) {
+      towerPrefix = `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    } else {
+      towerPrefix = tower.replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase() || 'T';
+    }
     for (let floor = 1; floor <= floorsCount; floor++) {
       for (let uIdx = 1; uIdx <= unitsPerFloor; uIdx++) {
         const unitSuffix = uIdx < 10 ? `0${uIdx}` : `${uIdx}`;

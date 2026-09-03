@@ -48,48 +48,29 @@ export function isProjectListing(prop: Property): boolean {
 
 export function getProjectDetails(prop: Property) {
   const title = (prop.title || '').toLowerCase();
-  if (title.includes('kuchu puchu')) {
-    return {
-      towers: 4,
-      totalFloors: 20,
-      unitsPerFloor: 8,
-      totalUnits: 640,
-      priceRange: '₹2.00 Cr - ₹2.80 Cr'
-    };
+  
+  const towersCount = prop.towers_list?.length || (title.includes('kuchu') ? 4 : title.includes('trump') ? 2 : title.includes('solitaire') ? 3 : title.includes('nyati') ? 2 : 2);
+  const floors = prop.total_floors || (title.includes('kuchu') ? 20 : title.includes('trump') ? 23 : title.includes('solitaire') ? 20 : title.includes('nyati') ? 10 : 12);
+  const perFloor = prop.units_per_floor || (title.includes('kuchu') ? 8 : title.includes('trump') ? 1 : title.includes('solitaire') ? 2 : title.includes('nyati') ? 4 : 4);
+  const total = prop.total_units || (towersCount * floors * perFloor);
+
+  let priceRange = `${formatPriceShort(prop.price || 15000000)}+`;
+  if (title.includes('kuchu')) priceRange = '₹2.00 Cr - ₹2.80 Cr';
+  else if (title.includes('trump')) priceRange = '₹4.50 Cr - ₹6.50 Cr';
+  else if (title.includes('solitaire')) priceRange = '₹3.20 Cr - ₹5.00 Cr';
+  else if (title.includes('nyati')) priceRange = '₹1.55 Cr - ₹2.20 Cr';
+  else if (prop.price) {
+    const base = prop.price;
+    const max = Math.round(base * 1.35);
+    priceRange = `${formatPriceShort(base)} - ${formatPriceShort(max)}`;
   }
-  if (title.includes('trump')) {
-    return {
-      towers: 2,
-      totalFloors: 23,
-      unitsPerFloor: 1,
-      totalUnits: 46,
-      priceRange: '₹4.50 Cr - ₹6.50 Cr'
-    };
-  }
-  if (title.includes('solitaire')) {
-    return {
-      towers: 3,
-      totalFloors: 20,
-      unitsPerFloor: 2,
-      totalUnits: 120,
-      priceRange: '₹3.20 Cr - ₹5.00 Cr'
-    };
-  }
-  if (title.includes('nyati')) {
-    return {
-      towers: 2,
-      totalFloors: 10,
-      unitsPerFloor: 4,
-      totalUnits: 80,
-      priceRange: '₹1.55 Cr - ₹2.20 Cr'
-    };
-  }
+
   return {
-    towers: 2,
-    totalFloors: 10,
-    unitsPerFloor: 4,
-    totalUnits: 80,
-    priceRange: `${formatPriceShort(prop.price)}+`
+    towers: towersCount,
+    totalFloors: floors,
+    unitsPerFloor: perFloor,
+    totalUnits: total,
+    priceRange
   };
 }
 

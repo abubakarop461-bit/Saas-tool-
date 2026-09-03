@@ -49,6 +49,10 @@ export interface Property {
   description?: string;
   internal_notes?: string;
   listing_nature?: 'standalone' | 'project';
+  towers_list?: string[];
+  total_floors?: number;
+  units_per_floor?: number;
+  total_units?: number;
   is_active?: boolean;
   created_at?: string;
 }
