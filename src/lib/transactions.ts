@@ -1,7 +1,7 @@
 // src/lib/transactions.ts - Deals & Transactions Data Access Layer
 import { supabase } from '@/lib/supabaseClient';
 import { loadEntity, saveEntityBatch, saveEntity } from '@/lib/dataStore';
-import type { Property } from '@/lib/queries';
+import { Property, SEED_PROPERTIES } from '@/lib/queries';
 import type { DeveloperUnit } from '@/lib/inventory';
 
 export type TransactionStage = 
@@ -63,64 +63,112 @@ export interface DealTransaction {
   notes?: string;
 }
 
-export const SEED_TRANSACTIONS: DealTransaction[] = [
-  {
-    id: 'tx-1',
-    property_id: 'prop-001',
-    client_name: 'Sandesh Kulkarni',
-    client_phone: '+91-7838556636',
-    client_email: 'sandesh.kulkarni@techcorp.in',
-    property_title: 'Luxe Azure Palms - Tower A',
-    tower: 'Tower A',
-    unit_number: 'A-1204',
-    configuration: '3 BHK',
-    deal_value: 13500000,
-    token_amount: 500000,
-    booking_status: 'Confirmed',
-    current_stage: 'Booking',
-    sales_agent: 'Rishi Mahboobani',
-    channel_partner: 'ABC Realty Consultants',
-    booking_date: '2026-09-01',
-    expected_closure_date: '2026-09-15',
-    payment_schedule: [
-      { id: 'm-1', name: 'Token / EOI', amount: 500000, dueDate: '2026-09-01', status: 'Paid', paidDate: '2026-09-01' },
-      { id: 'm-2', name: 'Agreement (15%)', amount: 2000000, dueDate: '2026-09-15', status: 'Pending' },
-      { id: 'm-3', name: '1st Installment (Plinth)', amount: 3000000, dueDate: '2026-10-15', status: 'Pending' },
-      { id: 'm-4', name: 'Final Handover & Registration', amount: 8000000, dueDate: '2026-12-30', status: 'Pending' }
-    ],
-    notes: 'Customer requires agreement draft before Sep 10. Home loan pre-approved with HDFC.'
-  },
-  {
-    id: 'tx-2',
-    property_id: 'prop-004',
-    client_name: 'Ananya Sharma',
-    client_phone: '+91 98200 11223',
-    client_email: 'ananya.s@infotech.in',
-    property_title: 'Pristine Kyra Luxury Suites',
-    tower: 'Tower B',
-    unit_number: 'B-1602',
-    configuration: '4 BHK',
-    deal_value: 31000000,
-    token_amount: 1000000,
-    booking_status: 'Confirmed',
-    current_stage: 'Agreement',
-    sales_agent: 'Vikram Seth',
-    channel_partner: 'ANAROCK Property Consultants',
-    booking_date: '2026-08-20',
-    expected_closure_date: '2026-09-05',
-    payment_schedule: [
-      { id: 'm-1', name: 'Token Amount', amount: 1000000, dueDate: '2026-08-20', status: 'Paid', paidDate: '2026-08-20' },
-      { id: 'm-2', name: 'Agreement & Stamp Duty (15%)', amount: 4500000, dueDate: '2026-09-05', status: 'Paid', paidDate: '2026-09-04' },
-      { id: 'm-3', name: 'Structure Milestone (32%)', amount: 10000000, dueDate: '2026-11-15', status: 'Pending' },
-      { id: 'm-4', name: 'Possession & Handover Balance', amount: 15500000, dueDate: '2027-03-31', status: 'Pending' }
-    ],
-    notes: 'Stamp duty completed. Agreement signed and registered.'
-  }
-];
-
+/**
+ * Dynamically queries and returns ONLY properties and units that are currently Booked or Sold or under Token.
+ */
 export async function fetchTransactions(): Promise<DealTransaction[]> {
-  const loaded = await loadEntity<DealTransaction>('transactions', SEED_TRANSACTIONS);
-  return loaded;
+  try {
+    const properties = await loadEntity<Property>('properties', SEED_PROPERTIES);
+    const units = await loadEntity<DeveloperUnit>('inventory', []);
+    const storedTxs = await loadEntity<DealTransaction>('transactions', []);
+    const storedMap = new Map<string, DealTransaction>();
+    storedTxs.forEach(t => {
+      if (t.property_id) storedMap.set(`prop-${t.property_id}`, t);
+      if (t.unit_id) storedMap.set(`unit-${t.unit_id}`, t);
+    });
+
+    const results: DealTransaction[] = [];
+
+    // 1. Process all properties that are currently in Booked, Sold, or Token status
+    properties.forEach(p => {
+      const isBooked = ['Booked', 'Sold', 'Done', 'Token', 'Under Offer'].includes(p.status_id || '');
+      if (isBooked) {
+        const val = p.price || 15000000;
+        const tokenVal = Math.round(val * 0.05);
+        const agreementVal = Math.round(val * 0.15);
+        const milestoneVal = Math.round(val * 0.40);
+        const balanceVal = val - tokenVal - agreementVal - milestoneVal;
+        const isSold = p.status_id === 'Sold' || p.status_id === 'Done';
+
+        const custom = storedMap.get(`prop-${p.id}`);
+
+        results.push({
+          id: `tx-prop-${p.id}`,
+          property_id: p.id,
+          client_name: custom?.client_name || p.owner_name || 'Booked Client',
+          client_phone: custom?.client_phone || p.owner_contact || '+91 98220 54321',
+          client_email: custom?.client_email || `${(p.owner_name || 'client').toLowerCase().replace(/[^a-z0-9]/g, '')}@gmail.com`,
+          property_title: p.title,
+          tower: custom?.tower || 'Main Tower',
+          unit_number: p.unit_no || 'Unit #1',
+          configuration: p.configuration || '3 BHK',
+          deal_value: custom?.deal_value || val,
+          token_amount: custom?.token_amount || tokenVal,
+          booking_status: isSold ? 'Completed' : 'Confirmed',
+          current_stage: isSold ? 'Possession' : (p.status_id === 'Token' ? 'Token / EOI' : 'Booking'),
+          sales_agent: custom?.sales_agent || 'Rishi Mahboobani',
+          channel_partner: p.source_type === 'Broker' ? (p.brokerage || 'Partner Channel') : 'Direct In-House',
+          booking_date: custom?.booking_date || (p.created_at ? p.created_at.split('T')[0] : '2026-09-01'),
+          expected_closure_date: custom?.expected_closure_date || '2026-09-30',
+          payment_schedule: custom?.payment_schedule || [
+            { id: `m-${p.id}-1`, name: 'Token / EOI (5%)', amount: tokenVal, dueDate: '2026-09-01', status: 'Paid', paidDate: '2026-09-01' },
+            { id: `m-${p.id}-2`, name: 'Agreement (15%)', amount: agreementVal, dueDate: '2026-09-15', status: isSold ? 'Paid' : 'Pending' },
+            { id: `m-${p.id}-3`, name: 'Construction Milestone (40%)', amount: milestoneVal, dueDate: '2026-10-30', status: isSold ? 'Paid' : 'Pending' },
+            { id: `m-${p.id}-4`, name: 'Final Handover & Possession', amount: balanceVal, dueDate: '2026-12-31', status: isSold ? 'Paid' : 'Pending' }
+          ],
+          notes: custom?.notes || `Direct listing booking record for ${p.title} (${p.property_code || 'PRP'}).`
+        });
+      }
+    });
+
+    // 2. Process all developer units that are currently in Booked, Sold, or Token status
+    units.forEach(u => {
+      const isBooked = ['Booked', 'Sold', 'Token'].includes(u.status as any);
+      if (isBooked) {
+        const val = u.base_price || 20000000;
+        const tokenVal = Math.round(val * 0.05);
+        const agreementVal = Math.round(val * 0.15);
+        const milestoneVal = Math.round(val * 0.40);
+        const balanceVal = val - tokenVal - agreementVal - milestoneVal;
+        const isSold = (u.status as any) === 'Sold';
+
+        const custom = storedMap.get(`unit-${u.id}`);
+
+        results.push({
+          id: `tx-unit-${u.id}`,
+          property_id: u.property_id,
+          unit_id: u.id,
+          client_name: u.buyer_name || custom?.client_name || 'Booked Client',
+          client_phone: custom?.client_phone || '+91 98220 77889',
+          client_email: custom?.client_email || `${(u.buyer_name || 'client').toLowerCase().replace(/[^a-z0-9]/g, '')}@gmail.com`,
+          property_title: u.project_title,
+          tower: u.tower,
+          unit_number: u.unit_number,
+          configuration: u.configuration,
+          deal_value: custom?.deal_value || val,
+          token_amount: custom?.token_amount || tokenVal,
+          booking_status: isSold ? 'Completed' : 'Confirmed',
+          current_stage: isSold ? 'Possession' : (u.status === 'Token' ? 'Token / EOI' : 'Booking'),
+          sales_agent: u.agent_name || custom?.sales_agent || 'Rishi Mahboobani',
+          channel_partner: custom?.channel_partner || 'In-House Developer Mandate',
+          booking_date: custom?.booking_date || '2026-09-01',
+          expected_closure_date: custom?.expected_closure_date || '2026-09-30',
+          payment_schedule: custom?.payment_schedule || [
+            { id: `m-${u.id}-1`, name: 'Token / EOI (5%)', amount: tokenVal, dueDate: '2026-09-01', status: 'Paid', paidDate: '2026-09-01' },
+            { id: `m-${u.id}-2`, name: 'Agreement (15%)', amount: agreementVal, dueDate: '2026-09-15', status: isSold ? 'Paid' : 'Pending' },
+            { id: `m-${u.id}-3`, name: 'Structure Milestone (40%)', amount: milestoneVal, dueDate: '2026-10-30', status: isSold ? 'Paid' : 'Pending' },
+            { id: `m-${u.id}-4`, name: 'Final Handover & Registration', amount: balanceVal, dueDate: '2026-12-31', status: isSold ? 'Paid' : 'Pending' }
+          ],
+          notes: custom?.notes || `Building inventory unit booking for ${u.unit_number} in ${u.project_title}.`
+        });
+      }
+    });
+
+    return results;
+  } catch (err) {
+    console.error('Error fetching transactions:', err);
+    return [];
+  }
 }
 
 export async function saveTransactions(txs: DealTransaction[]): Promise<void> {
@@ -133,12 +181,11 @@ export async function saveTransaction(tx: DealTransaction): Promise<void> {
 
 /**
  * Creates or updates a transaction when a Property is marked as Booked or Sold.
- * If status is changed back to Available/Hold, it cleanly removes it from the Transactions pipeline.
  */
 export async function syncTransactionForProperty(property: Property, newStatus: string): Promise<void> {
   const isBooked = ['Booked', 'Sold', 'Done', 'Token', 'Under Offer'].includes(newStatus);
   const txId = `tx-prop-${property.id}`;
-  const existing = await fetchTransactions();
+  const existing = await loadEntity<DealTransaction>('transactions', []);
 
   if (isBooked) {
     const val = property.price || 15000000;
@@ -153,6 +200,7 @@ export async function syncTransactionForProperty(property: Property, newStatus: 
       property_id: property.id,
       client_name: property.owner_name || 'Booked Client',
       client_phone: property.owner_contact || '+91 98220 54321',
+      client_email: `${(property.owner_name || 'client').toLowerCase().replace(/[^a-z0-9]/g, '')}@gmail.com`,
       property_title: property.title,
       tower: 'Main Tower',
       unit_number: property.unit_no || 'Unit #1',
@@ -189,7 +237,7 @@ export async function syncTransactionForProperty(property: Property, newStatus: 
 export async function syncTransactionForUnit(unit: DeveloperUnit, newStatus: string): Promise<void> {
   const isBooked = ['Booked', 'Sold', 'Token', 'Done'].includes(newStatus);
   const txId = `tx-unit-${unit.id}`;
-  const existing = await fetchTransactions();
+  const existing = await loadEntity<DealTransaction>('transactions', []);
 
   if (isBooked) {
     const val = unit.base_price || 20000000;
@@ -205,6 +253,7 @@ export async function syncTransactionForUnit(unit: DeveloperUnit, newStatus: str
       unit_id: unit.id,
       client_name: unit.buyer_name || 'Booked Client',
       client_phone: '+91 98220 77889',
+      client_email: `${(unit.buyer_name || 'client').toLowerCase().replace(/[^a-z0-9]/g, '')}@gmail.com`,
       property_title: unit.project_title,
       tower: unit.tower,
       unit_number: unit.unit_number,

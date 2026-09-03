@@ -35,7 +35,6 @@ import {
   ALL_TRANSACTION_STAGES,
   PaymentMilestone,
   DealTransaction,
-  SEED_TRANSACTIONS,
   fetchTransactions,
   saveTransactions
 } from '@/lib/transactions';
@@ -44,7 +43,7 @@ import { SEED_CHANNEL_PARTNERS } from '@/lib/partners';
 import type { CommissionEntry } from '@/lib/partners';
 
 export default function TransactionsPage() {
-  const [transactions, setTransactions] = useState<DealTransaction[]>(SEED_TRANSACTIONS);
+  const [transactions, setTransactions] = useState<DealTransaction[]>([]);
 
   useEffect(() => {
     async function loadTx() {
