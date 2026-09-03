@@ -74,8 +74,11 @@ export async function createPropertyAction(prevState: any, formData: FormData) {
       console.warn("Inventory unit sync deferred:", invErr);
     }
 
-    revalidatePath('/properties');
-    revalidatePath('/inventory');
+    try {
+      revalidatePath('/properties');
+      revalidatePath('/inventory');
+    } catch {}
+
     return { success: true, data };
   } catch (err: any) {
     console.error("Create property error:", err);
@@ -153,8 +156,11 @@ export async function updatePropertyAction(prevState: any, formData: FormData) {
       console.warn("Inventory update sync deferred:", invErr);
     }
 
-    revalidatePath('/properties');
-    revalidatePath('/inventory');
+    try {
+      revalidatePath('/properties');
+      revalidatePath('/inventory');
+    } catch {}
+
     return { success: true, data };
   } catch (err: any) {
     console.error("Update property error:", err);
@@ -166,7 +172,9 @@ export async function deletePropertyAction(id: string) {
   try {
     if (!id) return { success: false, error: 'Missing ID' };
     await deleteD1Record('properties', id);
-    revalidatePath('/properties');
+    try {
+      revalidatePath('/properties');
+    } catch {}
     return { success: true };
   } catch (err: any) {
     return { success: false, error: err.message };

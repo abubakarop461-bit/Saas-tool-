@@ -1,4 +1,5 @@
 // src/lib/dataStore.ts - Deep Unified Persistence Engine with Cloudflare D1 as Authoritative Backend
+import { queryD1, upsertD1Record, deleteD1Record } from '@/lib/db';
 
 export type EntityTable =
   | 'leads'
@@ -25,7 +26,18 @@ export async function loadEntity<T = any>(
   table: EntityTable,
   defaultSeed: T[] = []
 ): Promise<T[]> {
-  // 1. Try Cloudflare D1 Edge API as primary source
+  // 1. If on server side, query D1 directly
+  if (typeof window === 'undefined') {
+    try {
+      const { results } = await queryD1(`SELECT * FROM ${table}`);
+      if (results && results.length > 0) return results as T[];
+    } catch (err) {
+      console.warn(`[DataStore Server] D1 query for ${table} failed:`, err);
+    }
+    return defaultSeed;
+  }
+
+  // 2. If on browser client side, try Cloudflare D1 Edge API as primary source
   try {
     const res = await fetch(`/api/entities/${table}`, {
       method: 'GET',
@@ -36,47 +48,43 @@ export async function loadEntity<T = any>(
       const data = (await res.json()) as { success?: boolean; records?: T[] };
       if (data && data.success && Array.isArray(data.records) && data.records.length > 0) {
         // Mirror authoritative D1 data to localStorage
-        if (typeof window !== 'undefined') {
-          try {
-            localStorage.setItem(getStorageKey(table), JSON.stringify(data.records));
-          } catch {
-            // ignore storage quota
-          }
+        try {
+          localStorage.setItem(getStorageKey(table), JSON.stringify(data.records));
+        } catch {
+          // ignore storage quota
         }
         return data.records;
       }
     }
   } catch (err) {
-    console.warn(`[DataStore] D1 query for table ${table} deferred to cache:`, err);
+    console.warn(`[DataStore Client] D1 query for table ${table} deferred to cache:`, err);
   }
 
-  // 2. Fallback to local storage mirror
-  if (typeof window !== 'undefined') {
-    try {
-      const localRaw = localStorage.getItem(getStorageKey(table));
-      if (localRaw) {
-        const parsed = JSON.parse(localRaw);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          // Merge any missing seed records into local cache
-          if (defaultSeed.length > 0) {
-            const existingIds = new Set(parsed.map((p: any) => p.id));
-            const missingSeeds = defaultSeed.filter((s: any) => !existingIds.has(s.id));
-            if (missingSeeds.length > 0) {
-              const merged = [...parsed, ...missingSeeds];
-              localStorage.setItem(getStorageKey(table), JSON.stringify(merged));
-              return merged;
-            }
+  // 3. Fallback to local storage mirror in browser
+  try {
+    const localRaw = localStorage.getItem(getStorageKey(table));
+    if (localRaw) {
+      const parsed = JSON.parse(localRaw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        // Merge any missing seed records into local cache
+        if (defaultSeed.length > 0) {
+          const existingIds = new Set(parsed.map((p: any) => p.id));
+          const missingSeeds = defaultSeed.filter((s: any) => !existingIds.has(s.id));
+          if (missingSeeds.length > 0) {
+            const merged = [...parsed, ...missingSeeds];
+            localStorage.setItem(getStorageKey(table), JSON.stringify(merged));
+            return merged;
           }
-          return parsed;
         }
+        return parsed;
       }
-    } catch {
-      // parse error
     }
+  } catch {
+    // parse error
   }
 
-  // 3. Fallback to default seed & prime local storage
-  if (typeof window !== 'undefined' && defaultSeed.length > 0) {
+  // 4. Fallback to default seed & prime local storage
+  if (defaultSeed.length > 0) {
     try {
       localStorage.setItem(getStorageKey(table), JSON.stringify(defaultSeed));
     } catch {
@@ -100,24 +108,33 @@ export async function saveEntity<T extends { id?: string }>(
     id: record.id || `${table}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`
   };
 
-  // 1. Optimistic Local Storage update for 0ms UI latency
-  if (typeof window !== 'undefined') {
+  // 1. If on server side, write directly to D1
+  if (typeof window === 'undefined') {
     try {
-      const localRaw = localStorage.getItem(getStorageKey(table));
-      const currentList: any[] = localRaw ? JSON.parse(localRaw) : [];
-      const idx = currentList.findIndex((r: any) => r.id === item.id);
-      if (idx >= 0) {
-        currentList[idx] = item;
-      } else {
-        currentList.unshift(item);
-      }
-      localStorage.setItem(getStorageKey(table), JSON.stringify(currentList));
-    } catch (e) {
-      console.error(`[DataStore] Local cache update failed for ${table}:`, e);
+      await upsertD1Record(table, item);
+      return { success: true, mode: 'd1' };
+    } catch (err) {
+      console.warn(`[DataStore Server] Failed to save record to ${table}:`, err);
+      return { success: false, mode: 'local' };
     }
   }
 
-  // 2. Persist to Cloudflare D1 Database via Edge API
+  // 2. Optimistic Local Storage update in browser for 0ms UI latency
+  try {
+    const localRaw = localStorage.getItem(getStorageKey(table));
+    const currentList: any[] = localRaw ? JSON.parse(localRaw) : [];
+    const idx = currentList.findIndex((r: any) => r.id === item.id);
+    if (idx >= 0) {
+      currentList[idx] = item;
+    } else {
+      currentList.unshift(item);
+    }
+    localStorage.setItem(getStorageKey(table), JSON.stringify(currentList));
+  } catch (e) {
+    console.error(`[DataStore Client] Local cache update failed for ${table}:`, e);
+  }
+
+  // 3. Persist to Cloudflare D1 Database via Edge API
   try {
     const res = await fetch(`/api/entities/${table}`, {
       method: 'POST',
@@ -132,7 +149,7 @@ export async function saveEntity<T extends { id?: string }>(
       }
     }
   } catch (err) {
-    console.warn(`[DataStore] D1 write for ${table} deferred, saved locally:`, err);
+    console.warn(`[DataStore Client] D1 write for ${table} deferred, saved locally:`, err);
   }
 
   return { success: true, mode: 'local' };
@@ -147,27 +164,38 @@ export async function saveEntityBatch<T extends { id?: string }>(
 ): Promise<{ success: boolean; mode: 'd1' | 'local' }> {
   if (!records || records.length === 0) return { success: true, mode: 'local' };
 
-  // 1. Update local storage mirror
-  if (typeof window !== 'undefined') {
+  // 1. If on server side, write directly to D1
+  if (typeof window === 'undefined') {
     try {
-      const localRaw = localStorage.getItem(getStorageKey(table));
-      const currentList: any[] = localRaw ? JSON.parse(localRaw) : [];
-      const newItemsMap = new Map(records.map(r => [r.id || `${table}-${Math.random()}`, r]));
-
-      const updated = currentList.map(r => newItemsMap.has(r.id) ? newItemsMap.get(r.id) : r);
-      // Append any new IDs not in current list
-      const existingIds = new Set(currentList.map(r => r.id));
-      records.forEach(r => {
-        if (!existingIds.has(r.id)) updated.push(r);
-      });
-
-      localStorage.setItem(getStorageKey(table), JSON.stringify(updated.length > 0 ? updated : records));
-    } catch (e) {
-      console.error(`[DataStore] Batch local update failed for ${table}:`, e);
+      for (const rec of records) {
+        await upsertD1Record(table, rec);
+      }
+      return { success: true, mode: 'd1' };
+    } catch (err) {
+      console.warn(`[DataStore Server] Failed batch save to ${table}:`, err);
+      return { success: false, mode: 'local' };
     }
   }
 
-  // 2. Persist to Cloudflare D1 Database
+  // 2. Update local storage mirror in browser
+  try {
+    const localRaw = localStorage.getItem(getStorageKey(table));
+    const currentList: any[] = localRaw ? JSON.parse(localRaw) : [];
+    const newItemsMap = new Map(records.map(r => [r.id || `${table}-${Math.random()}`, r]));
+
+    const updated = currentList.map(r => newItemsMap.has(r.id) ? newItemsMap.get(r.id) : r);
+    // Append any new IDs not in current list
+    const existingIds = new Set(currentList.map(r => r.id));
+    records.forEach(r => {
+      if (!existingIds.has(r.id)) updated.push(r);
+    });
+
+    localStorage.setItem(getStorageKey(table), JSON.stringify(updated.length > 0 ? updated : records));
+  } catch (e) {
+    console.error(`[DataStore Client] Batch local update failed for ${table}:`, e);
+  }
+
+  // 3. Persist to Cloudflare D1 Database via Edge API
   try {
     const res = await fetch(`/api/entities/${table}`, {
       method: 'POST',
@@ -182,48 +210,55 @@ export async function saveEntityBatch<T extends { id?: string }>(
       }
     }
   } catch (err) {
-    console.warn(`[DataStore] D1 batch write for ${table} deferred, saved locally:`, err);
+    console.warn(`[DataStore Client] D1 batch write for ${table} deferred, saved locally:`, err);
   }
 
   return { success: true, mode: 'local' };
 }
 
 /**
- * Delete an entity record from Cloudflare D1 and local mirror
+ * Delete an entity record by ID
  */
 export async function deleteEntity(
   table: EntityTable,
   id: string
-): Promise<{ success: boolean; mode: 'd1' | 'local' }> {
-  // 1. Update local storage mirror
-  if (typeof window !== 'undefined') {
+): Promise<{ success: boolean }> {
+  if (!id) return { success: false };
+
+  // 1. If on server side, delete directly from D1
+  if (typeof window === 'undefined') {
     try {
-      const localRaw = localStorage.getItem(getStorageKey(table));
-      if (localRaw) {
-        const currentList: any[] = JSON.parse(localRaw);
-        const filtered = currentList.filter((r: any) => r.id !== id);
-        localStorage.setItem(getStorageKey(table), JSON.stringify(filtered));
-      }
-    } catch {
-      // ignore
+      await deleteD1Record(table, id);
+      return { success: true };
+    } catch (err) {
+      console.warn(`[DataStore Server] Failed delete from ${table}:`, err);
+      return { success: false };
     }
   }
 
-  // 2. Delete from Cloudflare D1 Database
+  // 2. Update local storage mirror in browser
+  try {
+    const localRaw = localStorage.getItem(getStorageKey(table));
+    if (localRaw) {
+      const currentList: any[] = JSON.parse(localRaw);
+      const filtered = currentList.filter((r: any) => r.id !== id);
+      localStorage.setItem(getStorageKey(table), JSON.stringify(filtered));
+    }
+  } catch (e) {
+    console.error(`[DataStore Client] Delete from local cache failed for ${table}:`, e);
+  }
+
+  // 3. Delete from Cloudflare D1 via Edge API
   try {
     const res = await fetch(`/api/entities/${table}?id=${encodeURIComponent(id)}`, {
       method: 'DELETE'
     });
-
     if (res.ok) {
-      const data = (await res.json()) as { success?: boolean };
-      if (data && data.success) {
-        return { success: true, mode: 'd1' };
-      }
+      return { success: true };
     }
   } catch (err) {
-    console.warn(`[DataStore] D1 delete for ${table} deferred:`, err);
+    console.warn(`[DataStore Client] D1 delete for ${table} deferred:`, err);
   }
 
-  return { success: true, mode: 'local' };
+  return { success: true };
 }
