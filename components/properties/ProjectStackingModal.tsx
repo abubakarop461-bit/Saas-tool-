@@ -40,6 +40,7 @@ import {
   generateProjectUnits
 } from '@/lib/inventory';
 import { Property } from '@/lib/queries';
+import { syncTransactionForUnit } from '@/lib/transactions';
 
 export type { UnitStatus, DeveloperUnit };
 
@@ -289,6 +290,10 @@ export function ProjectStackingModal({ project, onClose }: ProjectStackingModalP
       const fullData = await fetchDeveloperUnits();
       const merged = fullData.map(u => u.id === unitId ? { ...u, status: newStatus } : u);
       saveDeveloperUnits(merged);
+      const targetUnit = merged.find(u => u.id === unitId);
+      if (targetUnit) {
+        await syncTransactionForUnit(targetUnit, newStatus);
+      }
     } catch {
       // ignore
     }
@@ -324,6 +329,10 @@ export function ProjectStackingModal({ project, onClose }: ProjectStackingModalP
         agent_name: agentNameInput.trim() || 'In-House Sales'
       } : u);
       saveDeveloperUnits(merged);
+      const targetUnit = merged.find(u => u.id === unitId);
+      if (targetUnit) {
+        await syncTransactionForUnit(targetUnit, status);
+      }
     } catch {
       // ignore
     }
@@ -336,11 +345,16 @@ export function ProjectStackingModal({ project, onClose }: ProjectStackingModalP
     if (selectedUnitIds.size === 0) return;
     const updated = allUnits.map(u => selectedUnitIds.has(u.id) ? { ...u, status: newStatus } : u);
     setAllUnits(updated);
+    const affectedIds = Array.from(selectedUnitIds);
     setSelectedUnitIds(new Set());
     try {
       const fullData = await fetchDeveloperUnits();
-      const merged = fullData.map(u => selectedUnitIds.has(u.id) ? { ...u, status: newStatus } : u);
+      const merged = fullData.map(u => affectedIds.includes(u.id) ? { ...u, status: newStatus } : u);
       saveDeveloperUnits(merged);
+      for (const id of affectedIds) {
+        const u = merged.find(item => item.id === id);
+        if (u) await syncTransactionForUnit(u, newStatus);
+      }
     } catch {
       // ignore
     }

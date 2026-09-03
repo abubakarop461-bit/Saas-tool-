@@ -3,7 +3,8 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useProfile } from '@/lib/auth';
 import { fetchProperties, Property, SEED_PROPERTIES } from '@/lib/queries';
-import { mergeAndDeduplicate } from '@/lib/dataStore';
+import { mergeAndDeduplicate, saveEntity } from '@/lib/dataStore';
+import { syncTransactionForProperty } from '@/lib/transactions';
 import { supabase } from '@/lib/supabaseClient';
 import { getPermissions } from '@/lib/permissions';
 import { 
@@ -315,6 +316,30 @@ export default function PropertyInventoryPage() {
       await supabase.from('properties').delete().eq('id', id);
     } catch (err) {
       console.error('Error deleting property:', err);
+    }
+  };
+
+  const handleUpdatePropertyStatus = async (propId: string, newStatus: string) => {
+    const target = displayProperties.find(p => p.id === propId);
+    if (!target) return;
+
+    const updated = { ...target, status_id: newStatus };
+    setProperties(prev => {
+      const exists = prev.some(p => p.id === propId);
+      if (exists) return prev.map(p => p.id === propId ? updated : p);
+      return [updated, ...prev];
+    });
+
+    if (selectedProperty && selectedProperty.id === propId) {
+      setSelectedProperty(updated);
+    }
+
+    try {
+      await saveEntity('properties', updated);
+      await syncTransactionForProperty(updated, newStatus);
+      await supabase.from('properties').update({ status_id: newStatus }).eq('id', propId);
+    } catch (err) {
+      console.error('Error updating property status:', err);
     }
   };
 
@@ -805,11 +830,30 @@ export default function PropertyInventoryPage() {
                           </span>
                         </td>
 
-                        {/* Status */}
-                        <td onClick={() => handleOpenProperty(prop)}>
-                          <span className={`dc-badge ${getStatusStyle(prop.status_id)}`}>
-                            {prop.status_id || 'Available'}
-                          </span>
+                        {/* Status Column with Direct Click-to-Edit Selector */}
+                        <td onClick={(e) => e.stopPropagation()}>
+                          <div className="relative inline-block">
+                            <select
+                              aria-label="Update Property Status"
+                              value={prop.status_id || 'Available'}
+                              onChange={(e) => handleUpdatePropertyStatus(prop.id, e.target.value)}
+                              className={`dc-badge ${getStatusStyle(prop.status_id)} appearance-none pr-5.5 cursor-pointer font-extrabold border outline-none hover:opacity-90 transition-all text-[10px]`}
+                              style={{
+                                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2371717a'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                                backgroundRepeat: 'no-repeat',
+                                backgroundPosition: 'right 4px center',
+                                backgroundSize: '10px'
+                              }}
+                            >
+                              <option value="Available">Available</option>
+                              <option value="Hold">Hold</option>
+                              <option value="Token">Token / EOI (→ Tx)</option>
+                              <option value="Under Offer">Under Offer (→ Tx)</option>
+                              <option value="Booked">Booked (→ Tx)</option>
+                              <option value="Sold">Sold (→ Tx)</option>
+                              <option value="Inactive">Inactive</option>
+                            </select>
+                          </div>
                         </td>
 
                         {/* Owner / Board */}
@@ -919,9 +963,20 @@ export default function PropertyInventoryPage() {
               </div>
               {/* Status badges */}
               <div className="flex items-center gap-2 mt-3 flex-wrap">
-                <span className={`px-2 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wider border ${getStatusStyle(selectedProperty.status_id || 'Available')}`}>
-                  {selectedProperty.status_id || 'Available'}
-                </span>
+                <select
+                  aria-label="Update Property Status"
+                  value={selectedProperty.status_id || 'Available'}
+                  onChange={(e) => handleUpdatePropertyStatus(selectedProperty.id, e.target.value)}
+                  className={`px-2 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wider border ${getStatusStyle(selectedProperty.status_id || 'Available')} appearance-none cursor-pointer outline-none`}
+                >
+                  <option value="Available">Available</option>
+                  <option value="Hold">Hold</option>
+                  <option value="Token">Token / EOI (→ Tx)</option>
+                  <option value="Under Offer">Under Offer (→ Tx)</option>
+                  <option value="Booked">Booked (→ Tx)</option>
+                  <option value="Sold">Sold (→ Tx)</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
                 <span className={`px-2 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wider border ${
                   selectedProperty.listing_type === 'Sale'
                     ? 'bg-blue-50 text-blue-700 border-blue-200'

@@ -51,9 +51,20 @@ export default function TransactionsPage() {
       const data = await fetchTransactions();
       if (data && data.length > 0) {
         setTransactions(data);
+        if (!selectedTx || !data.some(t => t.id === selectedTx.id)) {
+          setSelectedTx(data[0]);
+        }
       }
     }
     loadTx();
+
+    const handleUpdate = () => loadTx();
+    window.addEventListener('focus', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    return () => {
+      window.removeEventListener('focus', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
   }, []);
 
   const [selectedTx, setSelectedTx] = useState<DealTransaction | null>(transactions[0]);

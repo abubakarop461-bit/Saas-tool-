@@ -1,5 +1,8 @@
 // src/lib/transactions.ts - Deals & Transactions Data Access Layer
 import { supabase } from '@/lib/supabaseClient';
+import { loadEntity, saveEntityBatch, saveEntity } from '@/lib/dataStore';
+import type { Property } from '@/lib/queries';
+import type { DeveloperUnit } from '@/lib/inventory';
 
 export type TransactionStage = 
   | 'Lead'
@@ -39,6 +42,8 @@ export interface PaymentMilestone {
 
 export interface DealTransaction {
   id: string;
+  property_id?: string;
+  unit_id?: string;
   client_name: string;
   client_phone: string;
   client_email?: string;
@@ -61,6 +66,7 @@ export interface DealTransaction {
 export const SEED_TRANSACTIONS: DealTransaction[] = [
   {
     id: 'tx-1',
+    property_id: 'prop-001',
     client_name: 'Sandesh Kulkarni',
     client_phone: '+91-7838556636',
     client_email: 'sandesh.kulkarni@techcorp.in',
@@ -68,8 +74,8 @@ export const SEED_TRANSACTIONS: DealTransaction[] = [
     tower: 'Tower A',
     unit_number: 'A-1204',
     configuration: '3 BHK',
-    deal_value: 13500000, // ₹1.35 Cr
-    token_amount: 500000,  // ₹5 L
+    deal_value: 13500000,
+    token_amount: 500000,
     booking_status: 'Confirmed',
     current_stage: 'Booking',
     sales_agent: 'Rishi Mahboobani',
@@ -86,6 +92,7 @@ export const SEED_TRANSACTIONS: DealTransaction[] = [
   },
   {
     id: 'tx-2',
+    property_id: 'prop-004',
     client_name: 'Ananya Sharma',
     client_phone: '+91 98200 11223',
     client_email: 'ananya.s@infotech.in',
@@ -93,8 +100,8 @@ export const SEED_TRANSACTIONS: DealTransaction[] = [
     tower: 'Tower B',
     unit_number: 'B-1602',
     configuration: '4 BHK',
-    deal_value: 31000000, // ₹3.10 Cr
-    token_amount: 1000000, // ₹10 L
+    deal_value: 31000000,
+    token_amount: 1000000,
     booking_status: 'Confirmed',
     current_stage: 'Agreement',
     sales_agent: 'Vikram Seth',
@@ -108,112 +115,12 @@ export const SEED_TRANSACTIONS: DealTransaction[] = [
       { id: 'm-4', name: 'Possession & Handover Balance', amount: 15500000, dueDate: '2027-03-31', status: 'Pending' }
     ],
     notes: 'Stamp duty completed. Agreement signed and registered.'
-  },
-  {
-    id: 'tx-3',
-    client_name: 'Vikram Malhotra',
-    client_phone: '+91 99100 55443',
-    client_email: 'vikram.m@corporatespace.in',
-    property_title: 'Power Heights Corporate IT Park',
-    tower: 'East Tower',
-    unit_number: 'E-0801',
-    configuration: 'Commercial Office Space',
-    deal_value: 14800000, // ₹1.48 Cr
-    token_amount: 500000,
-    booking_status: 'Draft',
-    current_stage: 'Token / EOI',
-    sales_agent: 'Rishi Mahboobani',
-    channel_partner: 'Direct In-House',
-    booking_date: '2026-09-01',
-    expected_closure_date: '2026-09-20',
-    payment_schedule: [
-      { id: 'm-1', name: 'Token Amount', amount: 500000, dueDate: '2026-09-01', status: 'Paid', paidDate: '2026-09-01' },
-      { id: 'm-2', name: 'Agreement (20%)', amount: 2460000, dueDate: '2026-09-20', status: 'Pending' },
-      { id: 'm-3', name: 'Possession Balance', amount: 11840000, dueDate: '2027-01-31', status: 'Pending' }
-    ],
-    notes: 'Token cheque deposited in escrow account.'
-  },
-  {
-    id: 'tx-4',
-    client_name: 'Rajesh & Sunita Gupta',
-    client_phone: '+91 98200 66778',
-    client_email: 'rajesh.gupta@guptasteel.com',
-    property_title: 'Vivencia Villa Reserve',
-    tower: 'Villa Enclave',
-    unit_number: 'V-08',
-    configuration: '4 BHK Villa',
-    deal_value: 48000000, // ₹4.80 Cr
-    token_amount: 2000000, // ₹20 L
-    booking_status: 'Confirmed',
-    current_stage: 'Registration',
-    sales_agent: 'Benazir Bhayani',
-    channel_partner: 'Knight Frank India',
-    booking_date: '2026-08-15',
-    expected_closure_date: '2026-09-10',
-    payment_schedule: [
-      { id: 'm-1', name: 'Token / EOI', amount: 2000000, dueDate: '2026-08-15', status: 'Paid', paidDate: '2026-08-15' },
-      { id: 'm-2', name: 'Agreement (20%)', amount: 9600000, dueDate: '2026-08-25', status: 'Paid', paidDate: '2026-08-25' },
-      { id: 'm-3', name: 'Registration Milestone (50%)', amount: 24000000, dueDate: '2026-09-02', status: 'Paid', paidDate: '2026-09-02' },
-      { id: 'm-4', name: 'Final Handover & Keys', amount: 12400000, dueDate: '2026-10-15', status: 'Pending' }
-    ],
-    notes: 'Registration completed at Haveli Sub-Registrar Office. Final punch list inspection scheduled.'
-  },
-  {
-    id: 'tx-5',
-    client_name: 'Rajiv & Meera Bajaj',
-    client_phone: '+91 98220 99123',
-    client_email: 'rajiv.bajaj@automotive-pune.com',
-    property_title: 'Baner Pinnacle Skyline Duplex',
-    tower: 'Pinnacle Tower',
-    unit_number: 'P-1801',
-    configuration: '4 BHK Duplex',
-    deal_value: 32000000, // ₹3.20 Cr
-    token_amount: 1500000,
-    booking_status: 'Completed',
-    current_stage: 'Possession',
-    sales_agent: 'Hamirr Jobnputra',
-    channel_partner: 'Square Yards Premier',
-    booking_date: '2026-05-10',
-    expected_closure_date: '2026-08-30',
-    payment_schedule: [
-      { id: 'm-1', name: 'Token Amount', amount: 1500000, dueDate: '2026-05-10', status: 'Paid', paidDate: '2026-05-10' },
-      { id: 'm-2', name: 'Agreement (20%)', amount: 6400000, dueDate: '2026-05-28', status: 'Paid', paidDate: '2026-05-28' },
-      { id: 'm-3', name: 'Milestone Installments (50%)', amount: 16000000, dueDate: '2026-07-25', status: 'Paid', paidDate: '2026-07-25' },
-      { id: 'm-4', name: 'Final Handover & Possession', amount: 8100000, dueDate: '2026-08-30', status: 'Paid', paidDate: '2026-08-30' }
-    ],
-    notes: 'Possession certificate and keys handed over. Attributed to Square Yards Premier.'
-  },
-  {
-    id: 'tx-6',
-    client_name: 'Dr. K. S. Venkataraman',
-    client_phone: '+91 98220 88991',
-    client_email: 'dr.venkat@cardiocare.org',
-    property_title: 'Solitaire Grand Penthouse',
-    tower: 'Skyline Tower',
-    unit_number: 'PH-01',
-    configuration: '5 BHK Penthouse',
-    deal_value: 62000000, // ₹6.20 Cr
-    token_amount: 2500000, // ₹25 L
-    booking_status: 'Confirmed',
-    current_stage: 'Booking',
-    sales_agent: 'Pooja Hegde',
-    channel_partner: 'Direct In-House',
-    booking_date: '2026-09-02',
-    expected_closure_date: '2026-09-25',
-    payment_schedule: [
-      { id: 'm-1', name: 'Token Amount', amount: 2500000, dueDate: '2026-09-02', status: 'Paid', paidDate: '2026-09-02' },
-      { id: 'm-2', name: 'Agreement (20%)', amount: 12400000, dueDate: '2026-09-20', status: 'Pending' },
-      { id: 'm-3', name: 'Interiors Milestone (30%)', amount: 18600000, dueDate: '2026-11-30', status: 'Pending' },
-      { id: 'm-4', name: 'Final Handover Balance', amount: 28500000, dueDate: '2027-02-28', status: 'Pending' }
-    ],
-    notes: 'Custom terrace pool design approved by architect. Agreement drafting in progress.'
   }
 ];
 
-import { loadEntity, saveEntityBatch, saveEntity } from '@/lib/dataStore';
-
 export async function fetchTransactions(): Promise<DealTransaction[]> {
-  return loadEntity<DealTransaction>('transactions', SEED_TRANSACTIONS);
+  const loaded = await loadEntity<DealTransaction>('transactions', SEED_TRANSACTIONS);
+  return loaded;
 }
 
 export async function saveTransactions(txs: DealTransaction[]): Promise<void> {
@@ -222,4 +129,108 @@ export async function saveTransactions(txs: DealTransaction[]): Promise<void> {
 
 export async function saveTransaction(tx: DealTransaction): Promise<void> {
   await saveEntity('transactions', tx);
+}
+
+/**
+ * Creates or updates a transaction when a Property is marked as Booked or Sold.
+ * If status is changed back to Available/Hold, it cleanly removes it from the Transactions pipeline.
+ */
+export async function syncTransactionForProperty(property: Property, newStatus: string): Promise<void> {
+  const isBooked = ['Booked', 'Sold', 'Done', 'Token', 'Under Offer'].includes(newStatus);
+  const txId = `tx-prop-${property.id}`;
+  const existing = await fetchTransactions();
+
+  if (isBooked) {
+    const val = property.price || 15000000;
+    const tokenVal = Math.round(val * 0.05);
+    const agreementVal = Math.round(val * 0.15);
+    const milestoneVal = Math.round(val * 0.40);
+    const balanceVal = val - tokenVal - agreementVal - milestoneVal;
+    const isSold = newStatus === 'Sold' || newStatus === 'Done';
+
+    const tx: DealTransaction = {
+      id: txId,
+      property_id: property.id,
+      client_name: property.owner_name || 'Booked Client',
+      client_phone: property.owner_contact || '+91 98220 54321',
+      property_title: property.title,
+      tower: 'Main Tower',
+      unit_number: property.unit_no || 'Unit #1',
+      configuration: property.configuration || '3 BHK',
+      deal_value: val,
+      token_amount: tokenVal,
+      booking_status: isSold ? 'Completed' : 'Confirmed',
+      current_stage: isSold ? 'Possession' : (newStatus === 'Token' ? 'Token / EOI' : 'Booking'),
+      sales_agent: 'Rishi Mahboobani',
+      channel_partner: property.source_type === 'Broker' ? (property.brokerage || 'Partner Channel') : 'Direct In-House',
+      booking_date: new Date().toISOString().split('T')[0],
+      expected_closure_date: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
+      payment_schedule: [
+        { id: `m-${txId}-1`, name: 'Token / EOI (5%)', amount: tokenVal, dueDate: new Date().toISOString().split('T')[0], status: 'Paid', paidDate: new Date().toISOString().split('T')[0] },
+        { id: `m-${txId}-2`, name: 'Agreement (15%)', amount: agreementVal, dueDate: new Date(Date.now() + 15 * 86400000).toISOString().split('T')[0], status: isSold ? 'Paid' : 'Pending' },
+        { id: `m-${txId}-3`, name: 'Construction Milestone (40%)', amount: milestoneVal, dueDate: new Date(Date.now() + 60 * 86400000).toISOString().split('T')[0], status: isSold ? 'Paid' : 'Pending' },
+        { id: `m-${txId}-4`, name: 'Final Handover & Possession', amount: balanceVal, dueDate: new Date(Date.now() + 120 * 86400000).toISOString().split('T')[0], status: isSold ? 'Paid' : 'Pending' }
+      ],
+      notes: `Direct property listing booking generated from Properties Console.`
+    };
+
+    const updated = [tx, ...existing.filter(t => t.id !== txId && t.property_id !== property.id)];
+    await saveTransactions(updated);
+  } else {
+    // If not booked/sold, remove from active transactions
+    const filtered = existing.filter(t => t.id !== txId && t.property_id !== property.id);
+    await saveTransactions(filtered);
+  }
+}
+
+/**
+ * Creates or updates a transaction when a Unit in a Project is marked as Booked or Token.
+ */
+export async function syncTransactionForUnit(unit: DeveloperUnit, newStatus: string): Promise<void> {
+  const isBooked = ['Booked', 'Sold', 'Token', 'Done'].includes(newStatus);
+  const txId = `tx-unit-${unit.id}`;
+  const existing = await fetchTransactions();
+
+  if (isBooked) {
+    const val = unit.base_price || 20000000;
+    const tokenVal = Math.round(val * 0.05);
+    const agreementVal = Math.round(val * 0.15);
+    const milestoneVal = Math.round(val * 0.40);
+    const balanceVal = val - tokenVal - agreementVal - milestoneVal;
+    const isSold = newStatus === 'Sold' || newStatus === 'Done';
+
+    const tx: DealTransaction = {
+      id: txId,
+      property_id: unit.property_id,
+      unit_id: unit.id,
+      client_name: unit.buyer_name || 'Booked Client',
+      client_phone: '+91 98220 77889',
+      property_title: unit.project_title,
+      tower: unit.tower,
+      unit_number: unit.unit_number,
+      configuration: unit.configuration,
+      deal_value: val,
+      token_amount: tokenVal,
+      booking_status: isSold ? 'Completed' : 'Confirmed',
+      current_stage: isSold ? 'Possession' : (newStatus === 'Token' ? 'Token / EOI' : 'Booking'),
+      sales_agent: unit.agent_name || 'Rishi Mahboobani',
+      channel_partner: 'In-House Developer Mandate',
+      booking_date: new Date().toISOString().split('T')[0],
+      expected_closure_date: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
+      payment_schedule: [
+        { id: `m-${txId}-1`, name: 'Token / EOI (5%)', amount: tokenVal, dueDate: new Date().toISOString().split('T')[0], status: 'Paid', paidDate: new Date().toISOString().split('T')[0] },
+        { id: `m-${txId}-2`, name: 'Agreement (15%)', amount: agreementVal, dueDate: new Date(Date.now() + 15 * 86400000).toISOString().split('T')[0], status: isSold ? 'Paid' : 'Pending' },
+        { id: `m-${txId}-3`, name: 'Structure Milestone (40%)', amount: milestoneVal, dueDate: new Date(Date.now() + 60 * 86400000).toISOString().split('T')[0], status: isSold ? 'Paid' : 'Pending' },
+        { id: `m-${txId}-4`, name: 'Final Handover & Registration', amount: balanceVal, dueDate: new Date(Date.now() + 120 * 86400000).toISOString().split('T')[0], status: isSold ? 'Paid' : 'Pending' }
+      ],
+      notes: `Project unit booking synced from Building Inventory Console.`
+    };
+
+    const updated = [tx, ...existing.filter(t => t.id !== txId && t.unit_id !== unit.id)];
+    await saveTransactions(updated);
+  } else {
+    // If not booked/sold, remove from active transactions
+    const filtered = existing.filter(t => t.id !== txId && t.unit_id !== unit.id);
+    await saveTransactions(filtered);
+  }
 }
