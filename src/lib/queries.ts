@@ -973,6 +973,27 @@ export const SEED_PROPERTIES: Property[] = [
     brokerage: '2%',
     description: 'Premium standalone residential apartment at VastuKanoiya in Phulam Chamber. 100% Vaastu compliant layout with unhindered ventilation, modern fixtures, covered parking, and 24/7 security.',
     created_at: new Date().toISOString()
+  },
+  {
+    id: 'prop-014',
+    title: 'Kuchu Puchu',
+    property_code: 'KP-TWR-640',
+    location: 'Kharadi',
+    address: 'Kuchu Puchu Grand Township, Near EON Free Zone, Kharadi, Pune',
+    property_type: 'Residential Project',
+    configuration: '3 BHK, 4 BHK',
+    carpet_area: 2100,
+    built_up_area: 2750,
+    price: 20000000,
+    status_id: 'Available',
+    listing_type: 'Exclusive Mandate',
+    source_type: 'Developer Direct',
+    owner_name: 'Kuchu Puchu Development Board',
+    owner_contact: '+91 20 6799 1000',
+    unit_no: 'Tower A - 2008',
+    brokerage: '2.5%',
+    description: 'Ultra-luxury high-rise residential township "Kuchu Puchu" featuring 4 iconic 20-storey towers with 8 bespoke residences per floor (640 total units) priced at ₹2.00 Cr per unit. Features an Olympic-size swimming pool, sky lounge, and 75% open landscaped gardens.',
+    created_at: new Date().toISOString()
   }
 ];
 
