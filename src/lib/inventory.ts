@@ -772,22 +772,56 @@ export const SEED_DEVELOPER_UNITS: DeveloperUnit[] = [
 import { loadEntity, saveEntityBatch, saveEntity } from '@/lib/dataStore';
 
 /**
- * Procedurally project and generate developer units for any real estate project
+ * Procedurally project and generate developer units for any real estate project or standalone individual unit
  */
 export function generateProjectUnits(params: {
   property_id?: string;
   project_title: string;
-  towers: string[];
-  total_floors: number;
-  units_per_floor: number;
+  is_standalone?: boolean;
+  unit_number?: string;
+  floor_number?: number;
+  facing?: string;
+  towers?: string[];
+  total_floors?: number;
+  units_per_floor?: number;
   configuration?: string;
   carpet_area?: number;
   built_up_area?: number;
   base_price?: number;
   possession_date?: string;
 }): DeveloperUnit[] {
+  // If it's an individual standalone property, generate a single dedicated unit
+  if (params.is_standalone) {
+    const unitNo = params.unit_number || 'Unit 101';
+    const floor = params.floor_number || 1;
+    const cleanId = `u-${params.property_id || 'ind'}-${unitNo.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}`;
+    return [{
+      id: cleanId,
+      property_id: params.property_id,
+      project_title: params.project_title,
+      tower: 'Standalone Unit',
+      floor,
+      unit_number: unitNo,
+      configuration: params.configuration || '3 BHK',
+      carpet_area: params.carpet_area || 1450,
+      built_up_area: params.built_up_area || Math.round((params.carpet_area || 1450) * 1.3),
+      facing: params.facing || 'East Facing (Prime View)',
+      base_price: params.base_price || 13500000,
+      floor_rise_rate: 0,
+      parking_charges: 500000,
+      amenities_charges: 300000,
+      other_charges: 150000,
+      gst_rate: 5.0,
+      stamp_duty_rate: 6.0,
+      registration_rate: 30000,
+      possession_date: params.possession_date || 'Ready to Move',
+      status: 'Available'
+    }];
+  }
+
+  // Otherwise, procedurally generate the full multi-tower building stacking matrix
   const units: DeveloperUnit[] = [];
-  const towersList = params.towers.length > 0 ? params.towers : ['Tower A'];
+  const towersList = params.towers && params.towers.length > 0 ? params.towers : ['Tower A'];
   const floorsCount = Math.max(1, Math.min(60, params.total_floors || 10));
   const unitsPerFloor = Math.max(1, Math.min(12, params.units_per_floor || 4));
 
@@ -831,9 +865,13 @@ export function generateProjectUnits(params: {
 export async function syncPropertyInventoryUnits(params: {
   property_id?: string;
   project_title: string;
-  towers: string[];
-  total_floors: number;
-  units_per_floor: number;
+  is_standalone?: boolean;
+  unit_number?: string;
+  floor_number?: number;
+  facing?: string;
+  towers?: string[];
+  total_floors?: number;
+  units_per_floor?: number;
   configuration?: string;
   carpet_area?: number;
   built_up_area?: number;

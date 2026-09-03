@@ -8,8 +8,40 @@ import { supabase } from '@/lib/supabaseClient';
 import { TagsInput } from '@/components/ui/tags-input';
 import { MediaPicker } from '@/components/ui/media-picker';
 import { IndianNumberInput } from '@/components/ui/indian-number-input';
-import { Building2, MapPin, User, ImageIcon, DollarSign, Trash2, ChevronLeft, ChevronDown, Loader2, Plus, X, Layers } from 'lucide-react';
-import { isResidentialType, BHK_CONFIG_OPTIONS, COMMERCIAL_CONFIG_OPTIONS, DEFAULT_PROPERTY_TYPES, fetchPropertyTypes, saveNewPropertyType, DEFAULT_CONFIG_OPTIONS, fetchConfigurationOptions, saveNewConfiguration, saveNewLocation } from '@/lib/propertyTypes';
+import {
+  Building2,
+  Home,
+  MapPin,
+  User,
+  ImageIcon,
+  DollarSign,
+  Trash2,
+  ChevronLeft,
+  ChevronDown,
+  Loader2,
+  Plus,
+  X,
+  Layers,
+  Compass,
+  Car,
+  Key,
+  CheckCircle2,
+  Sparkles,
+  Info,
+  ShieldCheck
+} from 'lucide-react';
+import {
+  isResidentialType,
+  BHK_CONFIG_OPTIONS,
+  COMMERCIAL_CONFIG_OPTIONS,
+  DEFAULT_PROPERTY_TYPES,
+  fetchPropertyTypes,
+  saveNewPropertyType,
+  DEFAULT_CONFIG_OPTIONS,
+  fetchConfigurationOptions,
+  saveNewConfiguration,
+  saveNewLocation
+} from '@/lib/propertyTypes';
 import { useProfile } from '@/lib/auth';
 import Link from 'next/link';
 
@@ -18,12 +50,23 @@ interface PropertyFormProps {
   mode?: 'create' | 'edit';
 }
 
-const SECTIONS = [
-  { label: 'Basic Info', icon: Building2 },
+type ListingNature = 'standalone' | 'project';
+
+const STANDALONE_SECTIONS = [
+  { label: 'Basic Info', icon: Home },
   { label: 'Location', icon: MapPin },
   { label: 'Pricing & Area', icon: DollarSign },
-  { label: 'Unit Inventory', icon: Layers },
+  { label: 'Unit Matrix', icon: Layers },
   { label: 'Ownership', icon: User },
+  { label: 'Media', icon: ImageIcon },
+];
+
+const PROJECT_SECTIONS = [
+  { label: 'Project Info', icon: Building2 },
+  { label: 'Location', icon: MapPin },
+  { label: 'Pricing & Land', icon: DollarSign },
+  { label: 'Unit Stacking', icon: Layers },
+  { label: 'Developer', icon: User },
   { label: 'Media', icon: ImageIcon },
 ];
 
@@ -50,15 +93,11 @@ function SelectWrapper({ children }: { children: React.ReactNode }) {
   );
 }
 
-// property_code has a unique constraint in the DB. Leaving the field blank used to submit
-// an empty string (not null), and Postgres treats duplicate empty strings as a unique-key
-// collision -- so the second property ever saved with a blank code failed. Generating a
-// fresh, effectively-collision-proof code per form load removes the need to ever leave it
-// blank; staff can still overwrite it with their own scheme if they want.
-function generatePropertyCode(): string {
+function generatePropertyCode(type: ListingNature = 'standalone'): string {
+  const prefix = type === 'standalone' ? 'IND' : 'PRJ';
   const timestamp = Date.now().toString(36).toUpperCase();
   const random = Math.random().toString(36).slice(2, 6).toUpperCase();
-  return `PRP-${timestamp}-${random}`;
+  return `PRP-${prefix}-${timestamp}-${random}`;
 }
 
 export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFormProps) {
@@ -72,11 +111,15 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
   const [activeSection, setActiveSection] = useState(0);
   const [images, setImages] = useState<any[]>([]);
 
-  // Only one layout (desktop wizard or mobile single-scroll) is ever mounted at a time,
-  // matching the lg: (1024px) breakpoint the rest of the app uses. Previously both were
-  // always mounted with CSS display toggling, which duplicated every field's `name`
-  // attribute in the same <form> -- the hidden copy stayed empty, so native `required`
-  // validation silently blocked every submission with no visible error.
+  // Top-Level Property Mode: Standalone Property vs Multi-Unit Project
+  const [listingNature, setListingNature] = useState<ListingNature>(() => {
+    if (initialValues.listing_nature) return initialValues.listing_nature as ListingNature;
+    if (initialValues.towers_list && String(initialValues.towers_list).includes(',')) return 'project';
+    return 'standalone';
+  });
+
+  const sections = listingNature === 'standalone' ? STANDALONE_SECTIONS : PROJECT_SECTIONS;
+
   const [isDesktop, setIsDesktop] = useState(true);
   useEffect(() => {
     const check = () => setIsDesktop(window.innerWidth >= 1024);
@@ -119,8 +162,9 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
     setImages(prev => prev.filter((_, i) => i !== index));
   };
 
+  // Basic Configuration & Property Types
   const [configuration, setConfiguration] = useState<string[]>(
-    initialValues.configuration ? initialValues.configuration.split(',').map((s: string) => s.trim()) : []
+    initialValues.configuration ? initialValues.configuration.split(',').map((s: string) => s.trim()) : ['3 BHK']
   );
   const [customConfigOptions, setCustomConfigOptions] = useState<string[]>([]);
   const [isAddingNewConfig, setIsAddingNewConfig] = useState(false);
@@ -134,37 +178,48 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
   );
   const [locationOptions, setLocationOptions] = useState<{ value: string; label: string }[]>([]);
 
-  // Property types (default + custom from DB)
   const [propertyTypes, setPropertyTypes] = useState<string[]>(DEFAULT_PROPERTY_TYPES);
   const [isAddingNewType, setIsAddingNewType] = useState(false);
   const [newPropertyTypeInput, setNewPropertyTypeInput] = useState('');
   const [isSavingType, setIsSavingType] = useState(false);
 
-  // New location quick-creation
   const [isAddingNewLocation, setIsAddingNewLocation] = useState(false);
   const [newLocationInput, setNewLocationInput] = useState('');
   const [isSavingLocation, setIsSavingLocation] = useState(false);
 
-  // Auto-generate a code for new properties so the field is never submitted blank.
-  // Editing an existing property (even one that currently has no code) keeps whatever
-  // is already there rather than forcing a code onto it.
   const [propertyCode, setPropertyCode] = useState(
-    initialValues.property_code || (initialValues.id ? '' : generatePropertyCode())
+    initialValues.property_code || (initialValues.id ? '' : generatePropertyCode(listingNature))
   );
 
-  // Live preview state
+  // Live preview & core form fields
   const [previewTitle, setPreviewTitle] = useState(initialValues.title || '');
-  const [previewPrice, setPreviewPrice] = useState(initialValues.price || '');
-  const [previewType, setPreviewType] = useState(initialValues.property_type || '');
+  const [previewPrice, setPreviewPrice] = useState(initialValues.price || '13500000');
+  const [previewType, setPreviewType] = useState(initialValues.property_type || (listingNature === 'standalone' ? 'Apartment' : 'Residential Project'));
+  const [carpetArea, setCarpetArea] = useState<string>(String(initialValues.carpet_area || '1680'));
+  const [builtUpArea, setBuiltUpArea] = useState<string>(String(initialValues.built_up_area || '2150'));
+  
   const [alternateOwnerContacts, setAlternateOwnerContacts] = useState<string[]>(
     Array.isArray(initialValues.alternate_owner_contacts) ? initialValues.alternate_owner_contacts : []
   );
 
-  // Unit Inventory Management & Stacking Matrix state
+  // ── Standalone Specific State ──
+  const [standaloneUnitNo, setStandaloneUnitNo] = useState(initialValues.unit_no || 'A-1204');
+  const [standaloneFloorNumber, setStandaloneFloorNumber] = useState<number>(Number(initialValues.floor_number) || 12);
+  const [standaloneTotalFloors, setStandaloneTotalFloors] = useState<number>(Number(initialValues.total_floors) || 20);
+  const [standaloneFacing, setStandaloneFacing] = useState(initialValues.facing || 'East Facing (Riverfront & Sunrise View)');
+  const [standaloneFurnishing, setStandaloneFurnishing] = useState(initialValues.furnishing || 'Semi-Furnished (Modular Kitchen + Wardrobes)');
+  const [standaloneParking, setStandaloneParking] = useState(initialValues.parking || '2 Covered Parking Slots');
+  const [standalonePossession, setStandalonePossession] = useState(initialValues.possession_status || 'Ready to Move');
+  const [standaloneMaintenance, setStandaloneMaintenance] = useState(initialValues.maintenance || '5500');
+
+  // ── Project Specific State ──
+  const [developerName, setDeveloperName] = useState(initialValues.developer_name || 'Luxe Realty Developers');
+  const [reraNumber, setReraNumber] = useState(initialValues.rera_number || 'P52100029381');
+  const [landParcel, setLandParcel] = useState(initialValues.land_parcel || '12.5 Acres');
   const [towersList, setTowersList] = useState<string[]>(
     initialValues.towers_list
       ? String(initialValues.towers_list).split(',').map((s: string) => s.trim()).filter(Boolean)
-      : ['Tower A', 'Tower B']
+      : ['Tower A', 'Tower B', 'Tower C']
   );
   const [newTowerInput, setNewTowerInput] = useState('');
   const [totalFloors, setTotalFloors] = useState<number>(Number(initialValues.total_floors) || 14);
@@ -259,8 +314,6 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
     return [...base, ...extra];
   }, [previewType, customConfigOptions]);
 
-
-
   useEffect(() => {
     if (state?.success) {
       toast.success(isEdit ? 'Property updated successfully' : 'Property saved successfully');
@@ -276,10 +329,6 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
     }
   }, [state]);
 
-  // Commercial/other property types (Office Space, Shop, Plot, etc.) don't have a BHK
-  // configuration -- auto-fill Configuration with the property type itself the moment it's
-  // picked, so staff aren't stuck free-typing "office" by hand. Only fires when Configuration
-  // is still empty, so it never overwrites something the user already entered.
   const handlePropertyTypeChange = (value: string) => {
     setPreviewType(value);
     if (value && !isResidentialType(value) && configuration.length === 0) {
@@ -302,19 +351,14 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
   function formatPrice(v: string | number) {
     const n = parseFloat(String(v));
     if (!n) return '';
-    if (n >= 10000000) return `₹${(n / 10000000).toFixed(1).replace(/\.0$/, '')} Cr`;
-    if (n >= 100000) return `₹${(n / 100000).toFixed(1).replace(/\.0$/, '')} L`;
+    if (n >= 10000000) return `₹${(n / 10000000).toFixed(2).replace(/\.00$/, '')} Cr`;
+    if (n >= 100000) return `₹${(n / 100000).toFixed(2).replace(/\.00$/, '')} L`;
     return `₹${n.toLocaleString('en-IN')}`;
   }
 
-  // Required fields are validated here rather than via the native `required` attribute:
-  // whichever wizard section isn't currently active is display:none, and a hidden required
-  // field can't be focused by the browser to show its validation error -- it just silently
-  // blocks submission instead. This runs on submit, jumps to the offending section, and
-  // shows a toast so the failure is actually visible.
   function validateRequiredFields(): boolean {
     if (!previewTitle.trim()) {
-      toast.error('Property Title is required.');
+      toast.error('Property Title / Name is required.');
       setActiveSection(0);
       return false;
     }
@@ -337,31 +381,139 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
     }
   };
 
-  // ── Render Helpers for Property Form Sections ──
+  // ── Render Option Switcher (Standalone vs Project) ──
+  const renderListingNatureSelector = () => (
+    <div className="space-y-2 mb-6">
+      <FieldLabel required>Property Category / Nature</FieldLabel>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* Standalone Option */}
+        <button
+          type="button"
+          onClick={() => {
+            setListingNature('standalone');
+            if (!initialValues.id) {
+              setPropertyCode(generatePropertyCode('standalone'));
+              if (!previewType || previewType.includes('Project')) setPreviewType('Apartment');
+            }
+          }}
+          className={`p-4 rounded-2xl border text-left transition-all relative overflow-hidden flex flex-col justify-between cursor-pointer ${
+            listingNature === 'standalone'
+              ? 'bg-amber-500/5 border-[#d4ad4d] ring-2 ring-[#d4ad4d]/30 shadow-xs'
+              : 'bg-white border-zinc-200/90 hover:border-zinc-300'
+          }`}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className={`p-2.5 rounded-xl ${listingNature === 'standalone' ? 'bg-[#d4ad4d] text-white shadow-xs' : 'bg-zinc-100 text-zinc-600'}`}>
+                <Home className="h-5 w-5" />
+              </div>
+              <div>
+                <h4 className="font-extrabold text-sm text-zinc-900">Standalone Property</h4>
+                <span className="text-[10px] font-bold text-[#b8922e] uppercase tracking-wider font-mono">Individual Unit / Resale</span>
+              </div>
+            </div>
+            {listingNature === 'standalone' && (
+              <CheckCircle2 className="h-4 w-4 text-[#d4ad4d] shrink-0" />
+            )}
+          </div>
+          <p className="text-[11px] text-zinc-500 mt-2.5 leading-relaxed">
+            For individual apartments, duplex penthouses, standalone villas, independent bungalows, direct resale flats, or single commercial shops.
+          </p>
+        </button>
 
+        {/* Project Option */}
+        <button
+          type="button"
+          onClick={() => {
+            setListingNature('project');
+            if (!initialValues.id) {
+              setPropertyCode(generatePropertyCode('project'));
+              if (!previewType || previewType === 'Apartment') setPreviewType('Residential Project');
+            }
+          }}
+          className={`p-4 rounded-2xl border text-left transition-all relative overflow-hidden flex flex-col justify-between cursor-pointer ${
+            listingNature === 'project'
+              ? 'bg-amber-500/5 border-[#d4ad4d] ring-2 ring-[#d4ad4d]/30 shadow-xs'
+              : 'bg-white border-zinc-200/90 hover:border-zinc-300'
+          }`}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className={`p-2.5 rounded-xl ${listingNature === 'project' ? 'bg-zinc-900 text-white shadow-xs' : 'bg-zinc-100 text-zinc-600'}`}>
+                <Building2 className="h-5 w-5 text-[#d4ad4d]" />
+              </div>
+              <div>
+                <h4 className="font-extrabold text-sm text-zinc-900">Multi-Unit Project</h4>
+                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider font-mono">Township / Society / Towers</span>
+              </div>
+            </div>
+            {listingNature === 'project' && (
+              <CheckCircle2 className="h-4 w-4 text-[#d4ad4d] shrink-0" />
+            )}
+          </div>
+          <p className="text-[11px] text-zinc-500 mt-2.5 leading-relaxed">
+            For large developments with multiple towers, floors, and unit inventories. Generates procedural stacking matrix and inventory forecasts.
+          </p>
+        </button>
+      </div>
+
+      <input type="hidden" name="listing_nature" value={listingNature} />
+    </div>
+  );
+
+  // ── Render Basic Info ──
   const renderBasicInfo = () => (
-    <div className="space-y-5">
-      <div className="grid grid-cols-2 gap-4">
+    <div className="space-y-5 text-left">
+      {renderListingNatureSelector()}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <FieldLabel required>Society Name</FieldLabel>
+          <FieldLabel required>
+            {listingNature === 'standalone' ? 'Property Name / Unit Title' : 'Project / Society Name'}
+          </FieldLabel>
           <input
             name="title"
             className={inputCls}
-            placeholder="e.g. Modern Luxury Villa"
+            placeholder={listingNature === 'standalone' ? 'e.g. Skyline Duplex Penthouse, A-1204' : 'e.g. Vivencia Luxury Residences'}
             defaultValue={initialValues.title ?? ''}
             onChange={e => setPreviewTitle(e.target.value)}
           />
         </div>
         <div className="space-y-1.5">
           <FieldLabel>Property Code</FieldLabel>
-          <input name="property_code" className={inputCls} placeholder="PRP-001" value={propertyCode} onChange={e => setPropertyCode(e.target.value)} />
+          <input name="property_code" className={inputCls} placeholder="PRP-IND-001" value={propertyCode} onChange={e => setPropertyCode(e.target.value)} />
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      {listingNature === 'project' && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <FieldLabel required>Developer / Builder Firm</FieldLabel>
+            <input
+              name="developer_name"
+              className={inputCls}
+              placeholder="e.g. Panchshil Developers, Solitaire Group"
+              value={developerName}
+              onChange={e => setDeveloperName(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <FieldLabel>RERA Registration Number</FieldLabel>
+            <input
+              name="rera_number"
+              className={inputCls + " font-mono"}
+              placeholder="e.g. P52100029381"
+              value={reraNumber}
+              onChange={e => setReraNumber(e.target.value)}
+            />
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <FieldLabel>Property Type</FieldLabel>
+            <FieldLabel>{listingNature === 'standalone' ? 'Property Type' : 'Project Type'}</FieldLabel>
             {isAdmin && !isAddingNewType && (
               <button
                 type="button"
@@ -435,9 +587,10 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
             </SelectWrapper>
           )}
         </div>
+
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <FieldLabel>Configuration</FieldLabel>
+            <FieldLabel>{listingNature === 'standalone' ? 'Unit Configuration' : 'Available Project Configurations'}</FieldLabel>
             {isAdmin && !isAddingNewConfig && (
               <button
                 type="button"
@@ -455,7 +608,7 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
                 type="text"
                 value={newConfigInput}
                 onChange={e => setNewConfigInput(e.target.value)}
-                placeholder="Type new config (e.g. 7 BHK, Duplex Penthouse)..."
+                placeholder="Type new config (e.g. 5 BHK Sky Villa)..."
                 className={inputCls + " h-8 text-xs"}
                 autoFocus
                 onKeyDown={e => {
@@ -488,31 +641,31 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
             onChange={setConfiguration}
             options={computedConfigOptions}
             allowCustom={true}
-            placeholder="Add config..."
+            placeholder={listingNature === 'standalone' ? 'Select config (e.g. 3 BHK)' : 'Add configs (e.g. 2 BHK, 3 BHK, 4 BHK)'}
           />
           <input type="hidden" name="configuration" value={configuration.join(', ')} />
         </div>
       </div>
 
-
       <div className="space-y-1.5">
-        <FieldLabel>Description</FieldLabel>
+        <FieldLabel>Description / Marketing Pitch</FieldLabel>
         <textarea
           name="description"
           className={textareaCls}
           rows={3}
-          placeholder="Public property description copy..."
+          placeholder={listingNature === 'standalone' ? 'Describe the private unit views, sun exposure, interior finishes, and key features...' : 'Comprehensive project overview, township amenities, clubhouses, and connectivity advantages...'}
           defaultValue={initialValues.description ?? ''}
         />
       </div>
     </div>
   );
 
+  // ── Render Location ──
   const renderLocation = () => (
-    <div className="space-y-5">
+    <div className="space-y-5 text-left">
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <FieldLabel required>Location Tags</FieldLabel>
+          <FieldLabel required>Location Tags / Micro-Market</FieldLabel>
           {isAdmin && !isAddingNewLocation && (
             <button
               type="button"
@@ -563,63 +716,362 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
           onChange={setLocations}
           options={locationOptions}
           allowCustom={true}
-          placeholder="e.g. Kalyani Nagar, Viman Nagar"
+          placeholder="e.g. Kalyani Nagar, Koregaon Park, Baner"
         />
         <input type="hidden" name="location" value={locations.join(', ')} />
       </div>
 
       <div className="space-y-1.5">
-        <FieldLabel>Address</FieldLabel>
+        <FieldLabel>Full Address / Landmark</FieldLabel>
         <textarea
           name="address"
           className={textareaCls}
           rows={3}
-          placeholder="Full property address details..."
+          placeholder={listingNature === 'standalone' ? 'Complete street address, building wing, floor and landmark...' : 'Project site address, sector, survey number, and nearest landmark...'}
           defaultValue={initialValues.address ?? ''}
         />
       </div>
     </div>
   );
 
+  // ── Render Pricing & Area ──
+  const renderPricing = () => {
+    const priceNum = Number(previewPrice) || 0;
+    const carpetNum = Number(carpetArea) || 1;
+    const ratePerSqFt = carpetNum > 0 && priceNum > 0 ? Math.round(priceNum / carpetNum) : 0;
 
-  const renderPricing = () => (
-    <div className="space-y-5">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-1.5">
-          <FieldLabel required>Price (₹)</FieldLabel>
-          <IndianNumberInput
-            name="price"
-            className={inputCls}
-            placeholder="e.g. 1,50,00,000"
-            defaultValue={initialValues.price ?? ''}
-            onValueChange={setPreviewPrice}
-          />
+    return (
+      <div className="space-y-5 text-left">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <FieldLabel required>{listingNature === 'standalone' ? 'Agreed / Listing Price (₹)' : 'Base Starting Price (₹)'}</FieldLabel>
+            <IndianNumberInput
+              name="price"
+              className={inputCls + " font-bold text-[#b8922e]"}
+              placeholder="e.g. 1,35,00,000"
+              defaultValue={initialValues.price ?? previewPrice}
+              onValueChange={setPreviewPrice}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <FieldLabel>Listing / Transaction Type</FieldLabel>
+            <SelectWrapper>
+              <select name="listing_type" className={selectCls} defaultValue={initialValues.listing_type ?? 'Sale'}>
+                <option value="Sale">Outright Sale</option>
+                <option value="Rent">Lease / Rent</option>
+              </select>
+            </SelectWrapper>
+          </div>
         </div>
-        <div className="space-y-1.5">
-          <FieldLabel>Listing Type</FieldLabel>
-          <SelectWrapper>
-            <select name="listing_type" className={selectCls} defaultValue={initialValues.listing_type ?? 'Sale'}>
-              <option>Sale</option>
-              <option>Rent</option>
-            </select>
-          </SelectWrapper>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <FieldLabel>{listingNature === 'standalone' ? 'Carpet Area (sq ft)' : 'Min. Carpet Area (sq ft)'}</FieldLabel>
+            <input
+              type="number"
+              name="carpet_area"
+              className={inputCls}
+              placeholder="e.g. 1680"
+              value={carpetArea}
+              onChange={e => setCarpetArea(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <FieldLabel>{listingNature === 'standalone' ? 'Super Built Up Area (sq ft)' : 'Super Built Up Area (sq ft)'}</FieldLabel>
+            <input
+              type="number"
+              name="built_up_area"
+              className={inputCls}
+              placeholder="e.g. 2150"
+              value={builtUpArea}
+              onChange={e => setBuiltUpArea(e.target.value)}
+            />
+          </div>
         </div>
+
+        {listingNature === 'project' ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <FieldLabel>Total Land Parcel Size</FieldLabel>
+              <input
+                name="land_parcel"
+                className={inputCls}
+                placeholder="e.g. 12.5 Acres"
+                value={landParcel}
+                onChange={e => setLandParcel(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <FieldLabel>Target Possession Date</FieldLabel>
+              <input
+                type="text"
+                name="possession_date"
+                value={possessionTimeline}
+                onChange={e => setPossessionTimeline(e.target.value)}
+                className={inputCls}
+                placeholder="e.g. December 2026"
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <FieldLabel>Monthly Maintenance (₹/month)</FieldLabel>
+              <input
+                name="maintenance"
+                className={inputCls}
+                placeholder="e.g. 5500"
+                value={standaloneMaintenance}
+                onChange={e => setStandaloneMaintenance(e.target.value)}
+              />
+            </div>
+            <div className="p-3 bg-[#fafaf8] border border-zinc-200/80 rounded-xl flex items-center justify-between">
+              <div>
+                <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest block font-mono">Calculated Rate</span>
+                <span className="text-sm font-extrabold text-zinc-900">
+                  {ratePerSqFt > 0 ? `₹${ratePerSqFt.toLocaleString('en-IN')} / sq ft` : '—'}
+                </span>
+              </div>
+              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+                Carpet Efficiency: {carpetNum && builtUpArea ? Math.round((carpetNum / Number(builtUpArea)) * 100) : 78}%
+              </span>
+            </div>
+          </div>
+        )}
       </div>
+    );
+  };
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-1.5">
-          <FieldLabel>Carpet Area (sq ft)</FieldLabel>
-          <input type="number" name="carpet_area" className={inputCls} placeholder="e.g. 1200" defaultValue={initialValues.carpet_area ?? ''} />
+  // ── Render Standalone Unit Matrix & Specifications (Option 1) ──
+  const renderStandaloneUnitMatrix = () => {
+    const priceNum = Number(previewPrice) || 13500000;
+    const stampDuty = Math.round(priceNum * 0.06);
+    const gst = Math.round(priceNum * 0.05);
+    const registration = 30000;
+    const totalAllInclusive = priceNum + stampDuty + gst + registration;
+    const carpetNum = Number(carpetArea) || 1680;
+    const ratePerSqFt = carpetNum > 0 ? Math.round(priceNum / carpetNum) : 8035;
+
+    const floorTier = standaloneFloorNumber > (standaloneTotalFloors * 0.7) 
+      ? 'High-Rise Sky Tier' 
+      : standaloneFloorNumber > (standaloneTotalFloors * 0.3) 
+        ? 'Mid-Rise Garden Tier' 
+        : 'Podium / Low-Rise Tier';
+
+    return (
+      <div className="space-y-6 text-left">
+        {/* Header Introduction Banner */}
+        <div className="p-4 bg-white border border-[#ebebeb] rounded-2xl shadow-xs space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-[#b8922e] uppercase tracking-widest font-mono">
+              Individual Unit Specification & Matrix
+            </span>
+            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-md bg-[#d4ad4d]/15 text-[#96751f] border border-[#d4ad4d]/30">
+              Standalone Unit Matrix
+            </span>
+          </div>
+          <h3 className="text-sm font-extrabold text-zinc-900">Dedicated Unit Profile & Cost Sheet Breakdown</h3>
+          <p className="text-[11px] text-zinc-500 leading-relaxed">
+            Configure the specific flat number, floor tier, direction orientation, parking allotment, and live financial breakdown for this individual property.
+          </p>
         </div>
-        <div className="space-y-1.5">
-          <FieldLabel>Built Up Area (sq ft)</FieldLabel>
-          <input type="number" name="built_up_area" className={inputCls} placeholder="e.g. 1500" defaultValue={initialValues.built_up_area ?? ''} />
+
+        {/* Core Unit Inputs */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="space-y-1.5">
+            <FieldLabel required>Unit / Flat Number</FieldLabel>
+            <input
+              type="text"
+              name="unit_no"
+              className={inputCls + " font-bold text-[#b8922e]"}
+              placeholder="e.g. A-1204, Villa 7, Office 401"
+              value={standaloneUnitNo}
+              onChange={e => setStandaloneUnitNo(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <FieldLabel required>Floor Level</FieldLabel>
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                type="number"
+                name="floor_number"
+                min={0}
+                max={100}
+                className={inputCls}
+                placeholder="Floor (12)"
+                value={standaloneFloorNumber}
+                onChange={e => setStandaloneFloorNumber(Number(e.target.value) || 1)}
+              />
+              <input
+                type="number"
+                name="total_floors"
+                min={1}
+                max={100}
+                className={inputCls}
+                placeholder="Of Total (20)"
+                value={standaloneTotalFloors}
+                onChange={e => setStandaloneTotalFloors(Number(e.target.value) || 1)}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <FieldLabel>Direction Facing / View</FieldLabel>
+            <SelectWrapper>
+              <select
+                name="facing"
+                className={selectCls}
+                value={standaloneFacing}
+                onChange={e => setStandaloneFacing(e.target.value)}
+              >
+                <option value="East (Riverfront & Sunrise View)">East (Riverfront & Sunrise View)</option>
+                <option value="West (Sunset & Skyline View)">West (Sunset & Skyline View)</option>
+                <option value="North-East (Vaastu Compliant)">North-East (Vaastu Compliant)</option>
+                <option value="Garden / Swimming Pool Facing">Garden / Swimming Pool Facing</option>
+                <option value="Main Road / Corner View">Main Road / Corner View</option>
+              </select>
+            </SelectWrapper>
+          </div>
         </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="space-y-1.5">
+            <FieldLabel>Furnishing Status</FieldLabel>
+            <SelectWrapper>
+              <select
+                name="furnishing"
+                className={selectCls}
+                value={standaloneFurnishing}
+                onChange={e => setStandaloneFurnishing(e.target.value)}
+              >
+                <option value="Unfurnished">Unfurnished Bare Shell</option>
+                <option value="Semi-Furnished (Modular Kitchen + Wardrobes)">Semi-Furnished (Kitchen + Wardrobes)</option>
+                <option value="Fully Furnished Luxury Interior">Fully Furnished Luxury Interior</option>
+              </select>
+            </SelectWrapper>
+          </div>
+
+          <div className="space-y-1.5">
+            <FieldLabel>Reserved Car Parking</FieldLabel>
+            <SelectWrapper>
+              <select
+                name="parking"
+                className={selectCls}
+                value={standaloneParking}
+                onChange={e => setStandaloneParking(e.target.value)}
+              >
+                <option value="1 Covered Parking Slot">1 Covered Parking</option>
+                <option value="2 Covered Parking Slots">2 Covered Parking Slots</option>
+                <option value="3 Covered Parking Slots">3 Covered Parking Slots</option>
+                <option value="Open Parking Slot">Open Parking</option>
+                <option value="None">None</option>
+              </select>
+            </SelectWrapper>
+          </div>
+
+          <div className="space-y-1.5">
+            <FieldLabel>Possession Status</FieldLabel>
+            <SelectWrapper>
+              <select
+                name="possession_status"
+                className={selectCls}
+                value={standalonePossession}
+                onChange={e => setStandalonePossession(e.target.value)}
+              >
+                <option value="Ready to Move">Ready to Move (Immediate Handover)</option>
+                <option value="Under Construction (Under 6 Months)">Under Construction (Under 6 Months)</option>
+                <option value="Under Construction (1-2 Years)">Under Construction (1-2 Years)</option>
+                <option value="Resale Immediate Allotment">Resale Immediate Allotment</option>
+              </select>
+            </SelectWrapper>
+          </div>
+        </div>
+
+        {/* ── Standalone Unit Cost & Specification Matrix Visualizer ── */}
+        <div className="space-y-3 pt-2">
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="text-xs font-extrabold text-zinc-900">Standalone Unit Matrix Card</h4>
+              <p className="text-[10px] text-zinc-400">Live generated unit specification and financial calculation sheet</p>
+            </div>
+            <span className="text-[10px] font-mono font-bold text-zinc-500 bg-zinc-100 px-2 py-0.5 rounded">
+              Floor {standaloneFloorNumber} of {standaloneTotalFloors} · {floorTier}
+            </span>
+          </div>
+
+          {/* Master Unit Matrix Card */}
+          <div className="bg-zinc-900 text-white rounded-2xl p-5 shadow-sm space-y-4">
+            {/* Unit Header */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#d4ad4d] text-white flex items-center justify-center font-black font-mono text-sm">
+                  {standaloneUnitNo.slice(0, 4) || 'UNIT'}
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-base text-white flex items-center gap-2">
+                    {standaloneUnitNo} · {configuration[0] || '3 BHK'}
+                    <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/30">
+                      {standalonePossession}
+                    </span>
+                  </h4>
+                  <span className="text-[11px] text-zinc-400 flex items-center gap-2 mt-0.5">
+                    <Compass className="h-3 w-3 text-[#d4ad4d]" /> {standaloneFacing} · <Car className="h-3 w-3 text-[#d4ad4d]" /> {standaloneParking}
+                  </span>
+                </div>
+              </div>
+
+              <div className="text-right">
+                <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest block font-mono">Agreed Base Price</span>
+                <span className="text-lg font-black text-[#d4ad4d]">{formatPrice(priceNum)}</span>
+              </div>
+            </div>
+
+            {/* Financial Multi-Line Cost Matrix */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-zinc-800/60 p-3.5 rounded-xl border border-zinc-800 text-xs">
+              <div>
+                <span className="text-[9px] text-zinc-400 block font-mono">Rate per Sq.Ft</span>
+                <span className="font-bold text-white">₹{ratePerSqFt.toLocaleString('en-IN')} / sq ft</span>
+              </div>
+              <div>
+                <span className="text-[9px] text-zinc-400 block font-mono">Stamp Duty (6%)</span>
+                <span className="font-bold text-zinc-300">₹{stampDuty.toLocaleString('en-IN')}</span>
+              </div>
+              <div>
+                <span className="text-[9px] text-zinc-400 block font-mono">GST (5%)</span>
+                <span className="font-bold text-zinc-300">₹{gst.toLocaleString('en-IN')}</span>
+              </div>
+              <div>
+                <span className="text-[9px] text-emerald-400 font-bold block font-mono">All-Inclusive Est.</span>
+                <span className="font-black text-emerald-400">{formatPrice(totalAllInclusive)}</span>
+              </div>
+            </div>
+
+            {/* Specifications Details Chips */}
+            <div className="flex flex-wrap gap-2 pt-1">
+              <span className="text-[10px] bg-zinc-800 text-zinc-300 px-2.5 py-1 rounded-lg border border-zinc-700/80 font-medium">
+                Carpet: <strong>{carpetNum} sq ft</strong>
+              </span>
+              <span className="text-[10px] bg-zinc-800 text-zinc-300 px-2.5 py-1 rounded-lg border border-zinc-700/80 font-medium">
+                Built-Up: <strong>{builtUpArea} sq ft</strong>
+              </span>
+              <span className="text-[10px] bg-zinc-800 text-zinc-300 px-2.5 py-1 rounded-lg border border-zinc-700/80 font-medium">
+                Furnishing: <strong>{standaloneFurnishing.split('(')[0]}</strong>
+              </span>
+              <span className="text-[10px] bg-zinc-800 text-zinc-300 px-2.5 py-1 rounded-lg border border-zinc-700/80 font-medium">
+                Maintenance: <strong>₹{standaloneMaintenance}/mo</strong>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <input type="hidden" name="possession_date" value={standalonePossession} />
       </div>
-    </div>
-  );
+    );
+  };
 
-  const renderUnitInventory = () => {
+  // ── Render Project Unit Stacking Matrix (Option 2) ──
+  const renderProjectUnitStacking = () => {
     const totalProjectUnits = towersList.length * totalFloors * unitsPerFloor;
     const towerPrefix = activePreviewTower.replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase() || 'T';
 
@@ -629,15 +1081,15 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
         <div className="p-4 bg-white border border-[#ebebeb] rounded-2xl shadow-xs space-y-1">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-[#b8922e] uppercase tracking-widest font-mono">
-              Unit Stacking & Project Inventory Engine
+              Multi-Tower Stacking & Inventory Matrix
             </span>
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#d4ad4d]/15 text-[#96751f] border border-[#d4ad4d]/30">
               {totalProjectUnits} Projected Units
             </span>
           </div>
-          <h3 className="text-sm font-extrabold text-zinc-900">Configure Building Towers, Floors & Unit Distribution</h3>
+          <h3 className="text-sm font-extrabold text-zinc-900">Configure Towers, Height & Floor-by-Floor Matrix</h3>
           <p className="text-[11px] text-zinc-500 leading-relaxed">
-            Specify the tower nomenclature, floor height, and density. The system will automatically project and generate the visual unit inventory matrix for this project.
+            Specify the tower nomenclature, floor height, and units per floor. The system will automatically generate the visual unit inventory stacking projection.
           </p>
         </div>
 
@@ -682,7 +1134,7 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
               <div className="flex items-center gap-1.5">
                 <input
                   type="text"
-                  placeholder="e.g. Tower C, West Wing"
+                  placeholder="e.g. Tower D, East Wing"
                   value={newTowerInput}
                   onChange={(e) => setNewTowerInput(e.target.value)}
                   onKeyDown={(e) => {
@@ -706,7 +1158,7 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
                       setNewTowerInput('');
                     }
                   }}
-                  className="h-8 px-3 bg-[#d4ad4d] hover:bg-[#b8922e] text-white rounded-lg text-xs font-bold transition-all shrink-0"
+                  className="h-8 px-3 bg-[#d4ad4d] hover:bg-[#b8922e] text-white rounded-lg text-xs font-bold transition-all shrink-0 cursor-pointer"
                 >
                   + Add Tower
                 </button>
@@ -741,7 +1193,7 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
                 className={inputCls}
                 placeholder="e.g. 4"
               />
-              <span className="text-[10px] text-zinc-400 block">{unitsPerFloor} apartments per tier</span>
+              <span className="text-[10px] text-zinc-400 block">{unitsPerFloor} apartments per floor</span>
             </div>
 
             <div className="space-y-1.5">
@@ -753,7 +1205,7 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
                 className={inputCls}
                 placeholder="e.g. December 2026"
               />
-              <span className="text-[10px] text-zinc-400 block">Allotment timeline</span>
+              <span className="text-[10px] text-zinc-400 block">Project Delivery Timeline</span>
             </div>
           </div>
 
@@ -772,7 +1224,7 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
               <span className="text-base font-extrabold text-[#d4ad4d]">{totalProjectUnits} Units</span>
             </div>
             <div>
-              <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest block font-mono">Projected Value</span>
+              <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest block font-mono">Projected Pipeline</span>
               <span className="text-base font-extrabold text-emerald-400">
                 {previewPrice ? formatPrice(Number(previewPrice) * totalProjectUnits) : '₹' + (totalProjectUnits * 1.35).toFixed(1) + ' Cr'}
               </span>
@@ -784,7 +1236,7 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
             <div className="flex items-center justify-between">
               <div>
                 <h4 className="text-xs font-extrabold text-zinc-900">Interactive Building Stacking Projection</h4>
-                <p className="text-[10px] text-zinc-400">Visual unit matrix preview that will project into the Unit Inventory page</p>
+                <p className="text-[10px] text-zinc-400">Visual unit matrix preview projected into the Unit Inventory page</p>
               </div>
 
               {/* Tower Switcher */}
@@ -794,7 +1246,7 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
                     key={idx}
                     type="button"
                     onClick={() => setActivePreviewTower(t)}
-                    className={`px-2.5 py-1 rounded text-[10px] font-bold transition-all ${
+                    className={`px-2.5 py-1 rounded text-[10px] font-bold transition-all cursor-pointer ${
                       activePreviewTower === t 
                         ? 'bg-zinc-900 text-white' 
                         : 'text-zinc-600 hover:text-zinc-900'
@@ -865,31 +1317,32 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
     );
   };
 
+  // ── Render Ownership / Builder SPOC ──
   const renderOwnership = () => (
-    <div className="space-y-5">
+    <div className="space-y-5 text-left">
       <div className="space-y-1.5">
-        <FieldLabel>Property Source</FieldLabel>
+        <FieldLabel>{listingNature === 'standalone' ? 'Property Listing Source' : 'Sales Mandate Type'}</FieldLabel>
         <SelectWrapper>
           <select name="source_type" className={selectCls} defaultValue={initialValues.source_type ?? 'Direct'}>
-            <option value="Direct">Direct</option>
-            <option value="Broker">Broker</option>
+            <option value="Direct">{listingNature === 'standalone' ? 'Direct Owner / Landlord' : 'Developer Direct Mandate'}</option>
+            <option value="Broker">{listingNature === 'standalone' ? 'Channel Partner / Broker' : 'Sole Selling Mandate'}</option>
           </select>
         </SelectWrapper>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <FieldLabel>Owner Name</FieldLabel>
-          <input name="owner_name" className={inputCls} placeholder="Contact person" defaultValue={initialValues.owner_name ?? ''} />
+          <FieldLabel>{listingNature === 'standalone' ? 'Owner Full Name' : 'Builder / SPOC Name'}</FieldLabel>
+          <input name="owner_name" className={inputCls} placeholder="e.g. Ramesh Chandra / Rajesh Sharma" defaultValue={initialValues.owner_name ?? ''} />
         </div>
         <div className="space-y-1.5">
-          <FieldLabel>Owner Contact</FieldLabel>
-          <input name="owner_contact" className={inputCls} placeholder="+91 90000 00000" defaultValue={initialValues.owner_contact ?? ''} />
+          <FieldLabel>{listingNature === 'standalone' ? 'Owner Contact Number' : 'SPOC Contact Number'}</FieldLabel>
+          <input name="owner_contact" className={inputCls} placeholder="+91 98200 00000" defaultValue={initialValues.owner_contact ?? ''} />
         </div>
       </div>
 
       <div className="space-y-1.5">
-        <FieldLabel>Additional Mobile Numbers</FieldLabel>
+        <FieldLabel>Additional Contact Numbers</FieldLabel>
         <div className="space-y-2">
           {alternateOwnerContacts.map((num, idx) => (
             <div key={idx} className="flex items-center gap-2">
@@ -912,51 +1365,41 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
           <button
             type="button"
             onClick={() => setAlternateOwnerContacts(prev => [...prev, ''])}
-            className="flex items-center gap-1 text-[11px] font-bold text-[#b8922e] hover:text-[#96751f] transition-colors"
+            className="flex items-center gap-1 text-[11px] font-bold text-[#b8922e] hover:text-[#96751f] transition-colors cursor-pointer"
           >
             <Plus className="h-3 w-3" /> Add another number
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 pt-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
         <div className="space-y-1.5">
-          <FieldLabel>Apartment / Unit No (Private)</FieldLabel>
-          <input 
-            name="unit_no" 
-            className={inputCls + " border-[#d4ad4d]/40 font-bold bg-[#fafaf8]"} 
-            placeholder="e.g. Cypress-401, Floor 9" 
-            defaultValue={initialValues.unit_no ?? ''} 
-          />
-        </div>
-        <div className="space-y-1.5">
-          <FieldLabel>Agreed Brokerage Terms (Private)</FieldLabel>
+          <FieldLabel>Agreed Brokerage / Commission (%)</FieldLabel>
           <input 
             name="brokerage" 
             className={inputCls + " border-[#d4ad4d]/40 font-bold bg-[#fafaf8]"} 
-            placeholder="e.g. 1% or 2%" 
+            placeholder="e.g. 2.0% or ₹2.5 Lakhs" 
             defaultValue={initialValues.brokerage ?? ''} 
           />
         </div>
-      </div>
-
-      <div className="space-y-1.5 pt-2">
-        <FieldLabel>Internal Notes</FieldLabel>
-        <textarea
-          name="internal_notes"
-          className={textareaCls}
-          rows={3}
-          placeholder="Private notes..."
-          defaultValue={initialValues.internal_notes ?? ''}
-        />
+        <div className="space-y-1.5">
+          <FieldLabel>Confidential Agency Notes</FieldLabel>
+          <input 
+            name="internal_notes" 
+            className={inputCls} 
+            placeholder="Key possession nuances, negotiation scope..." 
+            defaultValue={initialValues.internal_notes ?? ''} 
+          />
+        </div>
       </div>
     </div>
   );
 
+  // ── Render Media ──
   const renderMedia = () => (
     <div className="space-y-5 text-left">
       <div className="space-y-1.5">
-        <FieldLabel>Property Images & Videos</FieldLabel>
+        <FieldLabel>{listingNature === 'standalone' ? 'Property Photos & Floor Plans' : 'Project Elevation Renders & Master Layout'}</FieldLabel>
         <MediaPicker 
           bucket="property-images" 
           fieldPrefix={`prop-${initialValues.id || 'new'}_`} 
@@ -988,13 +1431,11 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
         </div>
       )}
       
-      {/* Hidden inputs to pass paths to Server Action */}
       {images.map((img, idx) => (
         <input key={idx} type="hidden" name="image_urls" value={img.url} />
       ))}
     </div>
   );
-
 
   return (
     <form action={formAction} onSubmit={handleSubmit} className="min-h-screen bg-[#fafaf8]">
@@ -1006,16 +1447,21 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
           <ChevronLeft className="h-4 w-4" />
           <span className="text-xs font-semibold hidden sm:block">Back to Properties</span>
         </Link>
-        <h1 className="text-[15px] font-extrabold text-zinc-900 flex-1 text-center lg:text-left" style={{ letterSpacing: '-0.3px' }}>
-          {isEdit ? 'Edit Property' : 'New Property'}
-        </h1>
+        <div className="flex-1 text-center lg:text-left">
+          <h1 className="text-[15px] font-extrabold text-zinc-900 leading-tight" style={{ letterSpacing: '-0.3px' }}>
+            {isEdit ? 'Edit Property' : 'Add New Property'}
+          </h1>
+          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest hidden sm:inline-block">
+            {listingNature === 'standalone' ? '🏠 Standalone Individual Property' : '🏢 Multi-Tower Project & Stacking Matrix'}
+          </span>
+        </div>
         <div className="flex items-center gap-2 shrink-0">
           {isEdit && (
             <button
               type="button"
               onClick={handleDelete}
               disabled={deleting || isPending}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-lg border border-rose-200 text-rose-600 text-[11px] font-bold bg-rose-50 hover:bg-rose-100 transition-all disabled:opacity-50"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-lg border border-rose-200 text-rose-600 text-[11px] font-bold bg-rose-50 hover:bg-rose-100 transition-all disabled:opacity-50 cursor-pointer"
             >
               <Trash2 className="h-3.5 w-3.5" />
               {deleting ? 'Deleting…' : 'Delete'}
@@ -1040,22 +1486,19 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
       )}
 
       <div className="max-w-6xl mx-auto">
-        {/* Only one of these layouts is ever mounted (see isDesktop above) -- previously
-            both were always mounted with CSS show/hide, duplicating every field's name
-            attribute in this <form> and breaking both validation and submitted values. */}
         {isDesktop ? (
         /* ── DESKTOP VIEWPORT: Split Panel Nav Wizard ── */
         <div className="flex" style={{ minHeight: 'calc(100vh - 65px)' }}>
           {/* Left navigation */}
-          <div className="w-[200px] shrink-0 border-r border-[#ebebeb] bg-white pt-6 pb-10">
-            {SECTIONS.map((s, i) => {
+          <div className="w-[210px] shrink-0 border-r border-[#ebebeb] bg-white pt-6 pb-10">
+            {sections.map((s, i) => {
               const Icon = s.icon;
               return (
                 <button
                   key={i}
                   type="button"
                   onClick={() => setActiveSection(i)}
-                  className={`w-full flex items-center gap-3 px-5 py-2.5 text-left transition-all border-r-2 ${
+                  className={`w-full flex items-center gap-3 px-5 py-2.5 text-left transition-all border-r-2 cursor-pointer ${
                     activeSection === i
                       ? 'border-[#d4ad4d] bg-zinc-50 text-zinc-900'
                       : 'border-transparent text-zinc-400 hover:text-zinc-700 hover:bg-zinc-50'
@@ -1077,8 +1520,13 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
 
             {/* Live preview card */}
             {(previewTitle || previewType) && (
-              <div className="mx-3 mt-6 p-3 bg-[#fafaf8] border border-[#ebebeb] rounded-xl">
-                <div className="text-[9px] font-extrabold text-zinc-300 uppercase tracking-wider mb-2">Preview</div>
+              <div className="mx-3 mt-6 p-3 bg-[#fafaf8] border border-[#ebebeb] rounded-xl text-left">
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-wider">Preview</div>
+                  <span className="text-[9px] font-bold text-[#b8922e]">
+                    {listingNature === 'standalone' ? 'Standalone' : 'Project'}
+                  </span>
+                </div>
                 {previewTitle && (
                   <div className="text-[11px] font-extrabold text-zinc-900 leading-tight">{previewTitle}</div>
                 )}
@@ -1090,7 +1538,7 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
                 )}
                 {locations.length > 0 && (
                   <div className="text-[9px] text-zinc-400 mt-1 flex items-center gap-1">
-                    <MapPin className="h-2.5 w-2.5" />
+                    <MapPin className="h-2.5 w-2.5 text-[#d4ad4d]" />
                     {locations.slice(0, 2).join(', ')}
                     {locations.length > 2 && ` +${locations.length - 2}`}
                   </div>
@@ -1100,15 +1548,13 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
           </div>
 
           {/* Right fields */}
-          {/* Sections stay mounted (display:none when inactive) rather than unmounting,
-              so fields from earlier sections are still present in FormData when submitting
-              from a later section — otherwise saving from the last page would silently
-              drop required fields like title/price and fail. */}
           <div className="flex-1 px-8 py-6 max-w-2xl">
             <div style={{ display: activeSection === 0 ? 'block' : 'none' }}>{renderBasicInfo()}</div>
             <div style={{ display: activeSection === 1 ? 'block' : 'none' }}>{renderLocation()}</div>
             <div style={{ display: activeSection === 2 ? 'block' : 'none' }}>{renderPricing()}</div>
-            <div style={{ display: activeSection === 3 ? 'block' : 'none' }}>{renderUnitInventory()}</div>
+            <div style={{ display: activeSection === 3 ? 'block' : 'none' }}>
+              {listingNature === 'standalone' ? renderStandaloneUnitMatrix() : renderProjectUnitStacking()}
+            </div>
             <div style={{ display: activeSection === 4 ? 'block' : 'none' }}>{renderOwnership()}</div>
             <div style={{ display: activeSection === 5 ? 'block' : 'none' }}>{renderMedia()}</div>
 
@@ -1116,19 +1562,19 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
             <div className="mt-8 flex items-center justify-between pt-4 border-t border-[#ebebeb]">
               {activeSection > 0 ? (
                 <button type="button" onClick={() => setActiveSection(s => s - 1)}
-                  className="text-[11px] font-bold text-zinc-400 hover:text-zinc-700 flex items-center gap-1 transition-colors">
-                  ← {SECTIONS[activeSection - 1].label}
+                  className="text-[11px] font-bold text-zinc-400 hover:text-zinc-700 flex items-center gap-1 transition-colors cursor-pointer">
+                  ← {sections[activeSection - 1].label}
                 </button>
               ) : <span />}
-              {activeSection < SECTIONS.length - 1 ? (
+              {activeSection < sections.length - 1 ? (
                 <button type="button" onClick={() => setActiveSection(s => s + 1)}
-                  className="dc-btn font-bold text-[11px] flex items-center gap-1">
-                  {SECTIONS[activeSection + 1].label} →
+                  className="dc-btn font-bold text-[11px] flex items-center gap-1 cursor-pointer">
+                  {sections[activeSection + 1].label} →
                 </button>
               ) : (
-                <button type="submit" disabled={isPending} className="dc-btn gold font-bold flex items-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed">
+                <button type="submit" disabled={isPending} className="dc-btn gold font-bold flex items-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer">
                   {isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                  {isPending ? 'Saving…' : 'Save Property'}
+                  {isPending ? 'Saving…' : (isEdit ? 'Update Property' : 'Save Property')}
                 </button>
               )}
             </div>
@@ -1137,11 +1583,10 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
         ) : (
         /* ── MOBILE VIEWPORT: Single Page Scrolling stacked layout ── */
         <div className="text-left space-y-0 bg-white">
-          
           <div className="px-5 pt-6 pb-5 border-b border-zinc-100 space-y-4">
             <h3 className="text-[11px] font-black text-zinc-900 pb-2.5 uppercase tracking-wider flex items-baseline gap-2 border-b border-zinc-100">
               <span className="font-serif italic font-bold text-[#d4ad4d] text-sm">01.</span>
-              <span>Basic Information</span>
+              <span>{listingNature === 'standalone' ? 'Basic Property Information' : 'Project Master Information'}</span>
             </h3>
             {renderBasicInfo()}
           </div>
@@ -1157,7 +1602,7 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
           <div className="px-5 pt-6 pb-5 border-b border-zinc-100 space-y-4">
             <h3 className="text-[11px] font-black text-zinc-900 pb-2.5 uppercase tracking-wider flex items-baseline gap-2 border-b border-zinc-100">
               <span className="font-serif italic font-bold text-[#d4ad4d] text-sm">03.</span>
-              <span>Pricing & Carpet Area</span>
+              <span>Pricing & Area</span>
             </h3>
             {renderPricing()}
           </div>
@@ -1165,15 +1610,15 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
           <div className="px-5 pt-6 pb-5 border-b border-zinc-100 space-y-4">
             <h3 className="text-[11px] font-black text-zinc-900 pb-2.5 uppercase tracking-wider flex items-baseline gap-2 border-b border-zinc-100">
               <span className="font-serif italic font-bold text-[#d4ad4d] text-sm">04.</span>
-              <span>Unit Inventory & Stacking</span>
+              <span>{listingNature === 'standalone' ? 'Unit Specifications & Matrix' : 'Unit Inventory & Stacking Matrix'}</span>
             </h3>
-            {renderUnitInventory()}
+            {listingNature === 'standalone' ? renderStandaloneUnitMatrix() : renderProjectUnitStacking()}
           </div>
 
           <div className="px-5 pt-6 pb-5 border-b border-zinc-100 space-y-4">
             <h3 className="text-[11px] font-black text-zinc-900 pb-2.5 uppercase tracking-wider flex items-baseline gap-2 border-b border-zinc-100">
               <span className="font-serif italic font-bold text-[#d4ad4d] text-sm">05.</span>
-              <span>Ownership & Private Terms</span>
+              <span>{listingNature === 'standalone' ? 'Ownership & Private Terms' : 'Developer & Mandate Terms'}</span>
             </h3>
             {renderOwnership()}
           </div>
@@ -1187,7 +1632,6 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
           </div>
         </div>
         )}
-
       </div>
     </form>
   );

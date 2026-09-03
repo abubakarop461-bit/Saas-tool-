@@ -83,19 +83,28 @@ export async function createPropertyAction(prevState: any, formData: FormData) {
 
   // Auto-generate / sync developer units for unit inventory matrix
   try {
+    const listingNature = String(formData.get('listing_nature') || 'project');
+    const isStandalone = listingNature === 'standalone';
     const towersRaw = String(formData.get('towers_list') || 'Tower A, Tower B');
     const towers = towersRaw.split(',').map(t => t.trim()).filter(Boolean);
     const totalFloors = Math.max(1, Number(formData.get('total_floors')) || 14);
     const unitsPerFloor = Math.max(1, Number(formData.get('units_per_floor')) || 4);
     const possessionDate = String(formData.get('possession_date') || 'December 2026');
+    const unitNo = String(formData.get('unit_no') || 'Unit 101');
+    const floorNum = Number(formData.get('floor_number')) || 1;
+    const facing = String(formData.get('facing') || 'East Facing (Prime View)');
 
     const { syncPropertyInventoryUnits } = await import('@/lib/inventory');
     await syncPropertyInventoryUnits({
       property_id: inserted?.id || 'prop-' + Date.now(),
-      project_title: String(data.title || 'Landmark Project'),
+      project_title: String(data.title || 'Landmark Property'),
+      is_standalone: isStandalone,
+      unit_number: unitNo,
+      floor_number: floorNum,
+      facing: facing,
       towers: towers.length > 0 ? towers : ['Tower A'],
-      total_floors: totalFloors,
-      units_per_floor: unitsPerFloor,
+      total_floors: isStandalone ? 1 : totalFloors,
+      units_per_floor: isStandalone ? 1 : unitsPerFloor,
       configuration: String(data.configuration || '3 BHK'),
       carpet_area: Number(data.carpet_area) || 1450,
       built_up_area: Number(data.built_up_area) || 1900,
@@ -180,9 +189,15 @@ export async function updatePropertyAction(prevState: any, formData: FormData) {
 
   // Auto-generate / sync developer units for unit inventory matrix
   try {
+    const listingNature = String(formData.get('listing_nature') || 'project');
+    const isStandalone = listingNature === 'standalone';
     const towersRaw = String(formData.get('towers_list') || '');
-    if (towersRaw) {
-      const towers = towersRaw.split(',').map(t => t.trim()).filter(Boolean);
+    const unitNo = String(formData.get('unit_no') || 'Unit 101');
+    const floorNum = Number(formData.get('floor_number')) || 1;
+    const facing = String(formData.get('facing') || 'East Facing (Prime View)');
+
+    if (towersRaw || isStandalone) {
+      const towers = towersRaw ? towersRaw.split(',').map(t => t.trim()).filter(Boolean) : ['Tower A'];
       const totalFloors = Math.max(1, Number(formData.get('total_floors')) || 14);
       const unitsPerFloor = Math.max(1, Number(formData.get('units_per_floor')) || 4);
       const possessionDate = String(formData.get('possession_date') || 'December 2026');
@@ -190,10 +205,14 @@ export async function updatePropertyAction(prevState: any, formData: FormData) {
       const { syncPropertyInventoryUnits } = await import('@/lib/inventory');
       await syncPropertyInventoryUnits({
         property_id: id,
-        project_title: String(data.title || 'Landmark Project'),
+        project_title: String(data.title || 'Landmark Property'),
+        is_standalone: isStandalone,
+        unit_number: unitNo,
+        floor_number: floorNum,
+        facing: facing,
         towers: towers.length > 0 ? towers : ['Tower A'],
-        total_floors: totalFloors,
-        units_per_floor: unitsPerFloor,
+        total_floors: isStandalone ? 1 : totalFloors,
+        units_per_floor: isStandalone ? 1 : unitsPerFloor,
         configuration: String(data.configuration || '3 BHK'),
         carpet_area: Number(data.carpet_area) || 1450,
         built_up_area: Number(data.built_up_area) || 1900,
