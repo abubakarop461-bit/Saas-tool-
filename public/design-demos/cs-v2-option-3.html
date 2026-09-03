@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Creative Studio - Option 3: Modern Data Console Grid</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #fafafa; color: #18181b; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .sidebar-dark { background-color: #09090b; color: #f4f4f5; }
+    .gold-accent { color: #d4ad4d; }
+    .gold-bg { background-color: #d4ad4d; }
+  </style>
+</head>
+<body class="h-screen flex overflow-hidden">
+
+  <!-- ERP Dark Sidebar Replica -->
+  <aside class="w-64 sidebar-dark flex flex-col justify-between p-4 border-r border-zinc-800 shrink-0 hidden md:flex">
+    <div class="space-y-6">
+      <div class="flex items-center gap-2 px-2">
+        <div class="h-8 w-8 rounded-lg gold-bg text-zinc-950 font-black flex items-center justify-center text-sm">LR</div>
+        <div>
+          <h2 class="font-extrabold text-sm text-white tracking-wider">LUXE REALTY</h2>
+          <p class="text-[10px] text-zinc-500 font-mono">ENTERPRISE ERP</p>
+        </div>
+      </div>
+      <nav class="space-y-1 text-xs font-semibold text-zinc-400">
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-900 hover:text-white">Dashboard</a>
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-900 hover:text-white">Leads</a>
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-900 hover:text-white">Properties</a>
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-900 hover:text-white">Unit Inventory</a>
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-zinc-900 text-white border-l-2 border-[#d4ad4d]">Creative Studio</a>
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-900 hover:text-white">Ad Performance</a>
+      </nav>
+    </div>
+    <div class="text-[10px] text-zinc-600 px-2 font-mono">v2.4 • Connected to D1</div>
+  </aside>
+
+  <!-- Main Workstation Layout -->
+  <div class="flex-1 flex flex-col h-screen overflow-hidden">
+    
+    <!-- Top Header Bar -->
+    <header class="bg-white border-b border-zinc-200 px-6 py-3 flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-3">
+        <span class="px-2.5 py-0.5 rounded-full bg-zinc-900 text-white text-[10px] font-extrabold uppercase">Option 3 · Data Console Grid</span>
+        <h1 class="text-sm font-extrabold text-zinc-900">High-Density AI Copy Studio & Social Mockups</h1>
+      </div>
+
+      <div class="flex items-center gap-2 text-xs font-bold">
+        <span class="px-2.5 py-1 bg-zinc-100 text-zinc-700 rounded-lg border border-zinc-200">AI: NVIDIA Nemotron 3 Super</span>
+        <button class="px-3 py-1 bg-zinc-950 text-white rounded-lg font-bold">Generate Copy</button>
+      </div>
+    </header>
+
+    <!-- 3-Pane Workstation Grid -->
+    <div class="flex-1 grid grid-cols-12 overflow-hidden">
+      
+      <!-- PANE 1: Left Property & Channel Selector (3 Cols) -->
+      <div class="col-span-3 bg-white p-4 border-r border-zinc-200 space-y-4 overflow-y-auto">
+        <span class="text-[10px] font-extrabold uppercase tracking-wider text-zinc-400 block">1. Property Inventory</span>
+        
+        <div class="p-3 rounded-xl border border-zinc-200 bg-zinc-50 space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="font-extrabold text-xs text-zinc-900">Solitaire Grand Penthouse</span>
+            <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-zinc-200 text-zinc-800">SG-PH01</span>
+          </div>
+          <p class="text-[11px] text-zinc-500 font-medium">Boat Club Road, Pune</p>
+          <div class="flex flex-wrap gap-1 text-[10px] font-bold">
+            <span class="px-2 py-0.5 rounded bg-white text-zinc-700 border border-zinc-200">5 BHK Penthouse</span>
+            <span class="px-2 py-0.5 rounded bg-zinc-950 text-white">₹6.20 Cr</span>
+          </div>
+        </div>
+
+        <span class="text-[10px] font-extrabold uppercase tracking-wider text-zinc-400 block pt-2">2. Channel Selection</span>
+        <div class="space-y-1 text-xs font-bold">
+          <div class="p-2 bg-zinc-900 text-white rounded-lg">WhatsApp Business</div>
+          <div class="p-2 bg-zinc-50 border border-zinc-200 text-zinc-700 rounded-lg">Instagram Feed</div>
+          <div class="p-2 bg-zinc-50 border border-zinc-200 text-zinc-700 rounded-lg">Facebook Ad</div>
+          <div class="p-2 bg-zinc-50 border border-zinc-200 text-zinc-700 rounded-lg">Property Portal</div>
+        </div>
+
+        <button class="w-full py-2.5 rounded-xl bg-zinc-950 text-white font-extrabold text-xs">
+          Generate 3 Ad Variations
+        </button>
+      </div>
+
+      <!-- PANE 2: Center Active Copy Editor (5 Cols) -->
+      <div class="col-span-5 bg-white p-5 border-r border-zinc-200 space-y-4 overflow-y-auto">
+        <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
+          <span class="px-2.5 py-0.5 rounded-full bg-zinc-950 text-[#d4ad4d] text-[10px] font-extrabold">VARIATION 1</span>
+          <button class="px-3 py-1.5 rounded-lg bg-zinc-950 text-white text-xs font-bold">Copy Package</button>
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold text-zinc-400 uppercase">1. Ad Headline</label>
+          <input type="text" value="Ultra Luxury Duplex Penthouse at Solitaire Grand, Boat Club Road" class="w-full p-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-xs font-bold text-zinc-900" />
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold text-zinc-400 uppercase">2. Primary Ad Copy</label>
+          <textarea rows="5" class="w-full p-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-xs font-medium text-zinc-800 leading-relaxed">Introducing Pune's crown jewel. Solitaire Grand Penthouse on Boat Club Road features a 5 BHK duplex penthouse with 4,200 sq.ft. carpet area. Priced at ₹6.20 Cr, this residence includes a private terrace jacuzzi and 360-degree skyline views. Contact us for private viewing.</textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold text-zinc-400 uppercase">3. Short Description</label>
+            <textarea rows="2" class="w-full p-2 bg-zinc-50 border border-zinc-200 rounded-lg text-xs">5 BHK Duplex Penthouse on Boat Club Road (4,200 sq.ft., ₹6.20 Cr).</textarea>
+          </div>
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold text-zinc-400 uppercase">4. Call-to-Action</label>
+            <input type="text" value="Request Official Brochure" class="w-full p-2 bg-zinc-50 border border-zinc-200 rounded-lg text-xs font-bold text-[#b4882d]" />
+          </div>
+        </div>
+      </div>
+
+      <!-- PANE 3: Right Live Social Ad Preview (4 Cols) -->
+      <div class="col-span-4 bg-zinc-50 p-5 space-y-4 overflow-y-auto">
+        <div class="flex items-center justify-between border-b border-zinc-200 pb-2">
+          <span class="text-xs font-extrabold uppercase text-zinc-900">WhatsApp Message Mockup</span>
+          <span class="text-[9px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">Verified</span>
+        </div>
+
+        <!-- Platform Switcher Tabs -->
+        <div class="grid grid-cols-4 gap-1 text-[11px] font-bold">
+          <button class="py-1.5 rounded bg-white text-zinc-700 border border-zinc-200">Instagram</button>
+          <button class="py-1.5 rounded bg-white text-zinc-700 border border-zinc-200">Facebook</button>
+          <button class="py-1.5 rounded bg-emerald-700 text-white">WhatsApp</button>
+          <button class="py-1.5 rounded bg-white text-zinc-700 border border-zinc-200">Portal</button>
+        </div>
+
+        <!-- WhatsApp Realistic Card Preview -->
+        <div class="bg-[#efeae2] border border-zinc-300 rounded-2xl shadow-sm overflow-hidden text-xs max-w-xs mx-auto">
+          <div class="bg-[#075e54] text-white p-3 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="h-7 w-7 rounded-full bg-emerald-700 font-bold text-[10px] flex items-center justify-center">LR</div>
+              <div>
+                <span class="font-bold text-xs block">Luxe Realty Business</span>
+                <span class="text-[9px] text-emerald-200">Online</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-3">
+            <div class="bg-white rounded-lg p-3 border border-zinc-200 space-y-2 text-[11px] text-zinc-800">
+              <div class="h-32 bg-zinc-900 text-white p-3 flex flex-col justify-between rounded">
+                <span class="px-2 py-0.5 rounded bg-[#d4ad4d] text-zinc-950 text-[8px] font-black w-max">DUPLEX PENTHOUSE</span>
+                <div>
+                  <p class="font-bold text-xs text-white">Solitaire Grand</p>
+                  <p class="text-[9px] text-zinc-300">5 BHK • 4,200 sq.ft. • ₹6.20 Cr</p>
+                </div>
+              </div>
+
+              <p class="font-bold text-zinc-900">*Ultra Luxury Duplex Penthouse at Solitaire Grand*</p>
+              <p class="text-zinc-700">Introducing Pune's crown jewel on Boat Club Road. 5 BHK penthouse spanning 4,200 sq.ft. carpet area...</p>
+
+              <div class="p-2 rounded bg-emerald-50 text-[10px] space-y-0.5 font-medium border border-emerald-100">
+                <p>📍 Boat Club Road, Pune</p>
+                <p>🏡 5 BHK Penthouse (4,200 sq.ft.)</p>
+                <p>💰 ₹6.20 Cr</p>
+              </div>
+
+              <div class="pt-1 border-t border-zinc-100 flex items-center justify-between text-[10px] font-bold text-emerald-700">
+                <span>Reply: Request Official Brochure</span>
+                <span class="text-[9px] text-zinc-400">10:42 AM ✓✓</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</body>
+</html>

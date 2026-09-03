@@ -13,6 +13,12 @@
       "skillPath": "SKILL.md",
       "computedHash": "1653bb12cf5e43ec7025ee49d70ff03af847e327556dbca16fc0bbc3a098be0b"
     },
+    "social-media-posts": {
+      "source": "jezweb/claude-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/social-media/skills/social-media-posts/SKILL.md",
+      "computedHash": "a2b0feaefe6269276d296f61647b522d81b71fb1fb57082842e5ca39a1258a79"
+    },
     "supabase": {
       "source": "supabase/agent-skills",
       "sourceType": "github",

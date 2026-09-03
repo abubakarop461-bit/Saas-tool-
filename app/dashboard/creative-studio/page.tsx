@@ -23,6 +23,7 @@ import {
   CheckCircle2,
   Cpu
 } from 'lucide-react';
+import { SocialAdPreview } from '@/components/creative-studio/SocialAdPreview';
 
 interface Variation {
   headline: string;
@@ -187,226 +188,221 @@ export default function CreativeStudioPage() {
   const activeVariation = variations[activeVariationIndex] || null;
 
   return (
-    <div className="space-y-5 pb-8 min-h-[calc(100vh-100px)]">
+    <div className="h-[calc(100vh-85px)] flex flex-col overflow-hidden space-y-3 pb-1">
       
-      {/* ── Top Header Bar ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-zinc-950 border border-zinc-850 p-5 rounded-[14px] shadow-xs">
-        <div className="space-y-1">
-          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#d4ad4d]/10 border border-[#d4ad4d]/20 text-[#d4ad4d] text-[10px] font-extrabold uppercase tracking-widest">
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>AI Marketing Copy Engine</span>
+      {/* ── Swiss Typographic (Clean Option 3) Top Header Bar ── */}
+      <div className="shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-zinc-300 p-3 sm:px-5 rounded-lg shadow-2xs">
+        <div className="flex items-center gap-3">
+          <div className="h-8 w-8 rounded bg-zinc-950 text-[#d4ad4d] flex items-center justify-center font-black text-xs shrink-0">
+            <Sparkles className="h-4 w-4 text-[#d4ad4d]" />
           </div>
-          <h1 className="text-xl md:text-2xl font-black text-white tracking-tight">
-            Creative Studio
-          </h1>
-          <p className="text-xs text-zinc-400 font-medium">
-            Generate high-converting ad copy with NVIDIA Nemotron 3 Super & factual property data.
-          </p>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded bg-zinc-950 text-white text-[9px] font-black uppercase tracking-widest">
+                Swiss Edition · Option 3
+              </span>
+              <span className="hidden md:inline-block text-[9px] font-mono text-zinc-400 font-bold uppercase">
+                D1 Factual Grounded
+              </span>
+            </div>
+            <h1 className="text-xs font-black uppercase tracking-widest text-zinc-900 mt-0.5">
+              Creative Studio & AI Marketing Suite
+            </h1>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-[10px] font-bold text-zinc-300">
-            <Cpu className="h-3.5 w-3.5 text-[#d4ad4d]" />
-            <span>NVIDIA Nemotron 3 Super</span>
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-zinc-100 border border-zinc-300 text-[10px] font-mono font-bold text-zinc-800">
+            <Cpu className="h-3.5 w-3.5 text-[#b4882d]" />
+            <span>MODEL: NEMOTRON-3-SUPER</span>
           </div>
 
           {variations.length > 0 && (
             <button
               onClick={handleGenerate}
               disabled={isGenerating}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-[9px] bg-zinc-900 border border-zinc-800 hover:border-[#d4ad4d] text-white hover:text-[#d4ad4d] text-xs font-bold transition-all cursor-pointer shadow-xs disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 px-3.5 py-1.5 rounded bg-zinc-950 hover:bg-black text-white text-xs font-black uppercase tracking-wider transition-all cursor-pointer shadow-xs disabled:opacity-50"
             >
-              <RotateCcw className={`h-3.5 w-3.5 ${isGenerating ? 'animate-spin' : ''}`} />
-              <span>Regenerate All</span>
+              <RotateCcw className={`h-3.5 w-3.5 text-[#d4ad4d] ${isGenerating ? 'animate-spin' : ''}`} />
+              <span>Regenerate Copy</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* ── Option 3: Modern Data Console 3-Pane Grid ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      {/* ── Swiss Typographic (Clean Option 3) 3-Pane Workstation Grid (Fixed Viewport, No Page Scroll) ── */}
+      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-0 bg-white border border-zinc-300 rounded-lg overflow-hidden shadow-2xs">
         
-        {/* ── PANE 1: Left Property & Channel Controls (3 Cols) ── */}
-        <div className="lg:col-span-3 space-y-4">
-          
-          {/* Property Selector Card */}
-          <div className="bg-white border border-zinc-200 rounded-[14px] p-4 shadow-xs space-y-3">
-            <div className="border-b border-zinc-100 pb-2.5 flex items-center justify-between">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-500">1. Target Property</span>
-              <span className="text-[10px] font-mono text-zinc-400">{properties.length} Active</span>
-            </div>
+        {/* ── PANE 1: Left Property Inventory & Channel Selection (3 Cols) ── */}
+        <div className="lg:col-span-3 bg-white p-3.5 border-b lg:border-b-0 lg:border-r border-zinc-300 space-y-3.5 overflow-y-auto h-full">
+          <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400 border-b border-zinc-200 pb-1 block">
+            1. PROPERTY INVENTORY
+          </span>
 
-            {/* Property Custom Dropdown */}
-            <div className="relative">
-              <div 
-                onClick={() => setIsPropertyDropdownOpen(prev => !prev)}
-                className="w-full flex items-center justify-between px-3 py-2 rounded-[9px] bg-zinc-50 border border-zinc-200 hover:border-[#d4ad4d] text-xs font-semibold text-zinc-900 cursor-pointer transition-all"
-              >
-                {selectedProperty ? (
-                  <div className="flex items-center gap-2 truncate">
-                    <Building2 className="h-3.5 w-3.5 text-[#d4ad4d] shrink-0" />
-                    <span className="truncate">{selectedProperty.title}</span>
-                  </div>
-                ) : (
-                  <span className="text-zinc-400">Select a property...</span>
-                )}
-                <ChevronRight className={`h-3.5 w-3.5 text-zinc-400 transition-transform ${isPropertyDropdownOpen ? 'rotate-90' : ''}`} />
-              </div>
-
-              {/* Dropdown Menu */}
-              {isPropertyDropdownOpen && (
-                <div className="absolute z-30 mt-1 w-full bg-white border border-zinc-200 rounded-[12px] shadow-xl p-2 space-y-2 animate-in fade-in duration-100">
-                  <div className="relative">
-                    <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-zinc-400" />
-                    <input
-                      type="text"
-                      placeholder="Search property..."
-                      value={propertySearchQuery}
-                      onChange={(e) => setPropertySearchQuery(e.target.value)}
-                      className="w-full pl-8 pr-3 py-1.5 bg-zinc-50 border border-zinc-200 rounded-[7px] text-xs font-medium focus:bg-white"
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  </div>
-
-                  <div className="max-h-52 overflow-y-auto space-y-1 pr-1">
-                    {filteredProperties.length === 0 ? (
-                      <p className="text-xs text-zinc-400 text-center py-3">No matching properties</p>
-                    ) : (
-                      filteredProperties.map((p) => (
-                        <div
-                          key={p.id}
-                          onClick={() => {
-                            setSelectedPropertyId(p.id);
-                            setIsPropertyDropdownOpen(false);
-                            setPropertySearchQuery('');
-                          }}
-                          className={`p-2 rounded-[7px] cursor-pointer transition-all flex items-center justify-between text-xs ${
-                            selectedPropertyId === p.id 
-                              ? 'bg-zinc-900 text-white font-semibold' 
-                              : 'hover:bg-zinc-100 text-zinc-800'
-                          }`}
-                        >
-                          <div className="truncate pr-2">
-                            <p className="font-bold truncate text-[11px]">{p.title}</p>
-                            <p className={`text-[10px] ${selectedPropertyId === p.id ? 'text-zinc-400' : 'text-zinc-500'}`}>
-                              {p.location}
-                            </p>
-                          </div>
-                          {p.price && (
-                            <span className={`text-[10px] font-extrabold shrink-0 px-1.5 py-0.5 rounded ${
-                              selectedPropertyId === p.id ? 'bg-[#d4ad4d] text-zinc-950' : 'bg-zinc-100 text-zinc-900'
-                            }`}>
-                              {formatPriceShort(p.price)}
-                            </span>
-                          )}
-                        </div>
-                      ))
-                    )}
-                  </div>
+          {/* Property Custom Dropdown */}
+          <div className="relative">
+            <div 
+              onClick={() => setIsPropertyDropdownOpen(prev => !prev)}
+              className="w-full flex items-center justify-between px-3 py-2 rounded bg-zinc-50 border border-zinc-300 hover:border-[#d4ad4d] text-xs font-bold text-zinc-900 cursor-pointer transition-all"
+            >
+              {selectedProperty ? (
+                <div className="flex items-center gap-2 truncate">
+                  <Building2 className="h-3.5 w-3.5 text-[#d4ad4d] shrink-0" />
+                  <span className="truncate">{selectedProperty.title}</span>
                 </div>
+              ) : (
+                <span className="text-zinc-400">Select a property...</span>
               )}
+              <ChevronRight className={`h-3.5 w-3.5 text-zinc-400 transition-transform ${isPropertyDropdownOpen ? 'rotate-90' : ''}`} />
             </div>
 
-            {/* Selected Property Facts Matrix */}
-            {selectedProperty && (
-              <div className="bg-zinc-950 text-white rounded-[10px] p-3 space-y-2 text-xs">
-                <div className="flex items-center justify-between border-b border-zinc-850 pb-1.5">
-                  <span className="font-bold text-[#d4ad4d] text-[11px]">Fact Matrix</span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-850 text-zinc-300">
-                    {selectedProperty.property_code}
-                  </span>
+            {/* Dropdown Menu */}
+            {isPropertyDropdownOpen && (
+              <div className="absolute z-30 mt-1 w-full bg-white border border-zinc-300 rounded shadow-xl p-2 space-y-2 animate-in fade-in duration-100">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-zinc-400" />
+                  <input
+                    type="text"
+                    placeholder="Search property..."
+                    value={propertySearchQuery}
+                    onChange={(e) => setPropertySearchQuery(e.target.value)}
+                    className="w-full pl-8 pr-3 py-1.5 bg-zinc-50 border border-zinc-300 rounded text-xs font-bold focus:bg-white"
+                    onClick={(e) => e.stopPropagation()}
+                  />
                 </div>
-                <div className="flex flex-wrap gap-1 text-[10px]">
-                  {selectedProperty.configuration && (
-                    <span className="px-2 py-0.5 rounded bg-zinc-900 text-zinc-300 border border-zinc-800">
-                      {selectedProperty.configuration}
-                    </span>
-                  )}
-                  {selectedProperty.carpet_area && (
-                    <span className="px-2 py-0.5 rounded bg-zinc-900 text-zinc-300 border border-zinc-800">
-                      {selectedProperty.carpet_area} sq.ft.
-                    </span>
-                  )}
-                  {selectedProperty.price && (
-                    <span className="px-2 py-0.5 rounded bg-[#d4ad4d]/20 text-[#d4ad4d] font-bold border border-[#d4ad4d]/30">
-                      ₹{(selectedProperty.price / 10000000).toFixed(2)} Cr
-                    </span>
+
+                <div className="max-h-52 overflow-y-auto space-y-1 pr-1">
+                  {filteredProperties.length === 0 ? (
+                    <p className="text-xs text-zinc-400 text-center py-3">No matching properties</p>
+                  ) : (
+                    filteredProperties.map((p) => (
+                      <div
+                        key={p.id}
+                        onClick={() => {
+                          setSelectedPropertyId(p.id);
+                          setIsPropertyDropdownOpen(false);
+                          setPropertySearchQuery('');
+                        }}
+                        className={`p-2 rounded cursor-pointer transition-all flex items-center justify-between text-xs ${
+                          selectedPropertyId === p.id 
+                            ? 'bg-zinc-950 text-white font-bold' 
+                            : 'hover:bg-zinc-100 text-zinc-800'
+                        }`}
+                      >
+                        <div className="truncate pr-2">
+                          <p className="font-bold truncate text-[11px]">{p.title}</p>
+                          <p className={`text-[10px] ${selectedPropertyId === p.id ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                            {p.location}
+                          </p>
+                        </div>
+                        {p.price && (
+                          <span className={`text-[10px] font-extrabold shrink-0 px-1.5 py-0.5 rounded ${
+                            selectedPropertyId === p.id ? 'bg-[#d4ad4d] text-zinc-950' : 'bg-zinc-100 text-zinc-900'
+                          }`}>
+                            {formatPriceShort(p.price)}
+                          </span>
+                        )}
+                      </div>
+                    ))
                   )}
                 </div>
               </div>
             )}
           </div>
 
-          {/* Marketing Platform Selector Card */}
-          <div className="bg-white border border-zinc-200 rounded-[14px] p-4 shadow-xs space-y-3">
-            <div className="border-b border-zinc-100 pb-2">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-500">2. Target Platform</span>
+          {/* Selected Property Facts Matrix */}
+          {selectedProperty && (
+            <div className="p-3 rounded border border-zinc-300 bg-zinc-50 space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="font-black text-xs text-zinc-900 truncate pr-2">{selectedProperty.title}</span>
+                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-zinc-200 text-zinc-900 font-bold shrink-0">
+                  {selectedProperty.property_code}
+                </span>
+              </div>
+              <p className="text-[10px] text-zinc-600 font-medium">{selectedProperty.location}</p>
+              <div className="flex flex-wrap gap-1 text-[9px] font-bold pt-1">
+                {selectedProperty.configuration && (
+                  <span className="px-2 py-0.5 rounded bg-white text-zinc-800 border border-zinc-300">
+                    {selectedProperty.configuration}
+                  </span>
+                )}
+                {selectedProperty.carpet_area && (
+                  <span className="px-2 py-0.5 rounded bg-white text-zinc-800 border border-zinc-300">
+                    {selectedProperty.carpet_area} sq.ft.
+                  </span>
+                )}
+                {selectedProperty.price && (
+                  <span className="px-2 py-0.5 rounded bg-zinc-950 text-[#d4ad4d] font-black">
+                    ₹{(selectedProperty.price / 10000000).toFixed(2)} Cr
+                  </span>
+                )}
+              </div>
             </div>
+          )}
 
-            <div className="space-y-1.5">
-              {PLATFORMS.map((plat) => {
-                const Icon = plat.icon;
-                const isSelected = selectedPlatform === plat.id;
-                return (
-                  <div
-                    key={plat.id}
-                    onClick={() => setSelectedPlatform(plat.id)}
-                    className={`p-2.5 rounded-[9px] border cursor-pointer transition-all flex items-center gap-2.5 ${
-                      isSelected
-                        ? 'bg-zinc-950 border-zinc-950 text-white shadow-xs'
-                        : 'bg-white border-zinc-200 hover:border-zinc-300 text-zinc-800 hover:bg-zinc-50'
-                    }`}
-                  >
-                    <div className={`p-1.5 rounded-[6px] shrink-0 ${
-                      isSelected ? 'bg-[#d4ad4d] text-zinc-950' : 'bg-zinc-100 text-zinc-700'
-                    }`}>
-                      <Icon className="h-3.5 w-3.5" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold truncate">{plat.name}</p>
-                    </div>
-                    {isSelected && (
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#d4ad4d] shrink-0" />
-                    )}
+          {/* Marketing Platform Selector */}
+          <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400 border-b border-zinc-200 pb-1 block pt-2">
+            2. CHANNEL SELECTION
+          </span>
+          
+          <div className="space-y-1 font-mono font-bold text-xs">
+            {PLATFORMS.map((plat) => {
+              const Icon = plat.icon;
+              const isSelected = selectedPlatform === plat.id;
+              return (
+                <div
+                  key={plat.id}
+                  onClick={() => setSelectedPlatform(plat.id)}
+                  className={`p-2 rounded cursor-pointer transition-all flex items-center justify-between uppercase text-[11px] ${
+                    isSelected
+                      ? 'bg-zinc-950 text-white font-black'
+                      : 'bg-white border border-zinc-300 text-zinc-700 hover:bg-zinc-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Icon className={`h-3.5 w-3.5 ${isSelected ? 'text-[#d4ad4d]' : 'text-zinc-500'}`} />
+                    <span>{plat.name}</span>
                   </div>
-                );
-              })}
-            </div>
-
-            <button
-              onClick={handleGenerate}
-              disabled={!selectedProperty || isGenerating}
-              className="w-full mt-2 py-2.5 px-3 rounded-[9px] bg-zinc-950 hover:bg-black text-white font-extrabold text-xs flex items-center justify-center gap-2 border border-zinc-800 hover:border-[#d4ad4d] transition-all cursor-pointer shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isGenerating ? (
-                <>
-                  <Sparkles className="h-3.5 w-3.5 text-[#d4ad4d] animate-spin" />
-                  <span>Generating 3 Variations...</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-3.5 w-3.5 text-[#d4ad4d]" />
-                  <span>Generate 3 Ad Variations</span>
-                </>
-              )}
-            </button>
+                  {isSelected && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#d4ad4d]" />
+                  )}
+                </div>
+              );
+            })}
           </div>
 
+          <button
+            onClick={handleGenerate}
+            disabled={!selectedProperty || isGenerating}
+            className="w-full mt-2 py-2.5 rounded bg-zinc-950 hover:bg-black text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 border border-zinc-900 transition-all cursor-pointer disabled:opacity-50"
+          >
+            {isGenerating ? (
+              <>
+                <Sparkles className="h-3.5 w-3.5 text-[#d4ad4d] animate-spin" />
+                <span>Generating 3 Variations...</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-3.5 w-3.5 text-[#d4ad4d]" />
+                <span>Generate 3 Variations</span>
+              </>
+            )}
+          </button>
         </div>
 
-        {/* ── PANE 2: Center Primary Active Workspace (6 Cols) ── */}
-        <div className="lg:col-span-6 space-y-4">
+        {/* ── PANE 2: Center Primary Active Copy Workspace (5 Cols) ── */}
+        <div className="lg:col-span-5 bg-white p-4 border-b lg:border-b-0 lg:border-r border-zinc-300 space-y-3.5 overflow-y-auto h-full">
           
           {/* Empty State */}
           {!isGenerating && variations.length === 0 && (
-            <div className="bg-white border border-dashed border-zinc-300 rounded-[14px] p-10 text-center flex flex-col items-center justify-center space-y-3 min-h-[420px]">
-              <div className="h-12 w-12 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-400">
-                <Sparkles className="h-6 w-6 text-[#d4ad4d]" />
+            <div className="h-full flex flex-col items-center justify-center p-8 text-center space-y-3 min-h-[450px]">
+              <div className="h-10 w-10 rounded bg-zinc-100 border border-zinc-300 flex items-center justify-center text-zinc-400">
+                <Sparkles className="h-5 w-5 text-[#d4ad4d]" />
               </div>
-              <div className="space-y-1 max-w-sm">
-                <h3 className="text-sm font-bold text-zinc-900">Ready to Generate Ad Copy</h3>
-                <p className="text-xs text-zinc-500">
-                  Select a target property and channel on the left, then click <span className="font-semibold text-zinc-800">Generate 3 Ad Variations</span>.
+              <div className="space-y-1 max-w-xs">
+                <h3 className="text-xs font-black uppercase tracking-widest text-zinc-900">Ready to Generate Ad Copy</h3>
+                <p className="text-[11px] text-zinc-500">
+                  Select a target property and channel on the left, then click <span className="font-bold text-zinc-900 uppercase">Generate 3 Variations</span>.
                 </p>
               </div>
             </div>
@@ -414,39 +410,34 @@ export default function CreativeStudioPage() {
 
           {/* Loading Skeleton Workspace */}
           {isGenerating && (
-            <div className="bg-white border border-zinc-200 rounded-[14px] p-5 space-y-4 animate-pulse min-h-[420px]">
-              <div className="p-3 bg-zinc-950 text-white rounded-[10px] flex items-center gap-3">
+            <div className="p-4 space-y-4 animate-pulse min-h-[450px]">
+              <div className="p-3 bg-zinc-950 text-white rounded flex items-center gap-3">
                 <Sparkles className="h-4 w-4 text-[#d4ad4d] animate-spin" />
-                <p className="text-xs font-bold">NVIDIA Nemotron 3 Super is generating ad copy...</p>
+                <p className="text-xs font-bold uppercase tracking-wider">NVIDIA Nemotron 3 Super is generating ad copy...</p>
               </div>
               <div className="space-y-2">
                 <div className="h-3 w-20 bg-zinc-200 rounded" />
-                <div className="h-10 bg-zinc-100 rounded-[8px]" />
+                <div className="h-10 bg-zinc-100 rounded" />
               </div>
               <div className="space-y-2">
                 <div className="h-3 w-24 bg-zinc-200 rounded" />
-                <div className="h-28 bg-zinc-100 rounded-[8px]" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="h-12 bg-zinc-100 rounded-[8px]" />
-                <div className="h-12 bg-zinc-100 rounded-[8px]" />
+                <div className="h-28 bg-zinc-100 rounded" />
               </div>
             </div>
           )}
 
           {/* Active Workstation Copy Editor */}
           {!isGenerating && variations.length > 0 && activeVariation && (
-            <div className="bg-white border border-zinc-200 rounded-[14px] p-5 shadow-xs space-y-4">
+            <div className="space-y-4">
               
               {/* Active Workspace Header Bar */}
-              <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
+              <div className="flex items-center justify-between border-b border-zinc-200 pb-2">
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full bg-zinc-950 text-[#d4ad4d] text-[10px] font-extrabold uppercase tracking-wider">
-                    Variation {activeVariationIndex + 1}
+                  <span className="px-2 py-0.5 rounded bg-zinc-950 text-[#d4ad4d] text-[9px] font-black uppercase tracking-widest">
+                    VARIATION {activeVariationIndex + 1}
                   </span>
-                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded flex items-center gap-1">
-                    <CheckCircle2 className="h-3 w-3 text-emerald-600" />
-                    <span>Fact Grounded</span>
+                  <span className="text-[9px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">
+                    FACT GROUNDED
                   </span>
                 </div>
 
@@ -455,65 +446,53 @@ export default function CreativeStudioPage() {
                     const fullCopy = `HEADLINE:\n${activeVariation.headline}\n\nPRIMARY COPY:\n${activeVariation.primary_copy}\n\nSHORT DESCRIPTION:\n${activeVariation.short_description}\n\nCALL TO ACTION:\n${activeVariation.cta}`;
                     copyToClipboard(fullCopy, `active-all-${activeVariationIndex}`, `Variation ${activeVariationIndex + 1}`);
                   }}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[7px] bg-zinc-900 hover:bg-black text-white text-[11px] font-bold transition-all cursor-pointer shadow-xs"
+                  className="px-3 py-1 bg-zinc-950 hover:bg-black text-white text-xs font-bold uppercase tracking-wider rounded transition-all cursor-pointer"
                 >
                   {copiedItem === `active-all-${activeVariationIndex}` ? (
-                    <>
-                      <Check className="h-3.5 w-3.5 text-emerald-400" />
-                      <span className="text-emerald-400">Copied Package</span>
-                    </>
+                    <span className="text-emerald-400">Copied Package</span>
                   ) : (
-                    <>
-                      <Copy className="h-3.5 w-3.5" />
-                      <span>Copy Full Package</span>
-                    </>
+                    <span>Copy Package</span>
                   )}
                 </button>
               </div>
 
               {/* FIELD 1: Headline */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
-                  <span className="flex items-center gap-1">
-                    <Pencil className="h-2.5 w-2.5 text-[#d4ad4d]" />
-                    <span>1. Ad Headline ({activeVariation.headline.split(' ').filter(Boolean).length} words)</span>
-                  </span>
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-[9px] font-black text-zinc-400 uppercase tracking-widest">
+                  <span>1. AD HEADLINE ({activeVariation.headline.split(' ').filter(Boolean).length} WORDS)</span>
                   <button
                     onClick={() => copyToClipboard(activeVariation.headline, `headline-${activeVariationIndex}`, 'Headline')}
-                    className="hover:text-zinc-900 flex items-center gap-1 cursor-pointer"
+                    className="hover:text-zinc-900 flex items-center gap-1 cursor-pointer font-mono"
                   >
                     {copiedItem === `headline-${activeVariationIndex}` ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
-                    <span>Copy</span>
+                    <span>COPY</span>
                   </button>
                 </div>
                 <input
                   type="text"
                   value={activeVariation.headline}
                   onChange={(e) => handleFieldChange(activeVariationIndex, 'headline', e.target.value)}
-                  className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-[8px] text-xs font-bold text-zinc-900 focus:bg-white"
+                  className="w-full p-2.5 bg-zinc-50 border border-zinc-300 rounded text-xs font-bold text-zinc-900 focus:bg-white focus:outline-none focus:border-zinc-500"
                 />
               </div>
 
               {/* FIELD 2: Primary Ad Copy */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
-                  <span className="flex items-center gap-1">
-                    <Pencil className="h-2.5 w-2.5 text-[#d4ad4d]" />
-                    <span>2. Primary Ad Copy ({activeVariation.primary_copy.split(' ').filter(Boolean).length} words)</span>
-                  </span>
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-[9px] font-black text-zinc-400 uppercase tracking-widest">
+                  <span>2. PRIMARY AD COPY ({activeVariation.primary_copy.split(' ').filter(Boolean).length} WORDS)</span>
                   <button
                     onClick={() => copyToClipboard(activeVariation.primary_copy, `primary-${activeVariationIndex}`, 'Primary Copy')}
-                    className="hover:text-zinc-900 flex items-center gap-1 cursor-pointer"
+                    className="hover:text-zinc-900 flex items-center gap-1 cursor-pointer font-mono"
                   >
                     {copiedItem === `primary-${activeVariationIndex}` ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
-                    <span>Copy</span>
+                    <span>COPY</span>
                   </button>
                 </div>
                 <textarea
-                  rows={4}
+                  rows={5}
                   value={activeVariation.primary_copy}
                   onChange={(e) => handleFieldChange(activeVariationIndex, 'primary_copy', e.target.value)}
-                  className="w-full px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-[8px] text-xs font-medium text-zinc-800 leading-relaxed focus:bg-white resize-y"
+                  className="w-full p-2.5 bg-zinc-50 border border-zinc-300 rounded text-xs font-medium text-zinc-800 leading-relaxed focus:bg-white focus:outline-none focus:border-zinc-500 min-h-[120px] resize-y"
                 />
               </div>
 
@@ -521,48 +500,42 @@ export default function CreativeStudioPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
                 
                 {/* Short Description */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
-                    <span className="flex items-center gap-1">
-                      <Pencil className="h-2.5 w-2.5 text-[#d4ad4d]" />
-                      <span>3. Short Description</span>
-                    </span>
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-[9px] font-black text-zinc-400 uppercase tracking-widest">
+                    <span>3. SHORT DESCRIPTION</span>
                     <button
                       onClick={() => copyToClipboard(activeVariation.short_description, `short-${activeVariationIndex}`, 'Short Description')}
-                      className="hover:text-zinc-900 flex items-center gap-1 cursor-pointer"
+                      className="hover:text-zinc-900 flex items-center gap-1 cursor-pointer font-mono"
                     >
                       {copiedItem === `short-${activeVariationIndex}` ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
-                      <span>Copy</span>
+                      <span>COPY</span>
                     </button>
                   </div>
                   <textarea
-                    rows={2}
-                    value={activeVariation.short_description}
-                    onChange={(e) => handleFieldChange(activeVariationIndex, 'short_description', e.target.value)}
-                    className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-[8px] text-xs font-medium text-zinc-800 focus:bg-white resize-y"
-                  />
+                  rows={3}
+                  value={activeVariation.short_description}
+                  onChange={(e) => handleFieldChange(activeVariationIndex, 'short_description', e.target.value)}
+                  className="w-full p-2 bg-zinc-50 border border-zinc-300 rounded text-xs font-medium text-zinc-800 leading-snug focus:bg-white focus:outline-none min-h-[82px] resize-y"
+                />
                 </div>
 
                 {/* Call to Action */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
-                    <span className="flex items-center gap-1">
-                      <Pencil className="h-2.5 w-2.5 text-[#d4ad4d]" />
-                      <span>4. Call-to-Action</span>
-                    </span>
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-[9px] font-black text-zinc-400 uppercase tracking-widest">
+                    <span>4. CALL-TO-ACTION</span>
                     <button
                       onClick={() => copyToClipboard(activeVariation.cta, `cta-${activeVariationIndex}`, 'CTA')}
-                      className="hover:text-zinc-900 flex items-center gap-1 cursor-pointer"
+                      className="hover:text-zinc-900 flex items-center gap-1 cursor-pointer font-mono"
                     >
                       {copiedItem === `cta-${activeVariationIndex}` ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
-                      <span>Copy</span>
+                      <span>COPY</span>
                     </button>
                   </div>
                   <input
                     type="text"
                     value={activeVariation.cta}
                     onChange={(e) => handleFieldChange(activeVariationIndex, 'cta', e.target.value)}
-                    className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-[8px] text-xs font-bold text-[#b4882d] focus:bg-white"
+                    className="w-full p-2 bg-zinc-50 border border-zinc-300 rounded text-xs font-bold text-[#b4882d] focus:bg-white focus:outline-none"
                   />
                 </div>
 
@@ -573,72 +546,15 @@ export default function CreativeStudioPage() {
 
         </div>
 
-        {/* ── PANE 3: Right Variations Selector Stack (3 Cols) ── */}
-        <div className="lg:col-span-3 space-y-3">
-          <div className="flex items-center justify-between border-b border-zinc-200 pb-2 px-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-500">
-              Variations Drawer ({variations.length})
-            </span>
-            {variations.length > 0 && (
-              <span className="text-[10px] font-mono text-zinc-400">Click to Inspect</span>
-            )}
-          </div>
-
-          {variations.length === 0 && (
-            <div className="bg-zinc-50 border border-zinc-200 rounded-[14px] p-6 text-center text-xs text-zinc-400 space-y-1">
-              <p className="font-bold">No Variations Yet</p>
-              <p className="text-[10px] text-zinc-400">Generated variations will appear here.</p>
-            </div>
-          )}
-
-          {variations.map((v, idx) => {
-            const isActive = activeVariationIndex === idx;
-            return (
-              <div
-                key={idx}
-                onClick={() => setActiveVariationIndex(idx)}
-                className={`p-3.5 rounded-[12px] border cursor-pointer transition-all space-y-2 ${
-                  isActive
-                    ? 'bg-white border-zinc-900 shadow-sm ring-1 ring-zinc-900'
-                    : 'bg-white border-zinc-200 hover:border-zinc-300 opacity-80 hover:opacity-100'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-extrabold text-zinc-900">
-                    Variation {idx + 1}
-                  </span>
-                  {isActive ? (
-                    <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-zinc-900 text-[#d4ad4d]">
-                      ACTIVE
-                    </span>
-                  ) : (
-                    <span className="text-[9px] font-bold text-zinc-400">
-                      View
-                    </span>
-                  )}
-                </div>
-
-                <p className="text-[11px] font-bold text-zinc-800 line-clamp-2 leading-snug">
-                  "{v.headline}"
-                </p>
-
-                <div className="flex items-center justify-between pt-1 border-t border-zinc-100 text-[10px] text-zinc-500">
-                  <span>{v.primary_copy.split(' ').filter(Boolean).length} words</span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const fullCopy = `HEADLINE:\n${v.headline}\n\nPRIMARY COPY:\n${v.primary_copy}\n\nSHORT DESCRIPTION:\n${v.short_description}\n\nCALL TO ACTION:\n${v.cta}`;
-                      copyToClipboard(fullCopy, `stack-all-${idx}`, `Variation ${idx + 1}`);
-                    }}
-                    className="hover:text-zinc-900 font-bold flex items-center gap-1"
-                  >
-                    {copiedItem === `stack-all-${idx}` ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
-                    <span>Copy All</span>
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+        {/* ── PANE 3: Right Real-Time Platform Ad Preview Mockup (4 Cols) ── */}
+        <div className="lg:col-span-4 bg-zinc-100/60 p-3.5 overflow-y-auto h-full">
+          <SocialAdPreview
+            property={selectedProperty}
+            variations={variations}
+            activeVariationIndex={activeVariationIndex}
+            onSelectVariationIndex={setActiveVariationIndex}
+            selectedPlatform={selectedPlatform}
+          />
         </div>
 
       </div>
