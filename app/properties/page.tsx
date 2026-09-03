@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { useProfile } from '@/lib/auth';
-import { fetchProperties, Property } from '@/lib/queries';
+import { fetchProperties, Property, SEED_PROPERTIES } from '@/lib/queries';
+import { mergeAndDeduplicate } from '@/lib/dataStore';
 import { supabase } from '@/lib/supabaseClient';
 import { getPermissions } from '@/lib/permissions';
 import { 
@@ -108,7 +109,9 @@ export default function PropertyInventoryPage() {
     };
   }, [profile]);
 
-  const displayProperties = properties;
+  const displayProperties = useMemo(() => {
+    return mergeAndDeduplicate(properties, SEED_PROPERTIES);
+  }, [properties]);
 
   const inlineStats = useMemo(() => {
     let total = displayProperties.length;

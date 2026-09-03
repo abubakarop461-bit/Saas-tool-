@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache';
 
 export async function createPropertyAction(prevState: any, formData: FormData) {
   try {
-    const id = `prop-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    const id = String(formData.get('id') || `prop-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`);
     const listingNature = String(formData.get('listing_nature') || 'standalone');
     const isStandalone = listingNature === 'standalone';
 

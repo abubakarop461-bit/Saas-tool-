@@ -19,6 +19,44 @@ function getStorageKey(table: EntityTable): string {
 }
 
 /**
+ * Robust Deduplication & Merge Helper
+ * Guarantees no duplicate records exist by ID or unique business key (title/name),
+ * while ensuring default seed records are always preserved and merged.
+ */
+export function mergeAndDeduplicate<T = any>(
+  primary: T[] = [],
+  secondary: T[] = []
+): T[] {
+  const seenIds = new Set<string>();
+  const seenKeys = new Set<string>();
+  const result: T[] = [];
+
+  const add = (item: any) => {
+    if (!item || typeof item !== 'object') return;
+    const id = item.id;
+    const titleKey = (item.title || item.client_name || '').trim().toLowerCase();
+    const unitKey = item.unit_number ? `${item.title || ''}-${item.unit_number}`.toLowerCase() : '';
+
+    if (id && seenIds.has(id)) return;
+    if (unitKey && seenKeys.has(unitKey)) return;
+    if (titleKey && !item.unit_number && seenKeys.has(titleKey)) return;
+
+    if (id) seenIds.add(id);
+    if (unitKey) seenKeys.add(unitKey);
+    else if (titleKey) seenKeys.add(titleKey);
+
+    result.push(item as T);
+  };
+
+  // Primary authoritative items first
+  if (Array.isArray(primary)) primary.forEach(add);
+  // Merge secondary seeds if not already present
+  if (Array.isArray(secondary)) secondary.forEach(add);
+
+  return result;
+}
+
+/**
  * Load entity records from Cloudflare D1 as the authoritative primary source.
  * Automatically mirrors fetched records to local storage for offline resilience.
  */
@@ -26,11 +64,13 @@ export async function loadEntity<T = any>(
   table: EntityTable,
   defaultSeed: T[] = []
 ): Promise<T[]> {
-  // 1. If on server side, query D1 directly
+  // 1. If on server side, query D1 directly and merge with seed
   if (typeof window === 'undefined') {
     try {
       const { results } = await queryD1(`SELECT * FROM ${table}`);
-      if (results && results.length > 0) return results as T[];
+      if (results && results.length > 0) {
+        return mergeAndDeduplicate(results as T[], defaultSeed);
+      }
     } catch (err) {
       console.warn(`[DataStore Server] D1 query for ${table} failed:`, err);
     }
@@ -38,6 +78,7 @@ export async function loadEntity<T = any>(
   }
 
   // 2. If on browser client side, try Cloudflare D1 Edge API as primary source
+  let remoteRecords: T[] = [];
   try {
     const res = await fetch(`/api/entities/${table}`, {
       method: 'GET',
@@ -46,63 +87,46 @@ export async function loadEntity<T = any>(
 
     if (res.ok) {
       const data = (await res.json()) as { success?: boolean; records?: T[] };
-      if (data && data.success && Array.isArray(data.records) && data.records.length > 0) {
-        // Mirror authoritative D1 data to localStorage
-        try {
-          localStorage.setItem(getStorageKey(table), JSON.stringify(data.records));
-        } catch {
-          // ignore storage quota
-        }
-        return data.records;
+      if (data && data.success && Array.isArray(data.records)) {
+        remoteRecords = data.records;
       }
     }
   } catch (err) {
     console.warn(`[DataStore Client] D1 query for table ${table} deferred to cache:`, err);
   }
 
-  // 3. Fallback to local storage mirror in browser
+  // 3. Read local storage cache
+  let localRecords: T[] = [];
   try {
     const localRaw = localStorage.getItem(getStorageKey(table));
     if (localRaw) {
       const parsed = JSON.parse(localRaw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        // Merge any missing seed records into local cache
-        if (defaultSeed.length > 0) {
-          const existingIds = new Set(parsed.map((p: any) => p.id));
-          const missingSeeds = defaultSeed.filter((s: any) => !existingIds.has(s.id));
-          if (missingSeeds.length > 0) {
-            const merged = [...parsed, ...missingSeeds];
-            localStorage.setItem(getStorageKey(table), JSON.stringify(merged));
-            return merged;
-          }
-        }
-        return parsed;
-      }
+      if (Array.isArray(parsed)) localRecords = parsed;
     }
   } catch {
-    // parse error
+    // ignore
   }
 
-  // 4. Fallback to default seed & prime local storage
-  if (defaultSeed.length > 0) {
-    try {
-      localStorage.setItem(getStorageKey(table), JSON.stringify(defaultSeed));
-    } catch {
-      // ignore
-    }
+  // Merge authoritative remote + local optimistic + default seed
+  const combined = mergeAndDeduplicate(remoteRecords, mergeAndDeduplicate(localRecords, defaultSeed));
+
+  // Sync back clean deduplicated list to localStorage
+  try {
+    localStorage.setItem(getStorageKey(table), JSON.stringify(combined));
+  } catch {
+    // ignore storage quota
   }
 
-  return defaultSeed;
+  return combined;
 }
 
 /**
  * Save a single entity record to Cloudflare D1 and sync local mirror
  */
-export async function saveEntity<T extends { id?: string }>(
+export async function saveEntity<T extends { id?: string; title?: string }>(
   table: EntityTable,
   record: T
 ): Promise<{ success: boolean; mode: 'd1' | 'local' }> {
-  // Ensure record has ID
   const item: any = {
     ...record,
     id: record.id || `${table}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`
@@ -123,13 +147,20 @@ export async function saveEntity<T extends { id?: string }>(
   try {
     const localRaw = localStorage.getItem(getStorageKey(table));
     const currentList: any[] = localRaw ? JSON.parse(localRaw) : [];
-    const idx = currentList.findIndex((r: any) => r.id === item.id);
-    if (idx >= 0) {
-      currentList[idx] = item;
+    
+    // Replace if same ID or same title, otherwise prepend
+    const existingIdx = currentList.findIndex((r: any) => 
+      r.id === item.id || (item.title && r.title && r.title.trim().toLowerCase() === item.title.trim().toLowerCase())
+    );
+
+    if (existingIdx >= 0) {
+      currentList[existingIdx] = { ...currentList[existingIdx], ...item };
     } else {
       currentList.unshift(item);
     }
-    localStorage.setItem(getStorageKey(table), JSON.stringify(currentList));
+
+    const deduplicated = mergeAndDeduplicate(currentList);
+    localStorage.setItem(getStorageKey(table), JSON.stringify(deduplicated));
   } catch (e) {
     console.error(`[DataStore Client] Local cache update failed for ${table}:`, e);
   }
@@ -181,16 +212,8 @@ export async function saveEntityBatch<T extends { id?: string }>(
   try {
     const localRaw = localStorage.getItem(getStorageKey(table));
     const currentList: any[] = localRaw ? JSON.parse(localRaw) : [];
-    const newItemsMap = new Map(records.map(r => [r.id || `${table}-${Math.random()}`, r]));
-
-    const updated = currentList.map(r => newItemsMap.has(r.id) ? newItemsMap.get(r.id) : r);
-    // Append any new IDs not in current list
-    const existingIds = new Set(currentList.map(r => r.id));
-    records.forEach(r => {
-      if (!existingIds.has(r.id)) updated.push(r);
-    });
-
-    localStorage.setItem(getStorageKey(table), JSON.stringify(updated.length > 0 ? updated : records));
+    const merged = mergeAndDeduplicate(records, currentList);
+    localStorage.setItem(getStorageKey(table), JSON.stringify(merged));
   } catch (e) {
     console.error(`[DataStore Client] Batch local update failed for ${table}:`, e);
   }

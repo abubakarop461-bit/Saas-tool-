@@ -108,6 +108,7 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
   const isAdmin = profile?.role === 'Admin' || profile?.role === 'SuperAdmin';
 
   const isEdit = mode === 'edit' && !!initialValues.id;
+  const [formId] = useState(() => initialValues.id || `prop-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`);
   const [state, formAction, isPending] = useActionState(isEdit ? updatePropertyAction : createPropertyAction, null);
   const [deleting, setDeleting] = useState(false);
   const [activeSection, setActiveSection] = useState(0);
@@ -401,7 +402,7 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
     const isStandalone = listingNature === 'standalone';
 
     const propRecord: any = {
-      id: initialValues.id || `prop-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      id: formId,
       title: previewTitle.trim(),
       property_code: propertyCode || `PRP-${Date.now().toString(36).toUpperCase()}`,
       location: locations.join(', '),
@@ -1407,7 +1408,7 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
 
   return (
     <form action={formAction} onSubmit={handleSubmit} className="min-h-screen bg-[#fafaf8]">
-      {isEdit && <input type="hidden" name="id" value={initialValues.id} />}
+      <input type="hidden" name="id" value={formId} />
 
       {/* Sticky top header */}
       <div className="sticky top-0 z-10 bg-white border-b border-[#ebebeb] px-4 lg:px-6 py-3 lg:py-4 flex items-center justify-between gap-3 shadow-[0_1px_0_0_#ebebeb]">
