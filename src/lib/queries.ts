@@ -952,6 +952,27 @@ export const SEED_PROPERTIES: Property[] = [
     brokerage: '2%',
     description: 'Bespoke residences with private elevator foyer, EV-ready car parks, and club lounge access.',
     created_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: 'prop-013',
+    title: 'VastuKanoiya',
+    property_code: 'VK-402',
+    location: 'Phulam Chamber',
+    address: 'Phulam Chamber, Central Business District, Pune',
+    property_type: 'Apartment',
+    configuration: '3 BHK',
+    carpet_area: 1650,
+    built_up_area: 2100,
+    price: 15000000,
+    status_id: 'Available',
+    listing_type: 'Exclusive',
+    source_type: 'Direct',
+    owner_name: 'Kanoiya Estates & Landlords',
+    owner_contact: '+91 98220 54321',
+    unit_no: 'Suite 402',
+    brokerage: '2%',
+    description: 'Premium standalone residential apartment at VastuKanoiya in Phulam Chamber. 100% Vaastu compliant layout with unhindered ventilation, modern fixtures, covered parking, and 24/7 security.',
+    created_at: new Date().toISOString()
   }
 ];
 

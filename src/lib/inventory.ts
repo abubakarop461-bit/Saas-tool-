@@ -766,6 +766,28 @@ export const SEED_DEVELOPER_UNITS: DeveloperUnit[] = [
     status: 'Hold',
     buyer_name: 'Capt. Rajesh Nair',
     agent_name: 'Hamirr Jobnputra'
+  },
+  {
+    id: 'u-vk-402',
+    property_id: 'prop-013',
+    project_title: 'VastuKanoiya',
+    tower: 'Standalone Unit',
+    floor: 4,
+    unit_number: 'Suite 402',
+    configuration: '3 BHK',
+    carpet_area: 1650,
+    built_up_area: 2100,
+    facing: 'East (Vaastu Compliant)',
+    base_price: 15000000,
+    floor_rise_rate: 0,
+    parking_charges: 0,
+    amenities_charges: 0,
+    other_charges: 0,
+    gst_rate: 5.0,
+    stamp_duty_rate: 6.0,
+    registration_rate: 30000,
+    possession_date: 'Ready to Move',
+    status: 'Available'
   }
 ];
 
