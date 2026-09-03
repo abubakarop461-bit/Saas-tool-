@@ -48,6 +48,7 @@ export interface Property {
   brokerage?: string;
   description?: string;
   internal_notes?: string;
+  listing_nature?: 'standalone' | 'project';
   is_active?: boolean;
   created_at?: string;
 }
@@ -971,6 +972,7 @@ export const SEED_PROPERTIES: Property[] = [
     owner_contact: '+91 98220 54321',
     unit_no: 'Suite 402',
     brokerage: '2%',
+    listing_nature: 'standalone',
     description: 'Premium standalone residential apartment at VastuKanoiya in Phulam Chamber. 100% Vaastu compliant layout with unhindered ventilation, modern fixtures, covered parking, and 24/7 security.',
     created_at: new Date().toISOString()
   },
@@ -987,6 +989,7 @@ export const SEED_PROPERTIES: Property[] = [
     price: 20000000,
     status_id: 'Available',
     listing_type: 'Exclusive Mandate',
+    listing_nature: 'project',
     source_type: 'Developer Direct',
     owner_name: 'Kuchu Puchu Development Board',
     owner_contact: '+91 20 6799 1000',

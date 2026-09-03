@@ -30,7 +30,6 @@ export function SidebarNav({ onClose, className = '' }: { onClose?: () => void; 
     { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { title: 'Leads', href: '/leads', icon: Users },
     { title: 'Properties', href: '/properties', icon: Home },
-    { title: 'Unit Inventory', href: '/inventory', icon: Building2 },
     { title: 'Pipeline', href: '/pipeline', icon: TrendingUp },
     { title: 'Transactions', href: '/transactions', icon: DollarSign },
     { title: 'Partners & Commissions', href: '/channel-partners', icon: Users2 },
