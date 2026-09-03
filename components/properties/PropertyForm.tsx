@@ -27,8 +27,7 @@ import {
   Key,
   CheckCircle2,
   Sparkles,
-  Info,
-  ShieldCheck
+  Info
 } from 'lucide-react';
 import {
   isResidentialType,
@@ -52,15 +51,16 @@ interface PropertyFormProps {
 
 type ListingNature = 'standalone' | 'project';
 
+// Standalone properties do NOT require a separate unit inventory/stacking matrix tab
 const STANDALONE_SECTIONS = [
   { label: 'Basic Info', icon: Home },
   { label: 'Location', icon: MapPin },
   { label: 'Pricing & Area', icon: DollarSign },
-  { label: 'Unit Matrix', icon: Layers },
   { label: 'Ownership', icon: User },
   { label: 'Media', icon: ImageIcon },
 ];
 
+// Multi-Unit Projects include the procedural Unit Stacking & Inventory Matrix tab
 const PROJECT_SECTIONS = [
   { label: 'Project Info', icon: Building2 },
   { label: 'Location', icon: MapPin },
@@ -202,7 +202,7 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
     Array.isArray(initialValues.alternate_owner_contacts) ? initialValues.alternate_owner_contacts : []
   );
 
-  // ── Standalone Specific State ──
+  // ── Standalone Specific State (Integrated directly into basic & pricing) ──
   const [standaloneUnitNo, setStandaloneUnitNo] = useState(initialValues.unit_no || 'A-1204');
   const [standaloneFloorNumber, setStandaloneFloorNumber] = useState<number>(Number(initialValues.floor_number) || 12);
   const [standaloneTotalFloors, setStandaloneTotalFloors] = useState<number>(Number(initialValues.total_floors) || 20);
@@ -384,13 +384,16 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
   // ── Render Option Switcher (Standalone vs Project) ──
   const renderListingNatureSelector = () => (
     <div className="space-y-2 mb-6">
-      <FieldLabel required>Property Category / Nature</FieldLabel>
+      <FieldLabel required>Property Category / Structure</FieldLabel>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {/* Standalone Option */}
         <button
           type="button"
           onClick={() => {
             setListingNature('standalone');
+            if (activeSection >= STANDALONE_SECTIONS.length) {
+              setActiveSection(STANDALONE_SECTIONS.length - 1);
+            }
             if (!initialValues.id) {
               setPropertyCode(generatePropertyCode('standalone'));
               if (!previewType || previewType.includes('Project')) setPreviewType('Apartment');
@@ -409,7 +412,7 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
               </div>
               <div>
                 <h4 className="font-extrabold text-sm text-zinc-900">Standalone Property</h4>
-                <span className="text-[10px] font-bold text-[#b8922e] uppercase tracking-wider font-mono">Individual Unit / Resale</span>
+                <span className="text-[10px] font-bold text-[#b8922e] uppercase tracking-wider font-mono">Individual Property / Resale Unit</span>
               </div>
             </div>
             {listingNature === 'standalone' && (
@@ -417,7 +420,7 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
             )}
           </div>
           <p className="text-[11px] text-zinc-500 mt-2.5 leading-relaxed">
-            For individual apartments, duplex penthouses, standalone villas, independent bungalows, direct resale flats, or single commercial shops.
+            For individual apartments, duplex penthouses, standalone villas, bungalows, or single commercial shops. <strong>No unit inventory stacking required.</strong>
           </p>
         </button>
 
@@ -444,7 +447,7 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
               </div>
               <div>
                 <h4 className="font-extrabold text-sm text-zinc-900">Multi-Unit Project</h4>
-                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider font-mono">Township / Society / Towers</span>
+                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider font-mono">Township / Society with Towers & Units</span>
               </div>
             </div>
             {listingNature === 'project' && (
@@ -452,7 +455,7 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
             )}
           </div>
           <p className="text-[11px] text-zinc-500 mt-2.5 leading-relaxed">
-            For large developments with multiple towers, floors, and unit inventories. Generates procedural stacking matrix and inventory forecasts.
+            For large residential developments and societies with multiple towers, floors, and unit inventories. Generates procedural stacking matrix and inventory forecasts.
           </p>
         </button>
       </div>
@@ -485,7 +488,49 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
         </div>
       </div>
 
-      {listingNature === 'project' && (
+      {listingNature === 'standalone' ? (
+        /* Standalone specific fields integrated cleanly */
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <FieldLabel required>Unit / Flat Number</FieldLabel>
+            <input
+              type="text"
+              name="unit_no"
+              className={inputCls + " font-bold text-[#b8922e]"}
+              placeholder="e.g. A-1204, Villa 7, Office 401"
+              value={standaloneUnitNo}
+              onChange={e => setStandaloneUnitNo(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <FieldLabel>Floor Level (Unit Floor / Total Building Floors)</FieldLabel>
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                type="number"
+                name="floor_number"
+                min={0}
+                max={100}
+                className={inputCls}
+                placeholder="Floor (12)"
+                value={standaloneFloorNumber}
+                onChange={e => setStandaloneFloorNumber(Number(e.target.value) || 1)}
+              />
+              <input
+                type="number"
+                name="total_floors"
+                min={1}
+                max={100}
+                className={inputCls}
+                placeholder="Of Total (20)"
+                value={standaloneTotalFloors}
+                onChange={e => setStandaloneTotalFloors(Number(e.target.value) || 1)}
+              />
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Multi-Unit Project specific fields */
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <FieldLabel required>Developer / Builder Firm</FieldLabel>
@@ -646,6 +691,44 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
           <input type="hidden" name="configuration" value={configuration.join(', ')} />
         </div>
       </div>
+
+      {listingNature === 'standalone' && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <FieldLabel>Direction Facing / View</FieldLabel>
+            <SelectWrapper>
+              <select
+                name="facing"
+                className={selectCls}
+                value={standaloneFacing}
+                onChange={e => setStandaloneFacing(e.target.value)}
+              >
+                <option value="East (Riverfront & Sunrise View)">East (Riverfront & Sunrise View)</option>
+                <option value="West (Sunset & Skyline View)">West (Sunset & Skyline View)</option>
+                <option value="North-East (Vaastu Compliant)">North-East (Vaastu Compliant)</option>
+                <option value="Garden / Swimming Pool Facing">Garden / Swimming Pool Facing</option>
+                <option value="Main Road / Corner View">Main Road / Corner View</option>
+              </select>
+            </SelectWrapper>
+          </div>
+
+          <div className="space-y-1.5">
+            <FieldLabel>Furnishing Status</FieldLabel>
+            <SelectWrapper>
+              <select
+                name="furnishing"
+                className={selectCls}
+                value={standaloneFurnishing}
+                onChange={e => setStandaloneFurnishing(e.target.value)}
+              >
+                <option value="Unfurnished">Unfurnished Bare Shell</option>
+                <option value="Semi-Furnished (Modular Kitchen + Wardrobes)">Semi-Furnished (Kitchen + Wardrobes)</option>
+                <option value="Fully Furnished Luxury Interior">Fully Furnished Luxury Interior</option>
+              </select>
+            </SelectWrapper>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-1.5">
         <FieldLabel>Description / Marketing Pitch</FieldLabel>
@@ -814,20 +897,55 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <FieldLabel>Monthly Maintenance (₹/month)</FieldLabel>
-              <input
-                name="maintenance"
-                className={inputCls}
-                placeholder="e.g. 5500"
-                value={standaloneMaintenance}
-                onChange={e => setStandaloneMaintenance(e.target.value)}
-              />
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-1.5">
+                <FieldLabel>Monthly Maintenance (₹/month)</FieldLabel>
+                <input
+                  name="maintenance"
+                  className={inputCls}
+                  placeholder="e.g. 5500"
+                  value={standaloneMaintenance}
+                  onChange={e => setStandaloneMaintenance(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <FieldLabel>Reserved Car Parking</FieldLabel>
+                <SelectWrapper>
+                  <select
+                    name="parking"
+                    className={selectCls}
+                    value={standaloneParking}
+                    onChange={e => setStandaloneParking(e.target.value)}
+                  >
+                    <option value="1 Covered Parking Slot">1 Covered Parking</option>
+                    <option value="2 Covered Parking Slots">2 Covered Parking Slots</option>
+                    <option value="3 Covered Parking Slots">3 Covered Parking Slots</option>
+                    <option value="Open Parking Slot">Open Parking</option>
+                    <option value="None">None</option>
+                  </select>
+                </SelectWrapper>
+              </div>
+              <div className="space-y-1.5">
+                <FieldLabel>Possession Status</FieldLabel>
+                <SelectWrapper>
+                  <select
+                    name="possession_status"
+                    className={selectCls}
+                    value={standalonePossession}
+                    onChange={e => setStandalonePossession(e.target.value)}
+                  >
+                    <option value="Ready to Move">Ready to Move</option>
+                    <option value="Under Construction">Under Construction</option>
+                    <option value="Resale Immediate Allotment">Resale Immediate</option>
+                  </select>
+                </SelectWrapper>
+              </div>
             </div>
-            <div className="p-3 bg-[#fafaf8] border border-zinc-200/80 rounded-xl flex items-center justify-between">
+
+            <div className="p-3.5 bg-[#fafaf8] border border-zinc-200/80 rounded-xl flex items-center justify-between">
               <div>
-                <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest block font-mono">Calculated Rate</span>
+                <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest block font-mono">Calculated Rate per Sq.Ft</span>
                 <span className="text-sm font-extrabold text-zinc-900">
                   {ratePerSqFt > 0 ? `₹${ratePerSqFt.toLocaleString('en-IN')} / sq ft` : '—'}
                 </span>
@@ -836,241 +954,15 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
                 Carpet Efficiency: {carpetNum && builtUpArea ? Math.round((carpetNum / Number(builtUpArea)) * 100) : 78}%
               </span>
             </div>
+
+            <input type="hidden" name="possession_date" value={standalonePossession} />
           </div>
         )}
       </div>
     );
   };
 
-  // ── Render Standalone Unit Matrix & Specifications (Option 1) ──
-  const renderStandaloneUnitMatrix = () => {
-    const priceNum = Number(previewPrice) || 13500000;
-    const stampDuty = Math.round(priceNum * 0.06);
-    const gst = Math.round(priceNum * 0.05);
-    const registration = 30000;
-    const totalAllInclusive = priceNum + stampDuty + gst + registration;
-    const carpetNum = Number(carpetArea) || 1680;
-    const ratePerSqFt = carpetNum > 0 ? Math.round(priceNum / carpetNum) : 8035;
-
-    const floorTier = standaloneFloorNumber > (standaloneTotalFloors * 0.7) 
-      ? 'High-Rise Sky Tier' 
-      : standaloneFloorNumber > (standaloneTotalFloors * 0.3) 
-        ? 'Mid-Rise Garden Tier' 
-        : 'Podium / Low-Rise Tier';
-
-    return (
-      <div className="space-y-6 text-left">
-        {/* Header Introduction Banner */}
-        <div className="p-4 bg-white border border-[#ebebeb] rounded-2xl shadow-xs space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-[#b8922e] uppercase tracking-widest font-mono">
-              Individual Unit Specification & Matrix
-            </span>
-            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-md bg-[#d4ad4d]/15 text-[#96751f] border border-[#d4ad4d]/30">
-              Standalone Unit Matrix
-            </span>
-          </div>
-          <h3 className="text-sm font-extrabold text-zinc-900">Dedicated Unit Profile & Cost Sheet Breakdown</h3>
-          <p className="text-[11px] text-zinc-500 leading-relaxed">
-            Configure the specific flat number, floor tier, direction orientation, parking allotment, and live financial breakdown for this individual property.
-          </p>
-        </div>
-
-        {/* Core Unit Inputs */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="space-y-1.5">
-            <FieldLabel required>Unit / Flat Number</FieldLabel>
-            <input
-              type="text"
-              name="unit_no"
-              className={inputCls + " font-bold text-[#b8922e]"}
-              placeholder="e.g. A-1204, Villa 7, Office 401"
-              value={standaloneUnitNo}
-              onChange={e => setStandaloneUnitNo(e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <FieldLabel required>Floor Level</FieldLabel>
-            <div className="grid grid-cols-2 gap-2">
-              <input
-                type="number"
-                name="floor_number"
-                min={0}
-                max={100}
-                className={inputCls}
-                placeholder="Floor (12)"
-                value={standaloneFloorNumber}
-                onChange={e => setStandaloneFloorNumber(Number(e.target.value) || 1)}
-              />
-              <input
-                type="number"
-                name="total_floors"
-                min={1}
-                max={100}
-                className={inputCls}
-                placeholder="Of Total (20)"
-                value={standaloneTotalFloors}
-                onChange={e => setStandaloneTotalFloors(Number(e.target.value) || 1)}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <FieldLabel>Direction Facing / View</FieldLabel>
-            <SelectWrapper>
-              <select
-                name="facing"
-                className={selectCls}
-                value={standaloneFacing}
-                onChange={e => setStandaloneFacing(e.target.value)}
-              >
-                <option value="East (Riverfront & Sunrise View)">East (Riverfront & Sunrise View)</option>
-                <option value="West (Sunset & Skyline View)">West (Sunset & Skyline View)</option>
-                <option value="North-East (Vaastu Compliant)">North-East (Vaastu Compliant)</option>
-                <option value="Garden / Swimming Pool Facing">Garden / Swimming Pool Facing</option>
-                <option value="Main Road / Corner View">Main Road / Corner View</option>
-              </select>
-            </SelectWrapper>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="space-y-1.5">
-            <FieldLabel>Furnishing Status</FieldLabel>
-            <SelectWrapper>
-              <select
-                name="furnishing"
-                className={selectCls}
-                value={standaloneFurnishing}
-                onChange={e => setStandaloneFurnishing(e.target.value)}
-              >
-                <option value="Unfurnished">Unfurnished Bare Shell</option>
-                <option value="Semi-Furnished (Modular Kitchen + Wardrobes)">Semi-Furnished (Kitchen + Wardrobes)</option>
-                <option value="Fully Furnished Luxury Interior">Fully Furnished Luxury Interior</option>
-              </select>
-            </SelectWrapper>
-          </div>
-
-          <div className="space-y-1.5">
-            <FieldLabel>Reserved Car Parking</FieldLabel>
-            <SelectWrapper>
-              <select
-                name="parking"
-                className={selectCls}
-                value={standaloneParking}
-                onChange={e => setStandaloneParking(e.target.value)}
-              >
-                <option value="1 Covered Parking Slot">1 Covered Parking</option>
-                <option value="2 Covered Parking Slots">2 Covered Parking Slots</option>
-                <option value="3 Covered Parking Slots">3 Covered Parking Slots</option>
-                <option value="Open Parking Slot">Open Parking</option>
-                <option value="None">None</option>
-              </select>
-            </SelectWrapper>
-          </div>
-
-          <div className="space-y-1.5">
-            <FieldLabel>Possession Status</FieldLabel>
-            <SelectWrapper>
-              <select
-                name="possession_status"
-                className={selectCls}
-                value={standalonePossession}
-                onChange={e => setStandalonePossession(e.target.value)}
-              >
-                <option value="Ready to Move">Ready to Move (Immediate Handover)</option>
-                <option value="Under Construction (Under 6 Months)">Under Construction (Under 6 Months)</option>
-                <option value="Under Construction (1-2 Years)">Under Construction (1-2 Years)</option>
-                <option value="Resale Immediate Allotment">Resale Immediate Allotment</option>
-              </select>
-            </SelectWrapper>
-          </div>
-        </div>
-
-        {/* ── Standalone Unit Cost & Specification Matrix Visualizer ── */}
-        <div className="space-y-3 pt-2">
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="text-xs font-extrabold text-zinc-900">Standalone Unit Matrix Card</h4>
-              <p className="text-[10px] text-zinc-400">Live generated unit specification and financial calculation sheet</p>
-            </div>
-            <span className="text-[10px] font-mono font-bold text-zinc-500 bg-zinc-100 px-2 py-0.5 rounded">
-              Floor {standaloneFloorNumber} of {standaloneTotalFloors} · {floorTier}
-            </span>
-          </div>
-
-          {/* Master Unit Matrix Card */}
-          <div className="bg-zinc-900 text-white rounded-2xl p-5 shadow-sm space-y-4">
-            {/* Unit Header */}
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800 pb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#d4ad4d] text-white flex items-center justify-center font-black font-mono text-sm">
-                  {standaloneUnitNo.slice(0, 4) || 'UNIT'}
-                </div>
-                <div>
-                  <h4 className="font-extrabold text-base text-white flex items-center gap-2">
-                    {standaloneUnitNo} · {configuration[0] || '3 BHK'}
-                    <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/30">
-                      {standalonePossession}
-                    </span>
-                  </h4>
-                  <span className="text-[11px] text-zinc-400 flex items-center gap-2 mt-0.5">
-                    <Compass className="h-3 w-3 text-[#d4ad4d]" /> {standaloneFacing} · <Car className="h-3 w-3 text-[#d4ad4d]" /> {standaloneParking}
-                  </span>
-                </div>
-              </div>
-
-              <div className="text-right">
-                <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest block font-mono">Agreed Base Price</span>
-                <span className="text-lg font-black text-[#d4ad4d]">{formatPrice(priceNum)}</span>
-              </div>
-            </div>
-
-            {/* Financial Multi-Line Cost Matrix */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-zinc-800/60 p-3.5 rounded-xl border border-zinc-800 text-xs">
-              <div>
-                <span className="text-[9px] text-zinc-400 block font-mono">Rate per Sq.Ft</span>
-                <span className="font-bold text-white">₹{ratePerSqFt.toLocaleString('en-IN')} / sq ft</span>
-              </div>
-              <div>
-                <span className="text-[9px] text-zinc-400 block font-mono">Stamp Duty (6%)</span>
-                <span className="font-bold text-zinc-300">₹{stampDuty.toLocaleString('en-IN')}</span>
-              </div>
-              <div>
-                <span className="text-[9px] text-zinc-400 block font-mono">GST (5%)</span>
-                <span className="font-bold text-zinc-300">₹{gst.toLocaleString('en-IN')}</span>
-              </div>
-              <div>
-                <span className="text-[9px] text-emerald-400 font-bold block font-mono">All-Inclusive Est.</span>
-                <span className="font-black text-emerald-400">{formatPrice(totalAllInclusive)}</span>
-              </div>
-            </div>
-
-            {/* Specifications Details Chips */}
-            <div className="flex flex-wrap gap-2 pt-1">
-              <span className="text-[10px] bg-zinc-800 text-zinc-300 px-2.5 py-1 rounded-lg border border-zinc-700/80 font-medium">
-                Carpet: <strong>{carpetNum} sq ft</strong>
-              </span>
-              <span className="text-[10px] bg-zinc-800 text-zinc-300 px-2.5 py-1 rounded-lg border border-zinc-700/80 font-medium">
-                Built-Up: <strong>{builtUpArea} sq ft</strong>
-              </span>
-              <span className="text-[10px] bg-zinc-800 text-zinc-300 px-2.5 py-1 rounded-lg border border-zinc-700/80 font-medium">
-                Furnishing: <strong>{standaloneFurnishing.split('(')[0]}</strong>
-              </span>
-              <span className="text-[10px] bg-zinc-800 text-zinc-300 px-2.5 py-1 rounded-lg border border-zinc-700/80 font-medium">
-                Maintenance: <strong>₹{standaloneMaintenance}/mo</strong>
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <input type="hidden" name="possession_date" value={standalonePossession} />
-      </div>
-    );
-  };
-
-  // ── Render Project Unit Stacking Matrix (Option 2) ──
+  // ── Render Project Unit Stacking Matrix (Only for Multi-Unit Projects) ──
   const renderProjectUnitStacking = () => {
     const totalProjectUnits = towersList.length * totalFloors * unitsPerFloor;
     const towerPrefix = activePreviewTower.replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase() || 'T';
@@ -1452,7 +1344,7 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
             {isEdit ? 'Edit Property' : 'Add New Property'}
           </h1>
           <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest hidden sm:inline-block">
-            {listingNature === 'standalone' ? '🏠 Standalone Individual Property' : '🏢 Multi-Tower Project & Stacking Matrix'}
+            {listingNature === 'standalone' ? '🏠 Standalone Individual Property (Direct Listing)' : '🏢 Multi-Tower Project & Stacking Matrix'}
           </span>
         </div>
         <div className="flex items-center gap-2 shrink-0">
@@ -1549,14 +1441,24 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
 
           {/* Right fields */}
           <div className="flex-1 px-8 py-6 max-w-2xl">
-            <div style={{ display: activeSection === 0 ? 'block' : 'none' }}>{renderBasicInfo()}</div>
-            <div style={{ display: activeSection === 1 ? 'block' : 'none' }}>{renderLocation()}</div>
-            <div style={{ display: activeSection === 2 ? 'block' : 'none' }}>{renderPricing()}</div>
-            <div style={{ display: activeSection === 3 ? 'block' : 'none' }}>
-              {listingNature === 'standalone' ? renderStandaloneUnitMatrix() : renderProjectUnitStacking()}
-            </div>
-            <div style={{ display: activeSection === 4 ? 'block' : 'none' }}>{renderOwnership()}</div>
-            <div style={{ display: activeSection === 5 ? 'block' : 'none' }}>{renderMedia()}</div>
+            {listingNature === 'standalone' ? (
+              <>
+                <div style={{ display: activeSection === 0 ? 'block' : 'none' }}>{renderBasicInfo()}</div>
+                <div style={{ display: activeSection === 1 ? 'block' : 'none' }}>{renderLocation()}</div>
+                <div style={{ display: activeSection === 2 ? 'block' : 'none' }}>{renderPricing()}</div>
+                <div style={{ display: activeSection === 3 ? 'block' : 'none' }}>{renderOwnership()}</div>
+                <div style={{ display: activeSection === 4 ? 'block' : 'none' }}>{renderMedia()}</div>
+              </>
+            ) : (
+              <>
+                <div style={{ display: activeSection === 0 ? 'block' : 'none' }}>{renderBasicInfo()}</div>
+                <div style={{ display: activeSection === 1 ? 'block' : 'none' }}>{renderLocation()}</div>
+                <div style={{ display: activeSection === 2 ? 'block' : 'none' }}>{renderPricing()}</div>
+                <div style={{ display: activeSection === 3 ? 'block' : 'none' }}>{renderProjectUnitStacking()}</div>
+                <div style={{ display: activeSection === 4 ? 'block' : 'none' }}>{renderOwnership()}</div>
+                <div style={{ display: activeSection === 5 ? 'block' : 'none' }}>{renderMedia()}</div>
+              </>
+            )}
 
             {/* Bottom navigation bar */}
             <div className="mt-8 flex items-center justify-between pt-4 border-t border-[#ebebeb]">
@@ -1607,17 +1509,19 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
             {renderPricing()}
           </div>
 
-          <div className="px-5 pt-6 pb-5 border-b border-zinc-100 space-y-4">
-            <h3 className="text-[11px] font-black text-zinc-900 pb-2.5 uppercase tracking-wider flex items-baseline gap-2 border-b border-zinc-100">
-              <span className="font-serif italic font-bold text-[#d4ad4d] text-sm">04.</span>
-              <span>{listingNature === 'standalone' ? 'Unit Specifications & Matrix' : 'Unit Inventory & Stacking Matrix'}</span>
-            </h3>
-            {listingNature === 'standalone' ? renderStandaloneUnitMatrix() : renderProjectUnitStacking()}
-          </div>
+          {listingNature === 'project' && (
+            <div className="px-5 pt-6 pb-5 border-b border-zinc-100 space-y-4">
+              <h3 className="text-[11px] font-black text-zinc-900 pb-2.5 uppercase tracking-wider flex items-baseline gap-2 border-b border-zinc-100">
+                <span className="font-serif italic font-bold text-[#d4ad4d] text-sm">04.</span>
+                <span>Unit Inventory & Stacking Matrix</span>
+              </h3>
+              {renderProjectUnitStacking()}
+            </div>
+          )}
 
           <div className="px-5 pt-6 pb-5 border-b border-zinc-100 space-y-4">
             <h3 className="text-[11px] font-black text-zinc-900 pb-2.5 uppercase tracking-wider flex items-baseline gap-2 border-b border-zinc-100">
-              <span className="font-serif italic font-bold text-[#d4ad4d] text-sm">05.</span>
+              <span className="font-serif italic font-bold text-[#d4ad4d] text-sm">{listingNature === 'project' ? '05.' : '04.'}</span>
               <span>{listingNature === 'standalone' ? 'Ownership & Private Terms' : 'Developer & Mandate Terms'}</span>
             </h3>
             {renderOwnership()}
@@ -1625,7 +1529,7 @@ export function PropertyForm({ initialValues = {}, mode = 'create' }: PropertyFo
 
           <div className="px-5 pt-6 pb-8 space-y-4">
             <h3 className="text-[11px] font-black text-zinc-900 pb-2.5 uppercase tracking-wider flex items-baseline gap-2 border-b border-zinc-100">
-              <span className="font-serif italic font-bold text-[#d4ad4d] text-sm">06.</span>
+              <span className="font-serif italic font-bold text-[#d4ad4d] text-sm">{listingNature === 'project' ? '06.' : '05.'}</span>
               <span>Media Uploads</span>
             </h3>
             {renderMedia()}
