@@ -128,7 +128,7 @@ export const SEED_COMMISSIONS: CommissionEntry[] = [
     id: 'comm-2',
     deal_id: 'tx-2',
     client_name: 'Ananya Sharma',
-    property_title: 'Pristine Kyra',
+    property_title: 'Pristine Kyra Luxury Suites',
     unit_number: 'B-1602',
     booking_value: 31000000, // ₹3.10 Cr
     commission_rate: 2.0,
@@ -144,7 +144,7 @@ export const SEED_COMMISSIONS: CommissionEntry[] = [
     id: 'comm-3',
     deal_id: 'tx-3',
     client_name: 'Vikram Malhotra',
-    property_title: 'Power Heights Corporate Park',
+    property_title: 'Power Heights Corporate IT Park',
     unit_number: 'E-0801',
     booking_value: 14800000, // ₹1.48 Cr
     commission_rate: 1.0,
@@ -158,18 +158,49 @@ export const SEED_COMMISSIONS: CommissionEntry[] = [
   {
     id: 'comm-4',
     deal_id: 'tx-4',
-    client_name: 'Rajesh Gupta',
-    property_title: 'Vivencia Heritage Villa',
-    unit_number: 'V-09',
+    client_name: 'Rajesh & Sunita Gupta',
+    property_title: 'Vivencia Villa Reserve',
+    unit_number: 'V-08',
     booking_value: 48000000, // ₹4.80 Cr
-    commission_rate: 1.5,
-    total_commission: 720000,
-    paid_amount: 720000,
+    commission_rate: 2.0,
+    total_commission: 960000, // ₹9.60 L
+    paid_amount: 960000,
     pending_amount: 0,
-    recipient_type: 'Sales Executive',
-    recipient_name: 'Benazir Bhayani (In-House)',
+    recipient_type: 'Channel Partner',
+    recipient_name: 'Knight Frank India',
+    status: 'Fully Paid',
+    last_payout_date: '2026-09-02'
+  },
+  {
+    id: 'comm-5',
+    deal_id: 'tx-5',
+    client_name: 'Rajiv & Meera Bajaj',
+    property_title: 'Baner Pinnacle Skyline Duplex',
+    unit_number: 'P-1801',
+    booking_value: 32000000, // ₹3.20 Cr
+    commission_rate: 1.75,
+    total_commission: 560000, // ₹5.60 L
+    paid_amount: 560000,
+    pending_amount: 0,
+    recipient_type: 'Channel Partner',
+    recipient_name: 'Square Yards Premier',
     status: 'Fully Paid',
     last_payout_date: '2026-08-30'
+  },
+  {
+    id: 'comm-6',
+    deal_id: 'tx-6',
+    client_name: 'Dr. K. S. Venkataraman',
+    property_title: 'Solitaire Grand Penthouse',
+    unit_number: 'PH-01',
+    booking_value: 62000000, // ₹6.20 Cr
+    commission_rate: 1.0,
+    total_commission: 620000, // ₹6.20 L
+    paid_amount: 0,
+    pending_amount: 620000,
+    recipient_type: 'Sales Executive',
+    recipient_name: 'Pooja Hegde (In-House)',
+    status: 'Pending Approval'
   }
 ];
 

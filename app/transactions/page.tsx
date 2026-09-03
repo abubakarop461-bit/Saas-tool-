@@ -39,6 +39,8 @@ import {
   fetchTransactions,
   saveTransactions
 } from '@/lib/transactions';
+import { SEED_PROPERTIES, SEED_SALESPEOPLE } from '@/lib/queries';
+import { SEED_CHANNEL_PARTNERS } from '@/lib/partners';
 import type { CommissionEntry } from '@/lib/partners';
 
 export default function TransactionsPage() {
@@ -63,13 +65,13 @@ export default function TransactionsPage() {
   // New Transaction Form State
   const [newClientName, setNewClientName] = useState('');
   const [newClientPhone, setNewClientPhone] = useState('');
-  const [newPropertyTitle, setNewPropertyTitle] = useState('Vivencia Luxury Residences');
-  const [newUnitNumber, setNewUnitNumber] = useState('B-1402');
-  const [newConfig, setNewConfig] = useState('3 BHK');
-  const [newDealValue, setNewDealValue] = useState('14500000');
+  const [newPropertyTitle, setNewPropertyTitle] = useState(SEED_PROPERTIES[0]?.title || 'Luxe Azure Palms - Tower A');
+  const [newUnitNumber, setNewUnitNumber] = useState(SEED_PROPERTIES[0]?.unit_no || 'A-1204');
+  const [newConfig, setNewConfig] = useState(SEED_PROPERTIES[0]?.configuration || '3 BHK');
+  const [newDealValue, setNewDealValue] = useState(String(SEED_PROPERTIES[0]?.price || 13500000));
   const [newTokenAmount, setNewTokenAmount] = useState('500000');
   const [newAgent, setNewAgent] = useState('Rishi Mahboobani');
-  const [newPartner, setNewPartner] = useState('ABC Realty');
+  const [newPartner, setNewPartner] = useState('ABC Realty Consultants');
   const [newStage, setNewStage] = useState<TransactionStage>('Token / EOI');
 
   // Filtered transactions
@@ -87,17 +89,26 @@ export default function TransactionsPage() {
     });
   }, [transactions, searchQuery, stageFilter]);
 
-  // Aggregate Metrics
-  const totalPipelineValue = useMemo(() => transactions.reduce((acc, t) => acc + t.deal_value, 0), [transactions]);
-  const totalTokensCollected = useMemo(() => transactions.reduce((acc, t) => acc + t.token_amount, 0), [transactions]);
-  const activeBookingsCount = useMemo(() => transactions.filter(t => t.booking_status === 'Confirmed').length, [transactions]);
+  // Aggregate Metrics & Exact Multi-Milestone Math
+  const totalPipelineValue = useMemo(() => transactions.reduce((acc, t) => acc + (t.deal_value || 0), 0), [transactions]);
+  const totalTokensCollected = useMemo(() => transactions.reduce((acc, t) => acc + (t.token_amount || 0), 0), [transactions]);
+  const totalCollectionsReceived = useMemo(() => {
+    return transactions.reduce((acc, t) => {
+      const paidSum = t.payment_schedule
+        ? t.payment_schedule.filter(m => m.status === 'Paid').reduce((mAcc, m) => mAcc + (m.amount || 0), 0)
+        : t.token_amount || 0;
+      return acc + paidSum;
+    }, 0);
+  }, [transactions]);
+  const activeBookingsCount = useMemo(() => transactions.filter(t => t.booking_status === 'Confirmed' || t.booking_status === 'Completed').length, [transactions]);
 
   const inlineStats = useMemo(() => [
     { label: 'Active Deals', count: transactions.length, colorClass: 'bg-zinc-400' },
-    { label: 'Total Deal Value', count: formatPriceShort(totalPipelineValue), colorClass: 'bg-emerald-500' },
-    { label: 'Tokens Collected', count: formatPriceShort(totalTokensCollected), colorClass: 'bg-blue-500' },
+    { label: 'Gross Deal Volume', count: formatPriceShort(totalPipelineValue), colorClass: 'bg-[#b8922e]' },
+    { label: 'Collections Received', count: formatPriceShort(totalCollectionsReceived), colorClass: 'bg-emerald-500' },
+    { label: 'Tokens Escrowed', count: formatPriceShort(totalTokensCollected), colorClass: 'bg-blue-500' },
     { label: 'Confirmed Bookings', count: activeBookingsCount, colorClass: 'bg-[#d4ad4d]' }
-  ], [transactions, totalPipelineValue, totalTokensCollected, activeBookingsCount]);
+  ], [transactions, totalPipelineValue, totalCollectionsReceived, totalTokensCollected, activeBookingsCount]);
 
   const handleStageChange = (newStageValue: TransactionStage) => {
     if (!selectedTx) return;
@@ -132,6 +143,11 @@ export default function TransactionsPage() {
     e.preventDefault();
     const dealVal = Number(newDealValue) || 10000000;
     const tokVal = Number(newTokenAmount) || 500000;
+    const m1 = tokVal;
+    const m2 = Math.round(dealVal * 0.15);
+    const m3 = Math.round(dealVal * 0.35);
+    const m4 = Math.max(0, dealVal - m1 - m2 - m3);
+
     const newTx: DealTransaction = {
       id: `tx-${Date.now()}`,
       client_name: newClientName,
@@ -149,12 +165,12 @@ export default function TransactionsPage() {
       booking_date: new Date().toISOString().split('T')[0],
       expected_closure_date: new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
       payment_schedule: [
-        { id: `m-${Date.now()}-1`, name: 'Token Amount', amount: tokVal, dueDate: 'Immediate', status: 'Paid', paidDate: new Date().toISOString().split('T')[0] },
-        { id: `m-${Date.now()}-2`, name: 'Agreement (15%)', amount: Math.round(dealVal * 0.15), dueDate: 'In 15 days', status: 'Pending' },
-        { id: `m-${Date.now()}-3`, name: 'Installments', amount: Math.round(dealVal * 0.35), dueDate: 'In 60 days', status: 'Pending' },
-        { id: `m-${Date.now()}-4`, name: 'Final Handover', amount: Math.round(dealVal * 0.50) - tokVal, dueDate: 'On Possession', status: 'Pending' }
+        { id: `m-${Date.now()}-1`, name: 'Token Amount', amount: m1, dueDate: 'Immediate', status: 'Paid', paidDate: new Date().toISOString().split('T')[0] },
+        { id: `m-${Date.now()}-2`, name: 'Agreement (15%)', amount: m2, dueDate: 'In 15 days', status: 'Pending' },
+        { id: `m-${Date.now()}-3`, name: 'Construction Installment (35%)', amount: m3, dueDate: 'In 60 days', status: 'Pending' },
+        { id: `m-${Date.now()}-4`, name: 'Handover & Possession Balance', amount: m4, dueDate: 'On Possession', status: 'Pending' }
       ],
-      notes: 'New transaction registered.'
+      notes: 'New verified transaction registered.'
     };
     const updatedAll = [newTx, ...transactions];
     setTransactions(updatedAll);
@@ -429,10 +445,11 @@ export default function TransactionsPage() {
 
         {/* Footer Summary */}
         <div className="px-7 py-3.5 bg-[#fafaf8] border-t border-[#ebebeb] flex flex-wrap items-center justify-between gap-4 text-xs font-bold text-zinc-500">
-          <span>Showing {filteredTransactions.length} of {transactions.length} commercial transactions</span>
-          <div className="flex items-center gap-4">
-            <span>Total Value: <strong className="text-zinc-900">{formatCurrency(totalPipelineValue)}</strong></span>
-            <span>Tokens Collected: <strong className="text-emerald-700">{formatCurrency(totalTokensCollected)}</strong></span>
+          <span>Showing {filteredTransactions.length} of {transactions.length} verified transactions</span>
+          <div className="flex flex-wrap items-center gap-4">
+            <span>Gross Pipeline: <strong className="text-zinc-900">{formatCurrency(totalPipelineValue)}</strong></span>
+            <span>Collections Received: <strong className="text-emerald-700">{formatCurrency(totalCollectionsReceived)}</strong></span>
+            <span>Tokens Escrowed: <strong className="text-blue-700">{formatCurrency(totalTokensCollected)}</strong></span>
           </div>
         </div>
       </div>
@@ -689,12 +706,23 @@ export default function TransactionsPage() {
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Property Project</label>
-                  <input 
-                    type="text" 
+                  <select 
                     value={newPropertyTitle}
-                    onChange={(e) => setNewPropertyTitle(e.target.value)}
-                    className="w-full h-8 bg-white border border-[#e8e7e4] rounded-lg px-3 text-xs"
-                  />
+                    onChange={(e) => {
+                      const selectedProp = SEED_PROPERTIES.find(p => p.title === e.target.value);
+                      setNewPropertyTitle(e.target.value);
+                      if (selectedProp) {
+                        if (selectedProp.unit_no) setNewUnitNumber(selectedProp.unit_no);
+                        if (selectedProp.configuration) setNewConfig(selectedProp.configuration);
+                        if (selectedProp.price) setNewDealValue(String(selectedProp.price));
+                      }
+                    }}
+                    className="w-full h-8 bg-white border border-[#e8e7e4] rounded-lg px-2 text-xs font-semibold cursor-pointer"
+                  >
+                    {SEED_PROPERTIES.map(p => (
+                      <option key={p.id} value={p.title}>{p.title} ({p.configuration})</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Unit Number & Config</label>
@@ -702,14 +730,16 @@ export default function TransactionsPage() {
                     <input 
                       type="text" 
                       value={newUnitNumber}
+                      placeholder="Unit No"
                       onChange={(e) => setNewUnitNumber(e.target.value)}
-                      className="h-8 bg-white border border-[#e8e7e4] rounded-lg px-2 text-xs"
+                      className="h-8 bg-white border border-[#e8e7e4] rounded-lg px-2 text-xs font-semibold"
                     />
                     <input 
                       type="text" 
                       value={newConfig}
+                      placeholder="Config"
                       onChange={(e) => setNewConfig(e.target.value)}
-                      className="h-8 bg-white border border-[#e8e7e4] rounded-lg px-2 text-xs"
+                      className="h-8 bg-white border border-[#e8e7e4] rounded-lg px-2 text-xs font-semibold"
                     />
                   </div>
                 </div>
@@ -719,7 +749,7 @@ export default function TransactionsPage() {
                     type="number" 
                     value={newDealValue}
                     onChange={(e) => setNewDealValue(e.target.value)}
-                    className="w-full h-8 bg-white border border-[#e8e7e4] rounded-lg px-3 text-xs font-bold"
+                    className="w-full h-8 bg-white border border-[#e8e7e4] rounded-lg px-3 text-xs font-bold text-[#b8922e]"
                   />
                 </div>
                 <div className="space-y-1">
@@ -728,26 +758,33 @@ export default function TransactionsPage() {
                     type="number" 
                     value={newTokenAmount}
                     onChange={(e) => setNewTokenAmount(e.target.value)}
-                    className="w-full h-8 bg-white border border-[#e8e7e4] rounded-lg px-3 text-xs font-bold"
+                    className="w-full h-8 bg-white border border-[#e8e7e4] rounded-lg px-3 text-xs font-bold text-emerald-700"
                   />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Sales Agent</label>
-                  <input 
-                    type="text" 
+                  <select 
                     value={newAgent}
                     onChange={(e) => setNewAgent(e.target.value)}
-                    className="w-full h-8 bg-white border border-[#e8e7e4] rounded-lg px-3 text-xs"
-                  />
+                    className="w-full h-8 bg-white border border-[#e8e7e4] rounded-lg px-2 text-xs font-semibold cursor-pointer"
+                  >
+                    {SEED_SALESPEOPLE.map(agent => (
+                      <option key={agent.id} value={agent.full_name}>{agent.full_name} ({agent.role})</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Channel Partner / Source</label>
-                  <input 
-                    type="text" 
+                  <select 
                     value={newPartner}
                     onChange={(e) => setNewPartner(e.target.value)}
-                    className="w-full h-8 bg-white border border-[#e8e7e4] rounded-lg px-3 text-xs"
-                  />
+                    className="w-full h-8 bg-white border border-[#e8e7e4] rounded-lg px-2 text-xs font-semibold cursor-pointer"
+                  >
+                    <option value="Direct In-House">Direct In-House (0% CP Comm)</option>
+                    {SEED_CHANNEL_PARTNERS.map(cp => (
+                      <option key={cp.id} value={cp.firm_name}>{cp.firm_name} ({cp.tier} · {cp.commission_rate}%)</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
