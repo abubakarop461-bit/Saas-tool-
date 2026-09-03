@@ -678,7 +678,6 @@ export default function PropertyInventoryPage() {
                     />
                   </th>
                   <th>Property Details</th>
-                  <th>Classification</th>
                   <th>Location</th>
                   <th>Type</th>
                   <th>Config / Units</th>
@@ -693,7 +692,7 @@ export default function PropertyInventoryPage() {
               <tbody>
                 {filteredProperties.length === 0 ? (
                   <tr>
-                    <td colSpan={perms.canDeleteProperties ? 13 : 12} className="px-4 py-12 text-center text-xs font-semibold text-zinc-400">
+                    <td colSpan={perms.canDeleteProperties ? 12 : 11} className="px-4 py-12 text-center text-xs font-semibold text-zinc-400">
                       <Home className="h-8 w-8 text-zinc-300 mx-auto mb-2" />
                       No properties match your filters
                     </td>
@@ -702,6 +701,9 @@ export default function PropertyInventoryPage() {
                   filteredProperties.map((prop) => {
                     const isProj = isProjectListing(prop);
                     const projDetails = isProj ? getProjectDetails(prop) : null;
+                    const directLetters = isProj 
+                      ? 'PR' 
+                      : (prop.property_type ? prop.property_type.replace(/[^A-Za-z]/g, '').substring(0, 2).toUpperCase() : 'ST');
 
                     return (
                       <tr 
@@ -717,27 +719,33 @@ export default function PropertyInventoryPage() {
                           />
                         </td>
 
-                        {/* Title & Code */}
+                        {/* Title & Code with Direct Two-Letter Info & Badge */}
                         <td onClick={() => handleOpenProperty(prop)}>
                           <AvatarCell 
                             name={prop.title || 'No Title'} 
-                            subtext={prop.property_code || '—'} 
+                            subtext={
+                              isProj 
+                                ? `${prop.property_code || 'PRJ'} • Multi-Tower Project` 
+                                : `${prop.property_code || 'PRP'} • Standalone Property`
+                            }
+                            customInitials={directLetters}
+                            avatarBg={
+                              isProj 
+                                ? 'bg-indigo-100 text-indigo-800 border border-indigo-250 ring-1 ring-indigo-500/20 shadow-2xs' 
+                                : 'bg-[#fff9e6] text-[#b87d00] border border-[#ffeaa8] ring-1 ring-amber-500/20 shadow-2xs'
+                            }
+                            badge={
+                              isProj ? (
+                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 text-[9px] font-black uppercase font-mono tracking-tight">
+                                  Project
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-amber-50 text-[#b8922e] border border-amber-200 text-[9px] font-black uppercase font-mono tracking-tight">
+                                  Individual
+                                </span>
+                              )
+                            }
                           />
-                        </td>
-
-                        {/* Classification Badge */}
-                        <td onClick={() => handleOpenProperty(prop)}>
-                          {isProj ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-black uppercase tracking-wider">
-                              <Building2 className="h-3 w-3 text-indigo-500" />
-                              Project
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-[#b8922e] text-[10px] font-black uppercase tracking-wider">
-                              <Home className="h-3 w-3 text-[#d4ad4d]" />
-                              Standalone
-                            </span>
-                          )}
                         </td>
 
                         {/* Location */}
