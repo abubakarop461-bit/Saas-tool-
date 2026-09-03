@@ -6,10 +6,11 @@ interface AvatarCellProps {
   subtext?: string;
   avatarBg?: string;
   customInitials?: string;
+  icon?: React.ReactNode;
   badge?: React.ReactNode;
 }
 
-export function AvatarCell({ name, subtext, avatarBg, customInitials, badge }: AvatarCellProps) {
+export function AvatarCell({ name, subtext, avatarBg, customInitials, icon, badge }: AvatarCellProps) {
   const getInitials = (n: string) => {
     if (customInitials) return customInitials;
     if (!n) return '??';
@@ -56,8 +57,8 @@ export function AvatarCell({ name, subtext, avatarBg, customInitials, badge }: A
 
   return (
     <div className="dc-name-cell">
-      <div className={`dc-avatar ${bgClass} font-mono font-black shrink-0 relative`}>
-        {initials}
+      <div className={`dc-avatar ${bgClass} shrink-0 flex items-center justify-center`}>
+        {icon ? icon : initials}
       </div>
       <div className="flex flex-col min-w-0 text-left">
         <div className="flex items-center gap-1.5 flex-wrap">

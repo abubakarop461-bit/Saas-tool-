@@ -701,9 +701,6 @@ export default function PropertyInventoryPage() {
                   filteredProperties.map((prop) => {
                     const isProj = isProjectListing(prop);
                     const projDetails = isProj ? getProjectDetails(prop) : null;
-                    const directLetters = isProj 
-                      ? 'PR' 
-                      : (prop.property_type ? prop.property_type.replace(/[^A-Za-z]/g, '').substring(0, 2).toUpperCase() : 'ST');
 
                     return (
                       <tr 
@@ -719,31 +716,20 @@ export default function PropertyInventoryPage() {
                           />
                         </td>
 
-                        {/* Title & Code with Direct Two-Letter Info & Badge */}
+                        {/* Title & Code with Square Box Icon differentiation */}
                         <td onClick={() => handleOpenProperty(prop)}>
                           <AvatarCell 
                             name={prop.title || 'No Title'} 
-                            subtext={
+                            subtext={prop.property_code || '—'}
+                            icon={
                               isProj 
-                                ? `${prop.property_code || 'PRJ'} • Multi-Tower Project` 
-                                : `${prop.property_code || 'PRP'} • Standalone Property`
+                                ? <Building2 className="h-4 w-4 text-indigo-600" /> 
+                                : <Home className="h-4 w-4 text-[#b8922e]" />
                             }
-                            customInitials={directLetters}
                             avatarBg={
                               isProj 
-                                ? 'bg-indigo-100 text-indigo-800 border border-indigo-250 ring-1 ring-indigo-500/20 shadow-2xs' 
-                                : 'bg-[#fff9e6] text-[#b87d00] border border-[#ffeaa8] ring-1 ring-amber-500/20 shadow-2xs'
-                            }
-                            badge={
-                              isProj ? (
-                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 text-[9px] font-black uppercase font-mono tracking-tight">
-                                  Project
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-amber-50 text-[#b8922e] border border-amber-200 text-[9px] font-black uppercase font-mono tracking-tight">
-                                  Individual
-                                </span>
-                              )
+                                ? 'bg-indigo-50 text-indigo-600 border border-indigo-200 shadow-2xs' 
+                                : 'bg-amber-50 text-[#b8922e] border border-amber-200 shadow-2xs'
                             }
                           />
                         </td>
