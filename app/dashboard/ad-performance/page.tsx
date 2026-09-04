@@ -30,7 +30,8 @@ import {
   Users2,
   Compass,
   Layers,
-  Search
+  Search,
+  FileSpreadsheet
 } from 'lucide-react';
 import { 
   computeAdPerformanceMetrics, 
@@ -78,7 +79,33 @@ export default function AdPerformancePage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedPropertyId, setSelectedPropertyId] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState<'cards' | 'table'>('table');
+  // Extract Sheet State
+  const [isExtractingSheet, setIsExtractingSheet] = useState(false);
+
+  const handleExtractSheet = async () => {
+    setIsExtractingSheet(true);
+    try {
+      const response = await fetch('/api/meta/leads/export', { method: 'POST' });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to extract Meta Lead Ads sheet.');
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Meta_Leads_${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast.success('Raw Meta Lead Ads sheet extracted successfully!');
+    } catch (err: any) {
+      toast.error(err.message || 'Extract Sheet failed');
+    } finally {
+      setIsExtractingSheet(false);
+    }
+  };
 
   // Inline table spend editing state
   const [editingSpend, setEditingSpend] = useState<Record<string, string>>({});
@@ -291,6 +318,25 @@ export default function AdPerformancePage() {
               ))}
             </select>
           </div>
+
+          {/* Extract Sheet Action Button */}
+          <button
+            onClick={handleExtractSheet}
+            disabled={isExtractingSheet}
+            className="inline-flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-lg bg-zinc-950 hover:bg-black text-[#d4ad4d] border border-zinc-800 text-xs font-bold font-mono tracking-wider transition-all cursor-pointer shadow-xs disabled:opacity-50"
+          >
+            {isExtractingSheet ? (
+              <>
+                <Sparkles className="h-3.5 w-3.5 text-[#d4ad4d] animate-spin" />
+                <span>Extracting...</span>
+              </>
+            ) : (
+              <>
+                <FileSpreadsheet className="h-3.5 w-3.5 text-[#d4ad4d]" />
+                <span>Extract Sheet</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
 
@@ -430,8 +476,7 @@ export default function AdPerformancePage() {
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="bg-zinc-100/70 border-b border-zinc-200 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
-                <th className="py-3 px-4 min-w-[180px]">Lead Source / Campaign</th>
-                <th className="py-3 px-3">Category</th>
+                <th className="py-3 px-4 min-w-[200px]">Campaign / Source</th>
                 <th className="py-3 px-4 w-[160px]">Ad Spend (₹)</th>
                 <th className="py-3 px-3 text-right">Leads</th>
                 <th className="py-3 px-3 text-right">Qualified</th>
@@ -440,14 +485,13 @@ export default function AdPerformancePage() {
                 <th className="py-3 px-4 text-right">Attributed Rev</th>
                 <th className="py-3 px-3 text-right">CPL</th>
                 <th className="py-3 px-3 text-right">CAC</th>
-                <th className="py-3 px-3 text-right">ROAS</th>
-                <th className="py-3 px-4 text-right">ROI %</th>
+                <th className="py-3 px-4 text-right">ROAS</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-200">
               {filteredRows.length === 0 ? (
                 <tr>
-                  <td colSpan={12} className="py-8 text-center text-zinc-400 font-medium">
+                  <td colSpan={10} className="py-8 text-center text-zinc-400 font-medium">
                     No marketing sources found matching criteria
                   </td>
                 </tr>
@@ -455,25 +499,23 @@ export default function AdPerformancePage() {
                 filteredRows.map((row) => (
                   <tr key={row.source} className="hover:bg-zinc-50/80 transition-colors group">
                     
-                    {/* Source Name */}
+                    {/* 1. Campaign / Source (with inline FB/IG Meta badge) */}
                     <td className="py-3 px-4 font-bold text-zinc-900">
-                      {row.source}
+                      <div className="flex items-center gap-2">
+                        {row.source.toLowerCase().includes('instagram') || row.source.toLowerCase().includes('ig') ? (
+                          <span className="px-1.5 py-0.5 rounded bg-pink-100 text-pink-700 text-[9px] font-mono font-bold shrink-0">
+                            IG
+                          </span>
+                        ) : row.source.toLowerCase().includes('facebook') || row.source.toLowerCase().includes('meta') || row.source.toLowerCase().includes('fb') ? (
+                          <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-mono font-bold shrink-0">
+                            FB
+                          </span>
+                        ) : null}
+                        <span className="truncate">{row.source}</span>
+                      </div>
                     </td>
 
-                    {/* Category Badge */}
-                    <td className="py-3 px-3">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                        row.category === 'Paid Digital' ? 'bg-blue-100 text-blue-700' :
-                        row.category === 'Portals' ? 'bg-purple-100 text-purple-700' :
-                        row.category === 'Channel Partners' ? 'bg-amber-100 text-amber-800' :
-                        row.category === 'Organic / Direct' ? 'bg-emerald-100 text-emerald-700' :
-                        'bg-zinc-100 text-zinc-600'
-                      }`}>
-                        {row.category}
-                      </span>
-                    </td>
-
-                    {/* Editable Spend */}
+                    {/* 2. Ad Spend (₹) */}
                     <td className="py-2 px-4">
                       <div className="flex items-center gap-1.5">
                         <span className="text-zinc-400 font-bold">₹</span>
@@ -487,59 +529,51 @@ export default function AdPerformancePage() {
                           onClick={() => handleSaveSpend(row.source)}
                           disabled={savingSource === row.source}
                           title="Save spend to D1 database"
-                          className="p-1 rounded bg-zinc-900 text-[#d4ad4d] hover:bg-zinc-800 disabled:opacity-50 transition-all"
+                          className="p-1 rounded bg-zinc-900 text-[#d4ad4d] hover:bg-zinc-800 disabled:opacity-50 transition-all cursor-pointer"
                         >
                           <Save className="h-3 w-3" />
                         </button>
                       </div>
                     </td>
 
-                    {/* Leads */}
+                    {/* 3. Leads */}
                     <td className="py-3 px-3 text-right font-bold text-zinc-900">
                       {row.leadsCount}
                     </td>
 
-                    {/* Qualified */}
+                    {/* 4. Qualified */}
                     <td className="py-3 px-3 text-right font-bold text-emerald-600">
                       {row.qualifiedCount}
                     </td>
 
-                    {/* Visits */}
+                    {/* 5. Visits */}
                     <td className="py-3 px-3 text-right font-bold text-indigo-600">
                       {row.visitsCount}
                     </td>
 
-                    {/* Deals */}
+                    {/* 6. Deals */}
                     <td className="py-3 px-3 text-right font-bold text-amber-600">
                       {row.dealsCount}
                     </td>
 
-                    {/* Revenue */}
+                    {/* 7. Attributed Rev */}
                     <td className="py-3 px-4 text-right font-extrabold text-emerald-700">
                       {row.revenue > 0 ? formatPriceShort(row.revenue) : '—'}
                     </td>
 
-                    {/* CPL */}
+                    {/* 8. CPL */}
                     <td className="py-3 px-3 text-right font-semibold text-zinc-700">
                       {row.cpl !== null ? `₹${Math.round(row.cpl).toLocaleString('en-IN')}` : '—'}
                     </td>
 
-                    {/* CAC */}
+                    {/* 9. CAC */}
                     <td className="py-3 px-3 text-right font-semibold text-zinc-700">
                       {row.cac !== null ? `₹${Math.round(row.cac).toLocaleString('en-IN')}` : '—'}
                     </td>
 
-                    {/* ROAS */}
-                    <td className="py-3 px-3 text-right font-extrabold text-zinc-900">
+                    {/* 10. ROAS */}
+                    <td className="py-3 px-4 text-right font-extrabold text-zinc-900">
                       {row.roas !== null ? `${row.roas.toFixed(2)}x` : '—'}
-                    </td>
-
-                    {/* ROI % */}
-                    <td className={`py-3 px-4 text-right font-extrabold ${
-                      row.roi !== null && row.roi >= 0 ? 'text-emerald-600' : 
-                      row.roi !== null ? 'text-red-600' : 'text-zinc-400'
-                    }`}>
-                      {row.roi !== null ? `${row.roi >= 0 ? '+' : ''}${row.roi.toFixed(0)}%` : '—'}
                     </td>
 
                   </tr>
